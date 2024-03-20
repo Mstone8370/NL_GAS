@@ -26,4 +26,26 @@ public:
 			BindAction(IA, TriggerEvent, Object, Func);
 		}
 	}
+
+	template<class UserClass, typename PressedFuncType, typename ReleasedFuncType>
+	void BindAbilityActions(const UInputConfig* InputConfig, UserClass* Object, PressedFuncType PressedFunc, ReleasedFuncType ReleasedFunc)
+	{
+		check(InputConfig);
+
+		for (const FTaggedInputAction& Action : InputConfig->AbilityInputActions)
+		{
+			if (Action.InputAction && Action.InputTag.IsValid())
+			{
+				if (PressedFunc)
+				{
+					BindAction(Action.InputAction, ETriggerEvent::Triggered, Object, PressedFunc, Action.InputTag);
+				}
+
+				if (ReleasedFunc)
+				{
+					BindAction(Action.InputAction, ETriggerEvent::Completed, Object, ReleasedFunc, Action.InputTag);
+				}
+			}
+		}
+	}
 };

@@ -3,11 +3,13 @@
 
 #include "Player/NLPlayerController.h"
 
+#include "AbilitySystemBlueprintLibrary.h"
 #include "InputMappingContext.h"
 #include "EnhancedInputSubsystems.h"
 #include "GameFramework/Character.h"
 #include "Input/NLEnhancedInputComponent.h"
 #include "NLGameplayTags.h"
+#include "AbilitySystem/NLAbilitySystemComponent.h"
 
 void ANLPlayerController::SetupInputComponent()
 {
@@ -38,9 +40,26 @@ void ANLPlayerController::SetupInputComponent()
     NLInputComponent->BindActionByTag(IC, Input_Default_Move, ETriggerEvent::Triggered, this, &ANLPlayerController::Move);
     NLInputComponent->BindActionByTag(IC, Input_Default_Look, ETriggerEvent::Triggered, this, &ANLPlayerController::Look);
     NLInputComponent->BindActionByTag(IC, Input_Default_Jump, ETriggerEvent::Triggered, this, &ANLPlayerController::Jump);
-    NLInputComponent->BindActionByTag(IC, Input_Default_Crouch, ETriggerEvent::Triggered, this, &ANLPlayerController::Crouch);
-    NLInputComponent->BindActionByTag(IC, Input_Default_Crouch, ETriggerEvent::Completed, this, &ANLPlayerController::UnCrouch);
+    NLInputComponent->BindActionByTag(IC, Input_Default_CrouchHold, ETriggerEvent::Triggered, this, &ANLPlayerController::Crouch);
+    NLInputComponent->BindActionByTag(IC, Input_Default_CrouchHold, ETriggerEvent::Completed, this, &ANLPlayerController::UnCrouch);
     NLInputComponent->BindActionByTag(IC, Input_Default_CrouchToggle, ETriggerEvent::Triggered, this, &ANLPlayerController::CrouchToggle);
+
+    NLInputComponent->BindAbilityActions(
+        IC,
+        this,
+        &ANLPlayerController::AbilityInputTagPressed,
+        &ANLPlayerController::AbilityInputTagReleased
+    );
+}
+
+void ANLPlayerController::PostProcessInput(const float DeltaTime, const bool bGamePaused)
+{
+    if (GetNLAbilitySystemComponent())
+    {
+        GetNLAbilitySystemComponent()->ProcessAbilityInput(DeltaTime, bGamePaused);
+    }
+
+    Super::PostProcessInput(DeltaTime, bGamePaused);
 }
 
 void ANLPlayerController::Move(const FInputActionValue& Value)
@@ -85,4 +104,31 @@ void ANLPlayerController::CrouchToggle()
     {
         GetCharacter()->Crouch();
     }
+}
+
+void ANLPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)
+{
+    if (GetNLAbilitySystemComponent())
+    {
+        GetNLAbilitySystemComponent()->AbilityInputTagPressed(InputTag);
+    }
+}
+
+void ANLPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
+{
+    if (GetNLAbilitySystemComponent())
+    {
+        GetNLAbilitySystemComponent()->AbilityInputTagReleased(InputTag);
+    }
+}
+
+UNLAbilitySystemComponent* ANLPlayerController::GetNLAbilitySystemComponent()
+{
+    if (!LNAbilitySystemComponent)
+    {
+        LNAbilitySystemComponent = Cast<UNLAbilitySystemComponent>(
+            UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetPawn<APawn>())
+        );
+    }
+    return LNAbilitySystemComponent;
 }

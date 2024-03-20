@@ -7,6 +7,10 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Characters/NLCharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Player/NLPlayerState.h"
+#include "Player/NLPlayerController.h"
+#include "AbilitySystemComponent.h"
+#include "AbilitySystem/NLAbilitySystemComponent.h"
 
 ANLPlayerCharacter::ANLPlayerCharacter()
     : CrouchInterpSpeed(10.f)
@@ -55,11 +59,40 @@ bool ANLPlayerCharacter::CanJumpInternal_Implementation() const
     return /*!bIsCrouched &&*/ JumpIsAllowedInternal();
 }
 
+void ANLPlayerCharacter::InitAbilityActorInfo()
+{
+    ANLPlayerState* PS = GetPlayerState<ANLPlayerState>();
+
+    check(PS);
+
+    AbilitySystemComponent = PS->GetAbilitySystemComponent();
+    AbilitySystemComponent->InitAbilityActorInfo(PS, this);
+
+    AttributeSet = PS->GetAttributeSet();
+    // TODO: Init Default Attributes
+}
+
 void ANLPlayerCharacter::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
 
     InterpolateCrouch(DeltaSeconds);
+}
+
+void ANLPlayerCharacter::PossessedBy(AController* NewController)
+{
+    Super::PossessedBy(NewController);
+
+    // On Server
+    InitAbilityActorInfo();
+    // TODO: Give Start up Abilities.
+    AddStartupAbilities();
+}
+
+void ANLPlayerCharacter::OnRep_PlayerState()
+{
+    // On Client
+    InitAbilityActorInfo();
 }
 
 void ANLPlayerCharacter::InterpolateCrouch(float DeltaSeconds)
@@ -86,6 +119,7 @@ void ANLPlayerCharacter::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHei
     Super::OnEndCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
 
     TargetSpringArmOffset = BaseSpringArmOffset;
+    bIsInterpolatingCrouch = true;
     if (NLCharacterMovementComponent->IsFalling() && NLCharacterMovementComponent->bFallingCrouchMaintainSightLocation)
     {
         SpringArmComponent->TargetOffset.Z = TargetSpringArmOffset;
@@ -100,8 +134,6 @@ void ANLPlayerCharacter::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHei
     }
     else
     {
-        bIsInterpolatingCrouch = true;
-
         // 캡슐 위치가 Z방향으로 증가했으므로, 시야는 반대로 감소시켜서 이전의 시야 높이를 유지하도록 함.
         SpringArmComponent->TargetOffset.Z -= HalfHeightAdjust;
     }
@@ -112,6 +144,7 @@ void ANLPlayerCharacter::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfH
     Super::OnStartCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
 
     TargetSpringArmOffset = BaseSpringArmOffset - HalfHeightAdjust;
+    bIsInterpolatingCrouch = true;
     if (NLCharacterMovementComponent->IsFalling() && NLCharacterMovementComponent->bFallingCrouchMaintainSightLocation)
     {
         SpringArmComponent->TargetOffset.Z = TargetSpringArmOffset;
@@ -126,8 +159,6 @@ void ANLPlayerCharacter::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfH
     }
     else
     {
-        bIsInterpolatingCrouch = true;
-
         // 캡슐 위치가 Z방향으로 감소했으므로, 시야는 반대로 증가시켜서 이전의 시야 높이를 유지하도록 함.
         SpringArmComponent->TargetOffset.Z += HalfHeightAdjust;
     }

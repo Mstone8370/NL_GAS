@@ -73,3 +73,9 @@ Plugins/*/Intermediate/*
 
 # Cache files for the editor to use
 DerivedDataCache/*
+
+# Lyra assets
+Content/Assets/Lyra/*
+
+# Blender Send to UE default directory
+Content/untitled_category/*

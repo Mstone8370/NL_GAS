@@ -26,8 +26,13 @@ protected:
 
 	virtual bool CanJumpInternal_Implementation() const;
 
+	virtual void InitAbilityActorInfo() override;
+
 public:
 	virtual void Tick(float DeltaSeconds) override;
+
+	virtual void PossessedBy(AController* NewController) override;
+	virtual void OnRep_PlayerState() override;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")

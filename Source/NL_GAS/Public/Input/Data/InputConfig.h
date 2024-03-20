@@ -34,5 +34,8 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TArray<FTaggedInputAction> TaggedInputActions;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TArray<FTaggedInputAction> AbilityInputActions;
+
 	const UInputAction* FindInputActionByTag(const FGameplayTag& InputTag) const;
 };
