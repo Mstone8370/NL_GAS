@@ -19,4 +19,14 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Movement (General Settings)")
 	bool bFallingCrouchMaintainSightLocation = true;
+
+	virtual void Crouch(bool bClientSimulation = false) override;
+	virtual void UnCrouch(bool bClientSimulation = false) override;
+
+	void ShrinkCapsuleHeight();
+	void RestoreCapsuleHeight();
+
+private:
+	bool bIsSimulationClient = false;
+
 };

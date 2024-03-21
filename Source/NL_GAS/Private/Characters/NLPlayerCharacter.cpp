@@ -5,6 +5,7 @@
 
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Characters/NLCharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Player/NLPlayerState.h"
@@ -96,29 +97,52 @@ void ANLPlayerCharacter::OnRep_PlayerState()
     InitAbilityActorInfo();
 }
 
-void ANLPlayerCharacter::InterpolateCrouch(float DeltaSeconds)
+bool ANLPlayerCharacter::CanCrouch() const
 {
-    if (bIsInterpolatingCrouch)
-    {
-        SpringArmComponent->TargetOffset.Z = FMath::FInterpTo(
-            SpringArmComponent->TargetOffset.Z,
-            TargetSpringArmOffset,
-            DeltaSeconds,
-            CrouchInterpSpeed
-        );
+    return !bIsCrouched && GetCharacterMovement() && GetCharacterMovement()->CanEverCrouch() && GetRootComponent() && !GetRootComponent()->IsSimulatingPhysics();
+}
 
-        if (FMath::IsNearlyEqual(SpringArmComponent->TargetOffset.Z, TargetSpringArmOffset, CrouchInterpErrorTolerance))
-        {
-            SpringArmComponent->TargetOffset.Z = TargetSpringArmOffset;
-            bIsInterpolatingCrouch = false;
-        }
+void ANLPlayerCharacter::Crouch(bool bClientSimulation)
+{
+    Super::Crouch(bClientSimulation);
+
+    if (CanCrouch())
+    {
+        // Start interpolate
+        bIsInterpolatingCrouch = true;
+
+        // Change collision size to crouching dimensions
+        const float OldUnscaledHalfHeight = GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight();
+        const float OldUnscaledRadius = GetCapsuleComponent()->GetUnscaledCapsuleRadius();
+        // Height is not allowed to be smaller than radius.
+        const float ClampedCrouchedHalfHeight = FMath::Max3(0.f, OldUnscaledRadius, GetCharacterMovement()->GetCrouchedHalfHeight());
+        //GetCapsuleComponent()->SetCapsuleSize(OldUnscaledRadius, ClampedCrouchedHalfHeight);
+        float HalfHeightAdjust = (OldUnscaledHalfHeight - ClampedCrouchedHalfHeight);
+
+        TargetSpringArmOffset = BaseSpringArmOffset - 2 * HalfHeightAdjust;
     }
+}
+
+void ANLPlayerCharacter::UnCrouch(bool bClientSimulation)
+{
+    Super::UnCrouch(bClientSimulation);
+
+    // Start interpolate
+    bIsInterpolatingCrouch = true;
+    bIsCrouched = false;
+
+    ACharacter* DefaultCharacter = GetClass()->GetDefaultObject<ACharacter>();
+    const float OldUnscaledHalfHeight = GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight();
+    const float HalfHeightAdjust = DefaultCharacter->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight() - OldUnscaledHalfHeight;
+
+    TargetSpringArmOffset = BaseSpringArmOffset + HalfHeightAdjust;
 }
 
 void ANLPlayerCharacter::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
 {
     Super::OnEndCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
 
+    /*
     TargetSpringArmOffset = BaseSpringArmOffset;
     bIsInterpolatingCrouch = true;
     if (NLCharacterMovementComponent->IsFalling() && NLCharacterMovementComponent->bFallingCrouchMaintainSightLocation)
@@ -138,12 +162,15 @@ void ANLPlayerCharacter::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHei
         // 캡슐 위치가 Z방향으로 증가했으므로, 시야는 반대로 감소시켜서 이전의 시야 높이를 유지하도록 함.
         SpringArmComponent->TargetOffset.Z -= HalfHeightAdjust;
     }
+    */
+    SpringArmComponent->TargetOffset.Z -= HalfHeightAdjust;
 }
 
 void ANLPlayerCharacter::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
 {
     Super::OnStartCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
 
+    /*
     TargetSpringArmOffset = BaseSpringArmOffset - HalfHeightAdjust;
     bIsInterpolatingCrouch = true;
     if (NLCharacterMovementComponent->IsFalling() && NLCharacterMovementComponent->bFallingCrouchMaintainSightLocation)
@@ -162,5 +189,35 @@ void ANLPlayerCharacter::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfH
     {
         // 캡슐 위치가 Z방향으로 감소했으므로, 시야는 반대로 증가시켜서 이전의 시야 높이를 유지하도록 함.
         SpringArmComponent->TargetOffset.Z += HalfHeightAdjust;
+    }
+    */
+    SpringArmComponent->TargetOffset.Z += HalfHeightAdjust;
+}
+
+void ANLPlayerCharacter::InterpolateCrouch(float DeltaSeconds)
+{
+    if (bIsInterpolatingCrouch)
+    {
+        SpringArmComponent->TargetOffset.Z = FMath::FInterpTo(
+            SpringArmComponent->TargetOffset.Z,
+            TargetSpringArmOffset,
+            DeltaSeconds,
+            CrouchInterpSpeed
+        );
+
+        if (FMath::IsNearlyEqual(SpringArmComponent->TargetOffset.Z, TargetSpringArmOffset, CrouchInterpErrorTolerance))
+        {
+            SpringArmComponent->TargetOffset.Z = TargetSpringArmOffset;
+            bIsInterpolatingCrouch = false;
+            
+            if (bIsCrouched)
+            {
+                NLCharacterMovementComponent->ShrinkCapsuleHeight();
+            }
+            else
+            {
+                NLCharacterMovementComponent->RestoreCapsuleHeight();
+            }
+        }
     }
 }
