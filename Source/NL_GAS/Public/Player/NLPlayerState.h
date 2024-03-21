@@ -28,10 +28,18 @@ protected:
 	UPROPERTY()
 	TObjectPtr<UAttributeSet> AttributeSet;
 
+	UPROPERTY(BlueprintReadOnly)
+	int32 CurrentWeaponSlot;
+
 public:
 	//~ Begin AbilitySystemInterface
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	//~ End AbilitySystemInterface
 
 	FORCEINLINE UAttributeSet* GetAttributeSet() const { return AttributeSet; }
+
+	const int32 GetCurrentWeaponSlot() const { return CurrentWeaponSlot; }
+
+	UFUNCTION(BlueprintCallable)
+	void ChangeWeaponSlot(int32 NewWeaponSlot);
 };

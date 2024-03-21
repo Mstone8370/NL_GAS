@@ -9,6 +9,7 @@
  * 
  */
 
+// Input Tag
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Default_Move);
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Default_Look);
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Default_Jump);
@@ -24,3 +25,10 @@ UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Weapon_SecondaryAction);
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Weapon_Reload);
 
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Block_Ability);
+
+// Ability Tag
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Weapon_Fire);
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Weapon_ADS);
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Weapon_Reload);
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_WeaponChange);
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Melee);

@@ -31,6 +31,7 @@ ANLPlayerCharacter::ANLPlayerCharacter()
 
     ArmMesh = CreateDefaultSubobject<USkeletalMeshComponent>(FName("ArmMesh"));
     ArmMesh->bOnlyOwnerSee = true;
+    ArmMesh->CastShadow = 0;
     ArmMesh->SetupAttachment(SpringArmComponent);
 
     CameraComponent = CreateDefaultSubobject<UCameraComponent>(FName("Camera"));

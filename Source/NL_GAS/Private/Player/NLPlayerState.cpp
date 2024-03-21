@@ -24,3 +24,8 @@ UAbilitySystemComponent* ANLPlayerState::GetAbilitySystemComponent() const
 {
     return AbilitySystemComponent;
 }
+
+void ANLPlayerState::ChangeWeaponSlot(int32 NewWeaponSlot)
+{
+    CurrentWeaponSlot = NewWeaponSlot;
+}

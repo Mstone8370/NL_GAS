@@ -159,16 +159,22 @@ void UNLAbilitySystemComponent::ClearAbilityInput()
     InputHeldSpecHandles.Reset();
 }
 
-void UNLAbilitySystemComponent::AddAbilities(const TArray<TSubclassOf<UGameplayAbility>>& Abilities)
+void UNLAbilitySystemComponent::AddAbilities(const TMap<FGameplayTag, TSubclassOf<UGameplayAbility>>& Abilities)
 {
 	// On Server
 
-	for (const TSubclassOf<UGameplayAbility>& AbilityClass : Abilities)
+	for (const TPair<FGameplayTag, TSubclassOf<UGameplayAbility>>& AbilityInfo : Abilities)
 	{
+		const FGameplayTag& InputTag = AbilityInfo.Key;
+		const TSubclassOf<UGameplayAbility> AbilityClass = AbilityInfo.Value;
 		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(AbilityClass, 1);
-		AbilitySpec.DynamicAbilityTags.AddTag(Input_Weapon_PrimaryAction);
+		AbilitySpec.DynamicAbilityTags.AddTag(InputTag);
 		GiveAbility(AbilitySpec);
 	}
+}
+
+void UNLAbilitySystemComponent::TryChangeWeaponSlot(int32 NewWeaponSlot)
+{
 }
 
 void UNLAbilitySystemComponent::OnRep_ActivateAbilities()

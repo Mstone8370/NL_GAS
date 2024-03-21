@@ -3,6 +3,7 @@
 
 #include "NLGameplayTags.h"
 
+// Input Tag
 UE_DEFINE_GAMEPLAY_TAG(Input_Default_Move, "Input.Default.Move");
 UE_DEFINE_GAMEPLAY_TAG(Input_Default_Look, "Input.Default.Look");
 UE_DEFINE_GAMEPLAY_TAG(Input_Default_Jump, "Input.Default.Jump");
@@ -18,3 +19,10 @@ UE_DEFINE_GAMEPLAY_TAG(Input_Weapon_SecondaryAction, "Input.Weapon.SecondaryActi
 UE_DEFINE_GAMEPLAY_TAG(Input_Weapon_Reload, "Input.Weapon.Reload");
 
 UE_DEFINE_GAMEPLAY_TAG(Input_Block_Ability, "Input.Block.Ability");
+
+// Ability Tag
+UE_DEFINE_GAMEPLAY_TAG(Ability_Weapon_Fire, "Ability.Weapon.Fire");
+UE_DEFINE_GAMEPLAY_TAG(Ability_Weapon_ADS, "Ability.Weapon.ADS");
+UE_DEFINE_GAMEPLAY_TAG(Ability_Weapon_Reload, "Ability.Weapon.Reload");
+UE_DEFINE_GAMEPLAY_TAG(Ability_WeaponChange, "Ability.WeaponChange");
+UE_DEFINE_GAMEPLAY_TAG(Ability_Melee, "Ability.Melee");

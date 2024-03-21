@@ -10,6 +10,7 @@
 #include "Input/NLEnhancedInputComponent.h"
 #include "NLGameplayTags.h"
 #include "AbilitySystem/NLAbilitySystemComponent.h"
+#include "Player/NLPlayerState.h"
 
 void ANLPlayerController::SetupInputComponent()
 {
@@ -131,4 +132,13 @@ UNLAbilitySystemComponent* ANLPlayerController::GetNLAbilitySystemComponent()
         );
     }
     return LNAbilitySystemComponent;
+}
+
+ANLPlayerState* ANLPlayerController::GetNLPlayerState()
+{
+    if (!NLPlayerState)
+    {
+        NLPlayerState = Cast<ANLPlayerState>(GetPlayerState<ANLPlayerState>());
+    }
+    return NLPlayerState;
 }

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
+#include "GameplayTagContainer.h"
 #include "NLCharacterBase.generated.h"
 
 class UAbilitySystemComponent;
@@ -42,6 +43,6 @@ protected:
 
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Ability")
-	TArray<TSubclassOf<UGameplayAbility>> StartupAbilities;
+	TMap<FGameplayTag, TSubclassOf<UGameplayAbility>> StartupAbilities;
 
 };

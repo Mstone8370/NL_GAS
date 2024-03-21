@@ -10,6 +10,7 @@
 class UInputConfig;
 class UInputMappingContext;
 class UNLAbilitySystemComponent;
+class ANLPlayerState;
 struct FInputActionValue;
 
 /**
@@ -37,6 +38,7 @@ protected:
 
 public:
 	UNLAbilitySystemComponent* GetNLAbilitySystemComponent();
+	ANLPlayerState* GetNLPlayerState();
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TArray<TSoftObjectPtr<UInputMappingContext>> StartupIMC;
@@ -49,4 +51,6 @@ public:
 
 protected:
 	TObjectPtr<UNLAbilitySystemComponent> LNAbilitySystemComponent;
+	TObjectPtr<ANLPlayerState> NLPlayerState;
+
 };

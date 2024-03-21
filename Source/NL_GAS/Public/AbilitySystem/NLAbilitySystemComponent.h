@@ -22,7 +22,9 @@ public:
 	void ProcessAbilityInput(float DeltaTime, bool bGamePaused);
 	void ClearAbilityInput();
 
-	void AddAbilities(const TArray<TSubclassOf<UGameplayAbility>>& Abilities);
+	void AddAbilities(const TMap<FGameplayTag, TSubclassOf<UGameplayAbility>>& Abilities);
+
+	void TryChangeWeaponSlot(int32 NewWeaponSlot);
 
 protected:
 	virtual void OnRep_ActivateAbilities() override;
