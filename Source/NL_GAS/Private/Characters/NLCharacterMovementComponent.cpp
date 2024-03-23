@@ -26,21 +26,21 @@ void UNLCharacterMovementComponent::Crouch(bool bClientSimulation)
 		return;
 	}
 
-	bIsSimulationClient = bClientSimulation;
-
 	// 캐릭터의 bIsCrouched는 캐릭터 무브먼트의 MaxSpeed를 결정지음.
 	// 앉기를 시작할때부터 속도를 낮추길 원하므로 여기에서 bIsCrouched를 설정.
 	CharacterOwner->bIsCrouched = true;
 }
 
-void UNLCharacterMovementComponent::ShrinkCapsuleHeight()
+void UNLCharacterMovementComponent::ShrinkCapsuleHeight(bool bClientSimulation)
 {
+	// Codes from UCharacterMovementComponent::Crouch(bool bClientSimulation)
+
 	if (!HasValidData())
 	{
 		return;
 	}
 
-	if (!bIsSimulationClient && !CanCrouchInCurrentState())
+	if (!bClientSimulation && !CanCrouchInCurrentState())
 	{
 		return;
 	}
@@ -48,14 +48,14 @@ void UNLCharacterMovementComponent::ShrinkCapsuleHeight()
 	// See if collision is already at desired size.
 	if (CharacterOwner->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight() == CrouchedHalfHeight)
 	{
-		if (!bIsSimulationClient)
+		if (!bClientSimulation)
 		{
 			CharacterOwner->bIsCrouched = true;
 		}
 		return;
 	}
 
-	if (bIsSimulationClient && CharacterOwner->GetLocalRole() == ROLE_SimulatedProxy)
+	if (bClientSimulation && CharacterOwner->GetLocalRole() == ROLE_SimulatedProxy)
 	{
 		// restore collision size before crouching
 		ACharacter* DefaultCharacter = CharacterOwner->GetClass()->GetDefaultObject<ACharacter>();
@@ -73,7 +73,7 @@ void UNLCharacterMovementComponent::ShrinkCapsuleHeight()
 	float HalfHeightAdjust = (OldUnscaledHalfHeight - ClampedCrouchedHalfHeight);
 	float ScaledHalfHeightAdjust = HalfHeightAdjust * ComponentScale;
 
-	if (!bIsSimulationClient)
+	if (!bClientSimulation)
 	{
 		// Crouching to a larger height? (this is rare)
 		if (ClampedCrouchedHalfHeight > OldUnscaledHalfHeight)
@@ -111,7 +111,7 @@ void UNLCharacterMovementComponent::ShrinkCapsuleHeight()
 	CharacterOwner->OnStartCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
 
 	// Don't smooth this change in mesh position
-	if ((bIsSimulationClient && CharacterOwner->GetLocalRole() == ROLE_SimulatedProxy) || (IsNetMode(NM_ListenServer) && CharacterOwner->GetRemoteRole() == ROLE_AutonomousProxy))
+	if ((bClientSimulation && CharacterOwner->GetLocalRole() == ROLE_SimulatedProxy) || (IsNetMode(NM_ListenServer) && CharacterOwner->GetRemoteRole() == ROLE_AutonomousProxy))
 	{
 		FNetworkPredictionData_Client_Character* ClientData = GetPredictionData_Client_Character();
 		if (ClientData)

@@ -17,17 +17,12 @@ class NL_GAS_API UNLCharacterMovementComponent : public UCharacterMovementCompon
 public:
 	virtual bool CanAttemptJump() const override;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Movement (General Settings)")
-	bool bFallingCrouchMaintainSightLocation = true;
-
 	virtual void Crouch(bool bClientSimulation = false) override;
 
-	void ShrinkCapsuleHeight();
+	UFUNCTION()
+	void ShrinkCapsuleHeight(bool bClientSimulation = false);
 
 protected:
 	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode) override;
-
-private:
-	bool bIsSimulationClient = false;
 
 };

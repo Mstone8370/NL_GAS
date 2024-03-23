@@ -21,6 +21,8 @@ class NL_GAS_API ANLPlayerCharacter : public ANLCharacterBase
 public:
 	ANLPlayerCharacter();
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -52,17 +54,27 @@ protected:
 
 	TObjectPtr<UNLCharacterMovementComponent> NLCharacterMovementComponent;
 
-	// Crouch Interpolation
+	//~Begin Crouch Interpolation
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float CrouchInterpSpeed;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float CrouchInterpErrorTolerance;
+
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_IsCapsuleShrinked)
+	bool bIsCapsuleShrinked = false;
+
+	UFUNCTION()
+	void OnRep_IsCapsuleShrinked();
+
+	UFUNCTION(Server, Reliable)
+	void Server_CapsuleShrinked(bool bInShrinked);
 
 	bool bIsInterpolatingCrouch;
 	float BaseSpringArmOffset;
 	float TargetSpringArmOffset;
 
 	virtual void InterpolateCrouch(float DeltaSeconds);
+	//~End Crouch Interpolation
 
 public:
 

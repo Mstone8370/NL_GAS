@@ -12,6 +12,7 @@
 #include "Player/NLPlayerController.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystem/NLAbilitySystemComponent.h"
+#include "Net/UnrealNetwork.h"
 
 ANLPlayerCharacter::ANLPlayerCharacter()
     : CrouchInterpSpeed(10.f)
@@ -38,6 +39,13 @@ ANLPlayerCharacter::ANLPlayerCharacter()
     CameraComponent = CreateDefaultSubobject<UCameraComponent>(FName("Camera"));
     CameraComponent->SetupAttachment(ArmMesh, FName("camera"));
     CameraComponent->FieldOfView = 90.f;
+}
+
+void ANLPlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    DOREPLIFETIME_CONDITION(ANLPlayerCharacter, bIsCapsuleShrinked, COND_SimulatedOnly);
 }
 
 void ANLPlayerCharacter::BeginPlay()
@@ -104,26 +112,26 @@ bool ANLPlayerCharacter::CanCrouch() const
 
 void ANLPlayerCharacter::Crouch(bool bClientSimulation)
 {
+    // On Client
+
     Super::Crouch(bClientSimulation);
 
-    if (CanCrouch() && !bClientSimulation)
+    if (!CanCrouch())
     {
-        // Start interpolate
-        bIsInterpolatingCrouch = true;
-
-        // Change collision size to crouching dimensions
-        const float OldUnscaledHalfHeight = GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight();
-        const float OldUnscaledRadius = GetCapsuleComponent()->GetUnscaledCapsuleRadius();
-        // Height is not allowed to be smaller than radius.
-        const float ClampedCrouchedHalfHeight = FMath::Max3(0.f, OldUnscaledRadius, GetCharacterMovement()->GetCrouchedHalfHeight());
-        float HalfHeightAdjust = (OldUnscaledHalfHeight - ClampedCrouchedHalfHeight);
-
-        TargetSpringArmOffset = BaseSpringArmOffset - 2 * HalfHeightAdjust;
+        return;
     }
-    if (bClientSimulation)
-    {
-        NLCharacterMovementComponent->ShrinkCapsuleHeight();
-    }
+    
+    // Start interpolate
+    bIsInterpolatingCrouch = true;
+
+    // Change collision size to crouching dimensions
+    const float OldUnscaledHalfHeight = GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight();
+    const float OldUnscaledRadius = GetCapsuleComponent()->GetUnscaledCapsuleRadius();
+    // Height is not allowed to be smaller than radius.
+    const float ClampedCrouchedHalfHeight = FMath::Max3(0.f, OldUnscaledRadius, GetCharacterMovement()->GetCrouchedHalfHeight());
+    float HalfHeightAdjust = (OldUnscaledHalfHeight - ClampedCrouchedHalfHeight);
+
+    TargetSpringArmOffset = BaseSpringArmOffset - 2 * HalfHeightAdjust;
 }
 
 void ANLPlayerCharacter::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
@@ -131,17 +139,12 @@ void ANLPlayerCharacter::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfH
     Super::OnStartCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
 
     // 이 함수는 서있을때 앉기 시작해서 interpolation이 시작되고, interpolation이 끝나서 캡슐 크기가 줄어들때 호출됨.
-    if (NLCharacterMovementComponent->IsFalling() && false)
-    {
-        GetCapsuleComponent()->MoveComponent(
-            FVector(0.f, 0.f, -HalfHeightAdjust),
-            GetCapsuleComponent()->GetComponentQuat(),
-            false, nullptr,
-            EMoveComponentFlags::MOVECOMP_NoFlags,
-            ETeleportType::TeleportPhysics
-        );
-    }
     SpringArmComponent->TargetOffset.Z += HalfHeightAdjust;
+
+    if (GetLocalRole() == ROLE_AutonomousProxy && GetNetMode() == NM_Client)
+    {
+        Server_CapsuleShrinked(true);
+    }
 }
 
 void ANLPlayerCharacter::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
@@ -150,17 +153,33 @@ void ANLPlayerCharacter::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHei
 
     TargetSpringArmOffset = BaseSpringArmOffset;
     bIsInterpolatingCrouch = true;
-    if (NLCharacterMovementComponent->IsFalling() && false)
-    {
-        GetCapsuleComponent()->MoveComponent(
-            FVector(0.f, 0.f, +HalfHeightAdjust),
-            GetCapsuleComponent()->GetComponentQuat(),
-            false, nullptr,
-            EMoveComponentFlags::MOVECOMP_NoFlags,
-            ETeleportType::TeleportPhysics
-        );
-    }
+
     SpringArmComponent->TargetOffset.Z -= HalfHeightAdjust;
+
+    if (GetLocalRole() == ROLE_AutonomousProxy && GetNetMode() == NM_Client)
+    {
+        Server_CapsuleShrinked(false);
+    }
+}
+
+void ANLPlayerCharacter::OnRep_IsCapsuleShrinked()
+{
+    // On Client, Not owned character
+
+    if (NLCharacterMovementComponent && bIsCapsuleShrinked)
+    {
+        NLCharacterMovementComponent->ShrinkCapsuleHeight(true);
+    }
+}
+
+void ANLPlayerCharacter::Server_CapsuleShrinked_Implementation(bool bInShrinked)
+{
+    bIsCapsuleShrinked = bInShrinked;
+
+    if (NLCharacterMovementComponent && bIsCapsuleShrinked)
+    {
+        NLCharacterMovementComponent->ShrinkCapsuleHeight();
+    }
 }
 
 void ANLPlayerCharacter::InterpolateCrouch(float DeltaSeconds)
@@ -185,7 +204,7 @@ void ANLPlayerCharacter::InterpolateCrouch(float DeltaSeconds)
             
         if (bIsCrouched)
         {
-            // 보통 앉기는 불가능한 경우는 없으므로 캡슐 크기 조정은 추가 확인없이 진행.
+            // 앉기는 interpolation이 시작되었다면 이 시점에서 불가능한 경우는 없으므로 추가 확인없이 진행.
             NLCharacterMovementComponent->ShrinkCapsuleHeight();
         }
     }
