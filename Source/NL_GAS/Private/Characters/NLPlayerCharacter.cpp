@@ -116,7 +116,6 @@ void ANLPlayerCharacter::Crouch(bool bClientSimulation)
         const float OldUnscaledRadius = GetCapsuleComponent()->GetUnscaledCapsuleRadius();
         // Height is not allowed to be smaller than radius.
         const float ClampedCrouchedHalfHeight = FMath::Max3(0.f, OldUnscaledRadius, GetCharacterMovement()->GetCrouchedHalfHeight());
-        //GetCapsuleComponent()->SetCapsuleSize(OldUnscaledRadius, ClampedCrouchedHalfHeight);
         float HalfHeightAdjust = (OldUnscaledHalfHeight - ClampedCrouchedHalfHeight);
 
         TargetSpringArmOffset = BaseSpringArmOffset - 2 * HalfHeightAdjust;
@@ -127,16 +126,13 @@ void ANLPlayerCharacter::Crouch(bool bClientSimulation)
     }
 }
 
-void ANLPlayerCharacter::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
+void ANLPlayerCharacter::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
 {
-    Super::OnEndCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
+    Super::OnStartCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
 
-    TargetSpringArmOffset = BaseSpringArmOffset;
-    bIsInterpolatingCrouch = true;
-    if (NLCharacterMovementComponent->IsFalling() && NLCharacterMovementComponent->bFallingCrouchMaintainSightLocation)
+    // 이 함수는 서있을때 앉기 시작해서 interpolation이 시작되고, interpolation이 끝나서 캡슐 크기가 줄어들때 호출됨.
+    if (NLCharacterMovementComponent->IsFalling() && false)
     {
-        SpringArmComponent->TargetOffset.Z = TargetSpringArmOffset;
-
         GetCapsuleComponent()->MoveComponent(
             FVector(0.f, 0.f, -HalfHeightAdjust),
             GetCapsuleComponent()->GetComponentQuat(),
@@ -145,41 +141,26 @@ void ANLPlayerCharacter::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHei
             ETeleportType::TeleportPhysics
         );
     }
-    else
-    {
-        // 캡슐 위치가 Z방향으로 증가했으므로, 시야는 반대로 감소시켜서 이전의 시야 높이를 유지하도록 함.
-        SpringArmComponent->TargetOffset.Z -= HalfHeightAdjust;
-    }
+    SpringArmComponent->TargetOffset.Z += HalfHeightAdjust;
 }
 
-void ANLPlayerCharacter::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
+void ANLPlayerCharacter::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
 {
-    Super::OnStartCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
+    Super::OnEndCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
 
-    /*
-    TargetSpringArmOffset = BaseSpringArmOffset - HalfHeightAdjust;
+    TargetSpringArmOffset = BaseSpringArmOffset;
     bIsInterpolatingCrouch = true;
-    if (NLCharacterMovementComponent->IsFalling() && NLCharacterMovementComponent->bFallingCrouchMaintainSightLocation)
+    if (NLCharacterMovementComponent->IsFalling() && false)
     {
-        SpringArmComponent->TargetOffset.Z = TargetSpringArmOffset;
-
         GetCapsuleComponent()->MoveComponent(
-            FVector(0.f, 0.f, HalfHeightAdjust),
+            FVector(0.f, 0.f, +HalfHeightAdjust),
             GetCapsuleComponent()->GetComponentQuat(),
             false, nullptr,
             EMoveComponentFlags::MOVECOMP_NoFlags,
             ETeleportType::TeleportPhysics
         );
     }
-    else
-    {
-        // 캡슐 위치가 Z방향으로 감소했으므로, 시야는 반대로 증가시켜서 이전의 시야 높이를 유지하도록 함.
-        SpringArmComponent->TargetOffset.Z += HalfHeightAdjust;
-    }
-    */
-
-    // 이 함수는 서있을때 앉기 시작해서 interpolation이 시작되고, interpolation이 끝나서 캡슐 크기가 줄어들때 호출됨.
-    SpringArmComponent->TargetOffset.Z += HalfHeightAdjust;
+    SpringArmComponent->TargetOffset.Z -= HalfHeightAdjust;
 }
 
 void ANLPlayerCharacter::InterpolateCrouch(float DeltaSeconds)

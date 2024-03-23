@@ -24,6 +24,9 @@ public:
 
 	void ShrinkCapsuleHeight();
 
+protected:
+	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode) override;
+
 private:
 	bool bIsSimulationClient = false;
 

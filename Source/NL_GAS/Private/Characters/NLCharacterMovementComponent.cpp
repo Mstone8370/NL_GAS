@@ -35,7 +35,6 @@ void UNLCharacterMovementComponent::Crouch(bool bClientSimulation)
 
 void UNLCharacterMovementComponent::ShrinkCapsuleHeight()
 {
-	UE_LOG(LogTemp, Warning, TEXT("ShrinkCapsuleHeight called"));
 	if (!HasValidData())
 	{
 		return;
@@ -45,7 +44,6 @@ void UNLCharacterMovementComponent::ShrinkCapsuleHeight()
 	{
 		return;
 	}
-	UE_LOG(LogTemp, Warning, TEXT("pass if statements"));
 
 	// See if collision is already at desired size.
 	if (CharacterOwner->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight() == CrouchedHalfHeight)
@@ -121,5 +119,20 @@ void UNLCharacterMovementComponent::ShrinkCapsuleHeight()
 			ClientData->MeshTranslationOffset -= FVector(0.f, 0.f, MeshAdjust);
 			ClientData->OriginalMeshTranslationOffset = ClientData->MeshTranslationOffset;
 		}
+	}
+}
+
+void UNLCharacterMovementComponent::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode)
+{
+	Super::OnMovementModeChanged(PreviousMovementMode, PreviousCustomMode);
+
+	if (!HasValidData())
+	{
+		return;
+	}
+
+	if (MovementMode == MOVE_Falling)
+	{
+		bCrouchMaintainsBaseLocation = true;
 	}
 }
