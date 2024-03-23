@@ -36,11 +36,15 @@ public:
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_PlayerState() override;
 
-	// Crouch functions override;
+	//~Begin Crouch functions override
 	virtual bool CanCrouch() const override;
 	virtual void Crouch(bool bClientSimulation = false) override;
+	/* Crouch해서 캡슐의 크기가 줄었을 때 호출됨. */
 	virtual void OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
 	virtual void OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
+	//~End Crouch functions override
+
+	void OnFallingStarted();
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
@@ -60,12 +64,24 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float CrouchInterpErrorTolerance;
 
+	/* Replication condition - SimulatedOnly */
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_IsCapsuleShrinked)
 	bool bIsCapsuleShrinked = false;
 
+	/**
+	* 서버에서부터 bIsCapsuleShrinked 변수가 레플리케이트 된 경우.
+	* 이 캐릭터가 클라이언트 소유가 아니어서 시뮬레이션인 경우에만 호출됨.
+	* 이 캐릭터를 소유하고있는곳에서 캡슐의 크기가 변경되었음을 의미하므로,
+	* 관찰하는 입장에서도 크기를 조정해야함.
+	*/
 	UFUNCTION()
 	void OnRep_IsCapsuleShrinked();
 
+	/**
+	* 소유한 캐릭터의 클라이언트에서 Crouch 또는 UnCrouch를 해서 캡슐 크기를 변경했을때 호출됨.
+	* 서버의 bIsCapsuleShrinked 값을 변경해서 다른 클라이언트에게도 레플리케이트 되게 함.
+	* @param bInShrinked - 캡슐 크기가 줄어든 경우 true.
+	*/
 	UFUNCTION(Server, Reliable)
 	void Server_CapsuleShrinked(bool bInShrinked);
 
@@ -77,5 +93,6 @@ protected:
 	//~End Crouch Interpolation
 
 public:
+	void GetCrouchedHalfHeightAdjust(float& OutHalfHeightAdjust, float& OutScaledHalfHeightAdjust) const;
 
 };
