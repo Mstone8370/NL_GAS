@@ -17,7 +17,11 @@
 ANLPlayerCharacter::ANLPlayerCharacter()
     : CrouchInterpSpeed(10.f)
     , CrouchInterpErrorTolerance(0.1f)
+    , bIsCapsuleShrinked(false)
     , bIsInterpolatingCrouch(false)
+    , BaseSpringArmOffset(0.f)
+    , TargetSpringArmOffset(0.f)
+    , bIsListenServerControlledCharacter(false)
 {
     PrimaryActorTick.bCanEverTick = false;
     
@@ -136,6 +140,11 @@ void ANLPlayerCharacter::Crouch(bool bClientSimulation)
         // Walking일때 앉으면 시야가 HalfHeightAdjust의 두배만큼 내려가야함.
         TargetSpringArmOffset -= HalfHeightAdjust;
     }
+
+    if (GetNetMode() == NM_ListenServer && HasAuthority())
+    {
+        bIsListenServerControlledCharacter = true;
+    }
 }
 
 void ANLPlayerCharacter::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
@@ -144,16 +153,11 @@ void ANLPlayerCharacter::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfH
 
     bIsCapsuleShrinked = true;
 
-    if (GetCharacterMovement()->IsWalking())
+    if (IsCrouchInterpolatableCharacter() && GetCharacterMovement()->IsWalking())
     {
         // Walking일때 캡슐 크기가 줄어들면, 아래쪽의 HalfHeightAdjust만큼 캡슐의 위치가 내려가므로
         // 시야 높이 유지를 위해 오프셋을 증가.
         SpringArmComponent->TargetOffset.Z += HalfHeightAdjust;
-    }
-
-    if (GetLocalRole() == ROLE_AutonomousProxy && GetNetMode() == NM_Client)
-    {
-        Server_CapsuleShrinked(true);
     }
 }
 
@@ -162,6 +166,11 @@ void ANLPlayerCharacter::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHei
     Super::OnEndCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
 
     bIsCapsuleShrinked = false;
+
+    if (!IsCrouchInterpolatableCharacter())
+    {
+        return;
+    }
 
     TargetSpringArmOffset = BaseSpringArmOffset;
     bIsInterpolatingCrouch = true;
@@ -234,9 +243,31 @@ void ANLPlayerCharacter::Server_CapsuleShrinked_Implementation(bool bInShrinked)
     }
 }
 
+bool ANLPlayerCharacter::IsCrouchInterpolatableCharacter() const
+{
+    if (GetNetMode() == NM_Standalone)
+    {
+        return true;
+    }
+    if (GetNetMode() == NM_Client && GetLocalRole() == ROLE_AutonomousProxy)
+    {
+        return true;
+    }
+    if (GetNetMode() == NM_ListenServer && bIsListenServerControlledCharacter)
+    {
+        return true;
+    }
+    return false;
+}
+
 void ANLPlayerCharacter::InterpolateCrouch(float DeltaSeconds)
 {
     if (!bIsInterpolatingCrouch)
+    {
+        return;
+    }
+
+    if (!IsCrouchInterpolatableCharacter())
     {
         return;
     }
@@ -258,6 +289,10 @@ void ANLPlayerCharacter::InterpolateCrouch(float DeltaSeconds)
         {
             // 앉기는 interpolation이 시작되었다면 이 시점에서 불가능한 경우는 없으므로 추가 확인없이 진행.
             NLCharacterMovementComponent->ShrinkCapsuleHeight();
+            if (GetLocalRole() == ROLE_AutonomousProxy && GetNetMode() == NM_Client)
+            {
+                Server_CapsuleShrinked(true);
+            }
         }
     }
 }
