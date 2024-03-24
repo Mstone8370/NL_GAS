@@ -179,6 +179,20 @@ void ANLPlayerCharacter::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHei
     }
 }
 
+void ANLPlayerCharacter::Landed(const FHitResult& Hit)
+{
+    Super::Landed(Hit);
+
+    if (bIsCrouched && bIsInterpolatingCrouch)
+    {
+        float HalfHeightAdjust = 0.f;
+        float ScaledHalfHeightAdjust = 0.f;
+        GetCrouchedHalfHeightAdjust(HalfHeightAdjust, ScaledHalfHeightAdjust);
+
+        TargetSpringArmOffset = BaseSpringArmOffset - 2 * HalfHeightAdjust;
+    }
+}
+
 void ANLPlayerCharacter::OnFallingStarted()
 {
     /**
@@ -239,7 +253,7 @@ void ANLPlayerCharacter::InterpolateCrouch(float DeltaSeconds)
     {
         SpringArmComponent->TargetOffset.Z = TargetSpringArmOffset;
         bIsInterpolatingCrouch = false;
-            
+        
         if (bIsCrouched && !bIsCapsuleShrinked)
         {
             // 앉기는 interpolation이 시작되었다면 이 시점에서 불가능한 경우는 없으므로 추가 확인없이 진행.

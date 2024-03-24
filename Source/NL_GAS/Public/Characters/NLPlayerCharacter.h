@@ -44,6 +44,7 @@ public:
 	virtual void OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
 	//~End Crouch functions override
 
+	virtual void Landed(const FHitResult& Hit) override;
 	void OnFallingStarted();
 
 protected:
