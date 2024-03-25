@@ -39,6 +39,7 @@ protected:
 public:
 	UNLAbilitySystemComponent* GetNLAbilitySystemComponent();
 	ANLPlayerState* GetNLPlayerState();
+	FORCEINLINE bool IsListenServerController() const { return bIsListenServerController; }
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TArray<TSoftObjectPtr<UInputMappingContext>> StartupIMC;
@@ -53,4 +54,5 @@ protected:
 	TObjectPtr<UNLAbilitySystemComponent> LNAbilitySystemComponent;
 	TObjectPtr<ANLPlayerState> NLPlayerState;
 
+	bool bIsListenServerController = false;
 };

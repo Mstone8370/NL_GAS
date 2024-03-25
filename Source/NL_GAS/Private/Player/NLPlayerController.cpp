@@ -16,6 +16,11 @@ void ANLPlayerController::SetupInputComponent()
 {
     Super::SetupInputComponent();
 
+    if (GetNetMode() == NM_ListenServer && HasAuthority())
+    {
+        bIsListenServerController = true;
+    }
+
     // Add IMCs
     if (ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(Player))
     {

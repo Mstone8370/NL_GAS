@@ -21,7 +21,6 @@ ANLPlayerCharacter::ANLPlayerCharacter()
     , bIsInterpolatingCrouch(false)
     , BaseSpringArmOffset(0.f)
     , TargetSpringArmOffset(0.f)
-    , bIsListenServerControlledCharacter(false)
 {
     PrimaryActorTick.bCanEverTick = false;
     
@@ -107,8 +106,18 @@ void ANLPlayerCharacter::PossessedBy(AController* NewController)
 
 void ANLPlayerCharacter::OnRep_PlayerState()
 {
+    Super::OnRep_PlayerState();
+
     // On Client
     InitAbilityActorInfo();
+}
+
+void ANLPlayerCharacter::OnRep_Controller()
+{
+    Super::OnRep_Controller();
+
+    // On Client
+    NLPlayerController = Cast<ANLPlayerController>(GetController());
 }
 
 bool ANLPlayerCharacter::CanCrouch() const
@@ -139,11 +148,6 @@ void ANLPlayerCharacter::Crouch(bool bClientSimulation)
     {
         // Walking일때 앉으면 시야가 HalfHeightAdjust의 두배만큼 내려가야함.
         TargetSpringArmOffset -= HalfHeightAdjust;
-    }
-
-    if (GetNetMode() == NM_ListenServer && HasAuthority())
-    {
-        bIsListenServerControlledCharacter = true;
     }
 }
 
@@ -243,7 +247,7 @@ void ANLPlayerCharacter::Server_CapsuleShrinked_Implementation(bool bInShrinked)
     }
 }
 
-bool ANLPlayerCharacter::IsCrouchInterpolatableCharacter() const
+bool ANLPlayerCharacter::IsCrouchInterpolatableCharacter()
 {
     if (GetNetMode() == NM_Standalone)
     {
@@ -253,7 +257,7 @@ bool ANLPlayerCharacter::IsCrouchInterpolatableCharacter() const
     {
         return true;
     }
-    if (GetNetMode() == NM_ListenServer && bIsListenServerControlledCharacter)
+    if (GetNetMode() == NM_ListenServer && IsListenServerControlledCharacter())
     {
         return true;
     }
@@ -308,4 +312,18 @@ void ANLPlayerCharacter::GetCrouchedHalfHeightAdjust(float& OutHalfHeightAdjust,
     
     OutHalfHeightAdjust = (OldUnscaledHalfHeight - ClampedCrouchedHalfHeight);
     OutScaledHalfHeightAdjust = OutHalfHeightAdjust * ComponentScale;
+}
+
+bool ANLPlayerCharacter::IsListenServerControlledCharacter()
+{
+    return GetNLPC() && GetNLPC()->IsListenServerController();
+}
+
+ANLPlayerController* ANLPlayerCharacter::GetNLPC()
+{
+    if (!NLPlayerController)
+    {
+        NLPlayerController = Cast<ANLPlayerController>(GetController());
+    }
+    return NLPlayerController;
 }

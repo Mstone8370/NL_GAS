@@ -9,6 +9,7 @@
 class USpringArmComponent;
 class UCameraComponent;
 class UNLCharacterMovementComponent;
+class ANLPlayerController;
 
 /**
  * 
@@ -35,6 +36,7 @@ public:
 
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_PlayerState() override;
+	virtual void OnRep_Controller() override;
 
 	//~Begin Crouch functions override
 	virtual bool CanCrouch() const override;
@@ -58,6 +60,8 @@ protected:
 	TObjectPtr<UCameraComponent> CameraComponent;
 
 	TObjectPtr<UNLCharacterMovementComponent> NLCharacterMovementComponent;
+
+	TObjectPtr<ANLPlayerController> NLPlayerController;
 
 	//~Begin Crouch Interpolation
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
@@ -90,15 +94,14 @@ protected:
 	float BaseSpringArmOffset;
 	float TargetSpringArmOffset;
 
-	// TODO: Crouch 입력이 들어와야 판단 가능한 문제 있음.
-	// 하지만 아직은 Crouch 말고는 쓰이지 않음.
-	bool bIsListenServerControlledCharacter;
-
-	bool IsCrouchInterpolatableCharacter() const;
+	bool IsCrouchInterpolatableCharacter();
 	virtual void InterpolateCrouch(float DeltaSeconds);
 	//~End Crouch Interpolation
 
 public:
 	void GetCrouchedHalfHeightAdjust(float& OutHalfHeightAdjust, float& OutScaledHalfHeightAdjust) const;
 
+	bool IsListenServerControlledCharacter();
+
+	ANLPlayerController* GetNLPC();
 };
