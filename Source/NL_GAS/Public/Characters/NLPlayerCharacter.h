@@ -63,6 +63,16 @@ protected:
 
 	TObjectPtr<ANLPlayerController> NLPlayerController;
 
+	UPROPERTY(EditDefaultsOnly)
+	float LookPitchRepTime;
+
+	UPROPERTY(BlueprintReadOnly, Replicated);
+	float LookPitch;
+
+	void Server_InvokeLookPitchReplication();
+
+	FTimerHandle LookPitchRepTimerHandle;
+
 	//~Begin Crouch Interpolation
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float CrouchInterpSpeed;
@@ -100,6 +110,8 @@ protected:
 
 public:
 	void GetCrouchedHalfHeightAdjust(float& OutHalfHeightAdjust, float& OutScaledHalfHeightAdjust) const;
+
+	FORCEINLINE float GetLookPitch() const { return LookPitch; }
 
 	bool IsListenServerControlledCharacter();
 

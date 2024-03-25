@@ -15,7 +15,9 @@
 #include "Net/UnrealNetwork.h"
 
 ANLPlayerCharacter::ANLPlayerCharacter()
-    : CrouchInterpSpeed(10.f)
+    : LookPitchRepTime(0.02f)
+    , LookPitch(0.f)
+    , CrouchInterpSpeed(10.f)
     , CrouchInterpErrorTolerance(0.1f)
     , bIsCapsuleShrinked(false)
     , bIsInterpolatingCrouch(false)
@@ -49,6 +51,7 @@ void ANLPlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
     DOREPLIFETIME_CONDITION(ANLPlayerCharacter, bIsCapsuleShrinked, COND_SimulatedOnly);
+    DOREPLIFETIME_CONDITION_NOTIFY(ANLPlayerCharacter, LookPitch, COND_SimulatedOnly, REPNOTIFY_OnChanged);
 }
 
 void ANLPlayerCharacter::BeginPlay()
@@ -67,6 +70,12 @@ void ANLPlayerCharacter::BeginPlay()
     // Set Crouch Interpolation default value
     BaseSpringArmOffset = SpringArmComponent->TargetOffset.Z;
     TargetSpringArmOffset = BaseSpringArmOffset;
+
+    // Look Pitch Rep Timer
+    if (HasAuthority())
+    {
+        GetWorldTimerManager().SetTimer(LookPitchRepTimerHandle, this, &ANLPlayerCharacter::Server_InvokeLookPitchReplication, LookPitchRepTime, true);
+    }
 }
 
 bool ANLPlayerCharacter::CanJumpInternal_Implementation() const
@@ -222,6 +231,19 @@ void ANLPlayerCharacter::OnFallingStarted()
         GetCrouchedHalfHeightAdjust(HalfHeightAdjust, ScaledHalfHeightAdjust);
 
         TargetSpringArmOffset = BaseSpringArmOffset - HalfHeightAdjust;
+    }
+}
+
+void ANLPlayerCharacter::Server_InvokeLookPitchReplication()
+{
+    if (HasAuthority())
+    {
+        float NewPitch = GetControlRotation().Pitch;
+        if (NewPitch > 180.f)
+        {
+            NewPitch -= 360.f;
+        }
+        LookPitch = NewPitch;
     }
 }
 
