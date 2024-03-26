@@ -8,6 +8,11 @@
 ANLCharacterBase::ANLCharacterBase()
 {
     PrimaryActorTick.bCanEverTick = false;
+
+    WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(FName("WeaponMesh"));
+    WeaponMesh->bOwnerNoSee = true;
+    WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    WeaponMesh->SetupAttachment(GetMesh());
 }
 
 void ANLCharacterBase::BeginPlay()

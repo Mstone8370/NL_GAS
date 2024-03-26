@@ -117,6 +117,8 @@ void ANLPlayerCharacter::PossessedBy(AController* NewController)
     InitAbilityActorInfo();
     // TODO: Give Start up Abilities.
     AddStartupAbilities();
+
+    // TODO: Give Start up Weapons
 }
 
 void ANLPlayerCharacter::OnRep_PlayerState()

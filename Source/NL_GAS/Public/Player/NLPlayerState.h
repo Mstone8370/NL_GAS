@@ -5,10 +5,15 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
 #include "AbilitySystemInterface.h"
+#include "GameplayTagContainer.h"
 #include "NLPlayerState.generated.h"
 
 class UAbilitySystemComponent;
 class UAttributeSet;
+
+DECLARE_MULTICAST_DELEGATE_OneParam(FCurrentWeaponSlotChangedSignature, uint8 /*NewSlot*/);
+DECLARE_MULTICAST_DELEGATE_OneParam(FWeaponTagAddedSignature, const FGameplayTag& /*AddedTag*/);
+DECLARE_MULTICAST_DELEGATE_OneParam(FWeaponTagRemovedSignature, const FGameplayTag& /*RemovedTag*/);
 
 /**
  * 
@@ -21,15 +26,35 @@ class NL_GAS_API ANLPlayerState : public APlayerState, public IAbilitySystemInte
 public:
 	ANLPlayerState();
 
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	FCurrentWeaponSlotChangedSignature CurrentWeaponSlotChanged;
+	FWeaponTagAddedSignature WeaponTagAdded;
+	FWeaponTagRemovedSignature WeaponTagRemoved;
+
 protected:
+	virtual void BeginPlay() override;
+
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 	
 	UPROPERTY()
 	TObjectPtr<UAttributeSet> AttributeSet;
 
-	UPROPERTY(BlueprintReadOnly)
-	int32 CurrentWeaponSlot;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	uint8 MaxSlotSize;
+
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_CurrentWeaponSlot)
+	uint8 CurrentWeaponSlot;
+
+	UFUNCTION()
+	void OnRep_CurrentWeaponSlot(uint8 OldSlot);
+
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_WeaponTagSlot)
+	TArray<FGameplayTag> WeaponTagSlot;
+
+	UFUNCTION()
+	void OnRep_WeaponTagSlot();
 
 public:
 	//~ Begin AbilitySystemInterface
@@ -42,4 +67,6 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void ChangeWeaponSlot(int32 NewWeaponSlot);
+
+	const FGameplayTag& GetCurrentWeaponTag() const;
 };
