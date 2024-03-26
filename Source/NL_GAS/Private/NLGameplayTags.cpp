@@ -26,3 +26,6 @@ UE_DEFINE_GAMEPLAY_TAG(Ability_Weapon_ADS, "Ability.Weapon.ADS");
 UE_DEFINE_GAMEPLAY_TAG(Ability_Weapon_Reload, "Ability.Weapon.Reload");
 UE_DEFINE_GAMEPLAY_TAG(Ability_WeaponChange, "Ability.WeaponChange");
 UE_DEFINE_GAMEPLAY_TAG(Ability_Melee, "Ability.Melee");
+
+// Weapon Tag
+UE_DEFINE_GAMEPLAY_TAG(Weapon_Glock, "Weapon.Glock");

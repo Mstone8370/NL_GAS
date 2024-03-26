@@ -57,6 +57,9 @@ protected:
 	TObjectPtr<USkeletalMeshComponent> ArmMesh;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<USkeletalMeshComponent> ViewWeaponMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UCameraComponent> CameraComponent;
 
 	TObjectPtr<UNLCharacterMovementComponent> NLCharacterMovementComponent;

@@ -34,12 +34,18 @@ ANLPlayerCharacter::ANLPlayerCharacter()
     SpringArmComponent->bInheritPitch = true;
     SpringArmComponent->bInheritYaw = true;
     SpringArmComponent->bInheritRoll = false;
+    SpringArmComponent->bDoCollisionTest = false;
     SpringArmComponent->SetupAttachment(GetRootComponent());
 
     ArmMesh = CreateDefaultSubobject<USkeletalMeshComponent>(FName("ArmMesh"));
     ArmMesh->bOnlyOwnerSee = true;
     ArmMesh->CastShadow = 0;
     ArmMesh->SetupAttachment(SpringArmComponent);
+
+    ViewWeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(FName("ViewWeaponMesh"));
+    ViewWeaponMesh->bOnlyOwnerSee = true;
+    ViewWeaponMesh->CastShadow = 0;
+    ViewWeaponMesh->SetupAttachment(ArmMesh, FName("weapon"));
 
     CameraComponent = CreateDefaultSubobject<UCameraComponent>(FName("Camera"));
     CameraComponent->SetupAttachment(ArmMesh, FName("camera"));
