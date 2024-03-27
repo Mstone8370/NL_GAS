@@ -24,10 +24,10 @@ public:
 	FName WeaponName;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TWeakObjectPtr<USkeletalMesh> ViewModelMesh;
+	TSoftObjectPtr<USkeletalMesh> ViewModelMesh;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TWeakObjectPtr<UStaticMesh> PropMesh;
+	TSoftObjectPtr<UStaticMesh> PropMesh;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TSubclassOf<UAnimInstance> WeaponAnimBP;

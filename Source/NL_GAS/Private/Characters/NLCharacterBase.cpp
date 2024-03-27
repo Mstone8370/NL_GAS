@@ -12,7 +12,7 @@ ANLCharacterBase::ANLCharacterBase()
     WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(FName("WeaponMesh"));
     WeaponMesh->bOwnerNoSee = true;
     WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-    WeaponMesh->SetupAttachment(GetMesh());
+    WeaponMesh->SetupAttachment(GetMesh(), FName("weapon_r"));
 }
 
 void ANLCharacterBase::BeginPlay()
@@ -24,6 +24,11 @@ void ANLCharacterBase::BeginPlay()
 UAbilitySystemComponent* ANLCharacterBase::GetAbilitySystemComponent() const
 {
     return AbilitySystemComponent;
+}
+
+void ANLCharacterBase::SetWeaponMesh(UStaticMesh* NewMesh)
+{
+    WeaponMesh->SetStaticMesh(NewMesh);
 }
 
 void ANLCharacterBase::InitAbilityActorInfo() {}

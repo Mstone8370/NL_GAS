@@ -5,7 +5,10 @@
 
 #include "AbilitySystem/NLAbilitySystemComponent.h"
 #include "AbilitySystem/AttributeSet/NLAttributeSet.h"
+#include "NLFunctionLibrary.h"
+#include "Data/WeaponInfo.h"
 #include "Net/UnrealNetwork.h"
+#include "Characters/NLCharacterBase.h"
 
 ANLPlayerState::ANLPlayerState()
     : MaxSlotSize(3)
@@ -42,6 +45,25 @@ void ANLPlayerState::BeginPlay()
 void ANLPlayerState::OnRep_CurrentWeaponSlot(uint8 OldSlot)
 {
     // 레플리케이트 되었다면 Simulated 액터라는 뜻이므로 3인칭 애니메이션과 3인칭 메시 설정.
+    const FGameplayTag WeaponTag = GetCurrentWeaponTag();
+    if (!WeaponTag.IsValid())
+    {
+        return;
+    }
+
+    const FTaggedWeaponInfo* Info = UNLFunctionLibrary::GetWeaponInfoByTag(this, WeaponTag);
+    if (Info)
+    {
+        if (ANLCharacterBase* NLCharacterBase = Cast<ANLCharacterBase>(GetPawn()))
+        {
+            UStaticMesh* Mesh = Info->PropMesh.Get();
+            if (!Info->PropMesh.IsValid()) // = !IsValid(Mesh)
+            {
+                Mesh = Info->PropMesh.LoadSynchronous();
+            }
+            NLCharacterBase->SetWeaponMesh(Mesh);
+        }
+    }
 }
 
 void ANLPlayerState::OnRep_WeaponTagSlot()

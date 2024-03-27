@@ -30,8 +30,7 @@ public:
 
 	FORCEINLINE UAttributeSet* GetAttributeSet() const { return AttributeSet; }
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<UStaticMeshComponent> WeaponMesh;
+	void SetWeaponMesh(UStaticMesh* NewMesh);
 
 protected:
 	UPROPERTY()
@@ -39,6 +38,9 @@ protected:
 	
 	UPROPERTY()
 	TObjectPtr<UAttributeSet> AttributeSet;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UStaticMeshComponent> WeaponMesh;
 
 	virtual void InitAbilityActorInfo();
 
