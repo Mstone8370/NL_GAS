@@ -6,15 +6,16 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameModes/NLGameMode.h"
+#include "NLGameInstance.h"
 #include "Data/WeaponInfo.h"
 
 const FTaggedWeaponInfo* UNLFunctionLibrary::GetWeaponInfoByTag(const UObject* WorldContextObject, const FGameplayTag& WeaponTag)
 {
     if (WeaponTag.IsValid())
     {
-        if (ANLGameMode* NLGameMode = Cast<ANLGameMode>(UGameplayStatics::GetGameMode(WorldContextObject)))
+        if (UNLGameInstance* NLGameInstance = Cast<UNLGameInstance>(UGameplayStatics::GetGameInstance(WorldContextObject)))
         {
-            if (UWeaponInfo* WeaponInfoDataAsset = NLGameMode->WeaponInfo)
+            if (UWeaponInfo* WeaponInfoDataAsset = NLGameInstance->WeaponInfo)
             {
                 return WeaponInfoDataAsset->FindWeaponInfoByTag(WeaponTag);
             }

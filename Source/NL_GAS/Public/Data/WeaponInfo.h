@@ -7,6 +7,8 @@
 #include "GameplayTagContainer.h"
 #include "WeaponInfo.generated.h"
 
+class UGameplayAbility;
+
 /**
  * 
  */
@@ -34,6 +36,18 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TSubclassOf<UAnimInstance> ArmsAnimBP;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TSubclassOf<UAnimInstance> CharacterMeshAnimBP;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TSubclassOf<UGameplayAbility> PrimaryAbility;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TSubclassOf<UGameplayAbility> SecondaryAbility;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TSubclassOf<UGameplayAbility> ReloadAbility;
 };
 
 UCLASS()

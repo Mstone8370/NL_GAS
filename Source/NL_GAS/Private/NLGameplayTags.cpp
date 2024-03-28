@@ -21,11 +21,19 @@ UE_DEFINE_GAMEPLAY_TAG(Input_Weapon_Reload, "Input.Weapon.Reload");
 UE_DEFINE_GAMEPLAY_TAG(Input_Block_Ability, "Input.Block.Ability");
 
 // Ability Tag
-UE_DEFINE_GAMEPLAY_TAG(Ability_Weapon_Fire, "Ability.Weapon.Fire");
-UE_DEFINE_GAMEPLAY_TAG(Ability_Weapon_ADS, "Ability.Weapon.ADS");
+UE_DEFINE_GAMEPLAY_TAG(Ability_Weapon_Primary, "Ability.Weapon.Fire");
+UE_DEFINE_GAMEPLAY_TAG(Ability_Weapon_Secondary, "Ability.Weapon.ADS");
 UE_DEFINE_GAMEPLAY_TAG(Ability_Weapon_Reload, "Ability.Weapon.Reload");
 UE_DEFINE_GAMEPLAY_TAG(Ability_WeaponChange, "Ability.WeaponChange");
 UE_DEFINE_GAMEPLAY_TAG(Ability_Melee, "Ability.Melee");
 
 // Weapon Tag
-UE_DEFINE_GAMEPLAY_TAG(Weapon_Glock, "Weapon.Glock");
+UE_DEFINE_GAMEPLAY_TAG(Weapon_Unarmed, "Weapon.Unarmed");
+UE_DEFINE_GAMEPLAY_TAG(Weapon_Pistol_Glock, "Weapon.Glock");
+
+// Weapon Status
+UE_DEFINE_GAMEPLAY_TAG(Status_Weapon_Holstered, "Status.Weapon.Holstered");
+UE_DEFINE_GAMEPLAY_TAG(Status_Weapon_Drawn, "Status.Weapon.Drawn");
+UE_DEFINE_GAMEPLAY_TAG(Status_Weapon_Changing, "Status.Weapon.Changing");
+UE_DEFINE_GAMEPLAY_TAG(Status_Weapon_Reloading, "Status.Weapon.Reloading");
+UE_DEFINE_GAMEPLAY_TAG(Status_Weapon_ADS, "Status.Weapon.ADS");

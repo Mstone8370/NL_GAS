@@ -64,9 +64,8 @@ void UNLAbilitySystemComponent::ProcessAbilityInput(float DeltaTime, bool bGameP
 		{
 			if (AbilitySpec->Ability && !AbilitySpec->IsActive())
 			{
-				const UNLGameplayAbility* NLAbilityCDO = CastChecked<UNLGameplayAbility>(AbilitySpec->Ability);
-
-				if (NLAbilityCDO->GetActivationPolicy() == EAbilityActivationPolicy::WhileInputActive)
+				bool bIsWeaponHolstered = AbilitySpec->DynamicAbilityTags.HasTagExact(Status_Weapon_Holstered);
+				if (!bIsWeaponHolstered)
 				{
 					AbilitiesToActivate.AddUnique(AbilitySpec->Handle);
 				}
@@ -98,9 +97,8 @@ void UNLAbilitySystemComponent::ProcessAbilityInput(float DeltaTime, bool bGameP
 				}
 				else
 				{
-					const UNLGameplayAbility* NLAbilityCDO = CastChecked<UNLGameplayAbility>(AbilitySpec->Ability);
-
-					if (NLAbilityCDO->GetActivationPolicy() == EAbilityActivationPolicy::OnInputTriggered)
+					bool bIsWeaponHolstered = AbilitySpec->DynamicAbilityTags.HasTagExact(Status_Weapon_Holstered);
+					if (!bIsWeaponHolstered)
 					{
 						AbilitiesToActivate.AddUnique(AbilitySpec->Handle);
 					}

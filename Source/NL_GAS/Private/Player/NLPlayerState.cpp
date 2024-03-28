@@ -9,6 +9,7 @@
 #include "Data/WeaponInfo.h"
 #include "Net/UnrealNetwork.h"
 #include "Characters/NLCharacterBase.h"
+#include "NLGameplayTags.h"
 
 ANLPlayerState::ANLPlayerState()
     : MaxSlotSize(3)
@@ -56,12 +57,19 @@ void ANLPlayerState::OnRep_CurrentWeaponSlot(uint8 OldSlot)
     {
         if (ANLCharacterBase* NLCharacterBase = Cast<ANLCharacterBase>(GetPawn()))
         {
+            // Change Weapon Mesh
             UStaticMesh* Mesh = Info->PropMesh.Get();
             if (!Info->PropMesh.IsValid()) // = !IsValid(Mesh)
             {
                 Mesh = Info->PropMesh.LoadSynchronous();
             }
             NLCharacterBase->SetWeaponMesh(Mesh);
+
+            // Change Character Mesh AnimBP
+            if (Info->CharacterMeshAnimBP)
+            {
+                NLCharacterBase->GetMesh()->SetAnimInstanceClass(Info->CharacterMeshAnimBP);
+            }
         }
     }
 }
@@ -84,11 +92,11 @@ void ANLPlayerState::ChangeWeaponSlot(int32 NewWeaponSlot)
     CurrentWeaponSlotChanged.Broadcast(CurrentWeaponSlot);
 }
 
-const FGameplayTag& ANLPlayerState::GetCurrentWeaponTag() const
+const FGameplayTag ANLPlayerState::GetCurrentWeaponTag() const
 {
     if (CurrentWeaponSlot <= WeaponTagSlot.Num())
     {
         return WeaponTagSlot[CurrentWeaponSlot];
     }
-    return FGameplayTag::EmptyTag;
+    return FGameplayTag();
 }

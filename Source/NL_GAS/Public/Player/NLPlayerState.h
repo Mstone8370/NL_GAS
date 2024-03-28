@@ -68,5 +68,5 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ChangeWeaponSlot(int32 NewWeaponSlot);
 
-	const FGameplayTag& GetCurrentWeaponTag() const;
+	const FGameplayTag GetCurrentWeaponTag() const;
 };

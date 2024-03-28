@@ -6,8 +6,6 @@
 #include "GameFramework/GameMode.h"
 #include "NLGameMode.generated.h"
 
-class UWeaponInfo;
-
 /**
  * 
  */
@@ -15,8 +13,5 @@ UCLASS()
 class NL_GAS_API ANLGameMode : public AGameMode
 {
 	GENERATED_BODY()
-	
-public:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TObjectPtr<UWeaponInfo> WeaponInfo;
+
 };
