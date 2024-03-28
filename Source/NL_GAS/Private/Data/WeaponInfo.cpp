@@ -3,13 +3,13 @@
 
 #include "Data/WeaponInfo.h"
 
-const FTaggedWeaponInfo* UWeaponInfo::FindWeaponInfoByTag(const FGameplayTag& InWeaponTag) const
+const FWeaponInfo* UTaggedWeaponInfoList::FindTaggedWeaponInfoByTag(const FGameplayTag& InWeaponTag) const
 {
-    for (const FTaggedWeaponInfo& Info : WeaponInfos)
+    for (const UTaggedWeaponInfo* Info : TaggedWeaponInfos)
     {
-        if (Info.WeaponTag.MatchesTagExact(InWeaponTag))
+        if (Info->WeaponTag.MatchesTagExact(InWeaponTag))
         {
-            return &Info;
+            return &Info->WeaponInfo;
         }
     }
     return nullptr;

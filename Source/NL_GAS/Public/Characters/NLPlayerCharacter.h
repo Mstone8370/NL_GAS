@@ -111,6 +111,8 @@ protected:
 	virtual void InterpolateCrouch(float DeltaSeconds);
 	//~End Crouch Interpolation
 
+	void AddStartupWeapons();
+
 public:
 	void GetCrouchedHalfHeightAdjust(float& OutHalfHeightAdjust, float& OutScaledHalfHeightAdjust) const;
 

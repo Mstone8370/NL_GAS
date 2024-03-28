@@ -24,13 +24,23 @@ class NL_GAS_API UNLAttributeSet : public UAttributeSet
 
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
+	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
+	virtual void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) override;
+	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
 
-	// Default Attribute
-	UPROPERTY(BlueprintReadOnly, Category = "Default Attribute", ReplicatedUsing = OnRep_Health);
+	// Default Attributes
+	UPROPERTY(BlueprintReadOnly, Category = "Default Attributes", ReplicatedUsing = OnRep_Health);
 	FGameplayAttributeData Health;
 
 	ATTRIBUTE_ACCESSORS(UNLAttributeSet, Health);
 
 	UFUNCTION()
 	void OnRep_Health(const FGameplayAttributeData& OldHealth) const;
+
+	// Meta Attributes
+	UPROPERTY(BlueprintReadOnly, Category = "Meta Attributes");
+	FGameplayAttributeData IncomingDamage;
+
+	ATTRIBUTE_ACCESSORS(UNLAttributeSet, IncomingDamage);
 };

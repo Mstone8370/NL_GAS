@@ -6,7 +6,7 @@
 #include "Engine/GameInstance.h"
 #include "NLGameInstance.generated.h"
 
-class UWeaponInfo;
+class UTaggedWeaponInfoList;
 
 /**
  * 
@@ -18,5 +18,5 @@ class NL_GAS_API UNLGameInstance : public UGameInstance
 
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TObjectPtr<UWeaponInfo> WeaponInfo;
+	TObjectPtr<UTaggedWeaponInfoList> TaggedWeaponInfoList;
 };

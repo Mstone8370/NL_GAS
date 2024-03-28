@@ -32,6 +32,12 @@ public:
 	FWeaponTagAddedSignature WeaponTagAdded;
 	FWeaponTagRemovedSignature WeaponTagRemoved;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	uint8 MaxSlotSize;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TArray<FGameplayTag> StartupWeapons;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -40,9 +46,6 @@ protected:
 	
 	UPROPERTY()
 	TObjectPtr<UAttributeSet> AttributeSet;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	uint8 MaxSlotSize;
 
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_CurrentWeaponSlot)
 	uint8 CurrentWeaponSlot;

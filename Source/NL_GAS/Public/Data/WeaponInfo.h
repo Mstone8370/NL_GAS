@@ -10,18 +10,15 @@
 class UGameplayAbility;
 
 /**
- * 
+ * Single Weapon Info with Gameplay Tag
  */
 
 USTRUCT(BlueprintType)
-struct FTaggedWeaponInfo
+struct FWeaponInfo
 {
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	FGameplayTag WeaponTag;
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FName WeaponName;
 
@@ -51,13 +48,26 @@ public:
 };
 
 UCLASS()
-class NL_GAS_API UWeaponInfo : public UDataAsset
+class NL_GAS_API UTaggedWeaponInfo : public UDataAsset
 {
 	GENERATED_BODY()
 
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TArray<FTaggedWeaponInfo> WeaponInfos;
+	FWeaponInfo WeaponInfo;
 
-	const FTaggedWeaponInfo* FindWeaponInfoByTag(const FGameplayTag& InWeaponTag) const;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FGameplayTag WeaponTag;
+};
+
+UCLASS()
+class NL_GAS_API UTaggedWeaponInfoList : public UDataAsset
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TArray<TObjectPtr<UTaggedWeaponInfo>> TaggedWeaponInfos;
+
+	const FWeaponInfo* FindTaggedWeaponInfoByTag(const FGameplayTag& InWeaponTag) const;
 };

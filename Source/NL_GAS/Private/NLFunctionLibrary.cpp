@@ -9,15 +9,15 @@
 #include "NLGameInstance.h"
 #include "Data/WeaponInfo.h"
 
-const FTaggedWeaponInfo* UNLFunctionLibrary::GetWeaponInfoByTag(const UObject* WorldContextObject, const FGameplayTag& WeaponTag)
+const FWeaponInfo* UNLFunctionLibrary::GetWeaponInfoByTag(const UObject* WorldContextObject, const FGameplayTag& WeaponTag)
 {
     if (WeaponTag.IsValid())
     {
         if (UNLGameInstance* NLGameInstance = Cast<UNLGameInstance>(UGameplayStatics::GetGameInstance(WorldContextObject)))
         {
-            if (UWeaponInfo* WeaponInfoDataAsset = NLGameInstance->WeaponInfo)
+            if (UTaggedWeaponInfoList* InfoList = NLGameInstance->TaggedWeaponInfoList)
             {
-                return WeaponInfoDataAsset->FindWeaponInfoByTag(WeaponTag);
+                return InfoList->FindTaggedWeaponInfoByTag(WeaponTag);
             }
         }
     }

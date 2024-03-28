@@ -13,6 +13,7 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystem/NLAbilitySystemComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 ANLPlayerCharacter::ANLPlayerCharacter()
     : LookPitchRepTime(0.02f)
@@ -82,6 +83,13 @@ void ANLPlayerCharacter::BeginPlay()
     {
         GetWorldTimerManager().SetTimer(LookPitchRepTimerHandle, this, &ANLPlayerCharacter::Server_InvokeLookPitchReplication, LookPitchRepTime, true);
     }
+
+    // Arm Material Instance Dynamic
+    for (uint8 i = 0; i < ArmMesh->GetNumMaterials(); i++)
+    {
+        UMaterialInstanceDynamic* MatInstDynamic = ArmMesh->CreateAndSetMaterialInstanceDynamic(i);
+        MatInstDynamic->SetScalarParameterValue(FName("FOV"), 80.f);
+    }
 }
 
 bool ANLPlayerCharacter::CanJumpInternal_Implementation() const
@@ -118,7 +126,7 @@ void ANLPlayerCharacter::PossessedBy(AController* NewController)
     // TODO: Give Start up Abilities.
     AddStartupAbilities();
 
-    // TODO: Give Start up Weapons
+    AddStartupWeapons();
 }
 
 void ANLPlayerCharacter::OnRep_PlayerState()
@@ -327,6 +335,19 @@ void ANLPlayerCharacter::InterpolateCrouch(float DeltaSeconds)
             {
                 Server_CapsuleShrinked(true);
             }
+        }
+    }
+}
+
+void ANLPlayerCharacter::AddStartupWeapons()
+{
+    // On Server
+
+    if (ANLPlayerState* PS = GetPlayerState<ANLPlayerState>())
+    {
+        for (const FGameplayTag& Tag : PS->StartupWeapons)
+        {
+            
         }
     }
 }

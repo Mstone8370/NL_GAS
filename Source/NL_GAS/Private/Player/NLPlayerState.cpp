@@ -52,7 +52,7 @@ void ANLPlayerState::OnRep_CurrentWeaponSlot(uint8 OldSlot)
         return;
     }
 
-    const FTaggedWeaponInfo* Info = UNLFunctionLibrary::GetWeaponInfoByTag(this, WeaponTag);
+    const FWeaponInfo* Info = UNLFunctionLibrary::GetWeaponInfoByTag(this, WeaponTag);
     if (Info)
     {
         if (ANLCharacterBase* NLCharacterBase = Cast<ANLCharacterBase>(GetPawn()))

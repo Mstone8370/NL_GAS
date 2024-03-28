@@ -16,7 +16,8 @@ void UNLAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& Input
     for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
     {
         bool bIsInputTagAbility = AbilitySpec.DynamicAbilityTags.HasTagExact(InputTag);
-        if (AbilitySpec.Ability && bIsInputTagAbility)
+		bool bIsWeaponHolstered = AbilitySpec.DynamicAbilityTags.HasTagExact(Status_Weapon_Holstered);
+        if (AbilitySpec.Ability && bIsInputTagAbility && !bIsWeaponHolstered)
         {
             InputPressedSpecHandles.AddUnique(AbilitySpec.Handle);
             InputHeldSpecHandles.AddUnique(AbilitySpec.Handle);
@@ -34,7 +35,8 @@ void UNLAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& Inpu
     for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
     {
         bool bIsInputTagAbility = AbilitySpec.DynamicAbilityTags.HasTagExact(InputTag);
-        if (AbilitySpec.Ability && bIsInputTagAbility)
+		bool bIsWeaponHolstered = AbilitySpec.DynamicAbilityTags.HasTagExact(Status_Weapon_Holstered);
+        if (AbilitySpec.Ability && bIsInputTagAbility && !bIsWeaponHolstered)
         {
             InputReleasedSpecHandles.AddUnique(AbilitySpec.Handle);
             InputHeldSpecHandles.Remove(AbilitySpec.Handle);
@@ -64,11 +66,7 @@ void UNLAbilitySystemComponent::ProcessAbilityInput(float DeltaTime, bool bGameP
 		{
 			if (AbilitySpec->Ability && !AbilitySpec->IsActive())
 			{
-				bool bIsWeaponHolstered = AbilitySpec->DynamicAbilityTags.HasTagExact(Status_Weapon_Holstered);
-				if (!bIsWeaponHolstered)
-				{
-					AbilitiesToActivate.AddUnique(AbilitySpec->Handle);
-				}
+				AbilitiesToActivate.AddUnique(AbilitySpec->Handle);
 			}
 		}
 	}
@@ -97,11 +95,7 @@ void UNLAbilitySystemComponent::ProcessAbilityInput(float DeltaTime, bool bGameP
 				}
 				else
 				{
-					bool bIsWeaponHolstered = AbilitySpec->DynamicAbilityTags.HasTagExact(Status_Weapon_Holstered);
-					if (!bIsWeaponHolstered)
-					{
-						AbilitiesToActivate.AddUnique(AbilitySpec->Handle);
-					}
+					AbilitiesToActivate.AddUnique(AbilitySpec->Handle);
 				}
 			}
 		}
