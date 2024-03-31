@@ -9,7 +9,9 @@
 #include "Data/WeaponInfo.h"
 #include "Net/UnrealNetwork.h"
 #include "Characters/NLCharacterBase.h"
+#include "Characters/NLPlayerCharacter.h"
 #include "NLGameplayTags.h"
+#include "Actors/WeaponActor.h"
 
 ANLPlayerState::ANLPlayerState()
     : MaxSlotSize(3)
@@ -33,7 +35,7 @@ void ANLPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
     DOREPLIFETIME_CONDITION_NOTIFY(ANLPlayerState, CurrentWeaponSlot, COND_SimulatedOnly, REPNOTIFY_OnChanged);
-    DOREPLIFETIME_CONDITION_NOTIFY(ANLPlayerState, WeaponTagSlot, COND_None, REPNOTIFY_OnChanged);
+    // DOREPLIFETIME_CONDITION_NOTIFY(ANLPlayerState, WeaponTagSlot, COND_None, REPNOTIFY_OnChanged);
 }
 
 void ANLPlayerState::BeginPlay()
@@ -74,9 +76,42 @@ void ANLPlayerState::OnRep_CurrentWeaponSlot(uint8 OldSlot)
     }
 }
 
-void ANLPlayerState::OnRep_WeaponTagSlot()
+void ANLPlayerState::AddStartupWeapons()
 {
-    // TODO: Apply Weapon slot change
+    // On Server
+
+    ANLPlayerCharacter* PlayerCharacter = Cast<ANLPlayerCharacter>(GetPawn());
+
+    for (const FGameplayTag& Tag : StartupWeapons)
+    {
+        if (WeaponTagSlot.Num() >= MaxSlotSize)
+        {
+            break;
+        }
+
+        WeaponTagSlot.Add(Tag);
+
+        FTransform SpawnTransform;
+        SpawnTransform.SetLocation(GetPawn()->GetActorLocation());
+        SpawnTransform.SetRotation(FQuat::Identity);
+        SpawnTransform.SetScale3D(FVector::OneVector);
+        AWeaponActor* Weapon = GetWorld()->SpawnActorDeferred<AWeaponActor>(
+            AWeaponActor::StaticClass(),
+            SpawnTransform,
+            this,
+            GetPawn(),
+            ESpawnActorCollisionHandlingMethod::AlwaysSpawn
+        );
+        Weapon->InitalizeWeapon(Tag);
+        Weapon->AttachToActor(GetPawn(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+        Weapon->ViewWeaponMesh->AttachToComponent(PlayerCharacter->ArmMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("weapon"));
+        Weapon->WeaponMesh->AttachToComponent(PlayerCharacter->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("hand_r"));
+        Weapon->FinishSpawning(SpawnTransform);
+
+        GetAbilitySystemComponent()->GiveAbility(Weapon->PrimaryAbilitySpec);
+        GetAbilitySystemComponent()->GiveAbility(Weapon->SecondaryAbilitySpec);
+        GetAbilitySystemComponent()->GiveAbility(Weapon->ReloadAbilitySpec);
+    }
 }
 
 UAbilitySystemComponent* ANLPlayerState::GetAbilitySystemComponent() const

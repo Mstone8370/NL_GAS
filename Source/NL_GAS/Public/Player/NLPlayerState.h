@@ -10,6 +10,7 @@
 
 class UAbilitySystemComponent;
 class UAttributeSet;
+class AWeaponActor;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FCurrentWeaponSlotChangedSignature, uint8 /*NewSlot*/);
 DECLARE_MULTICAST_DELEGATE_OneParam(FWeaponTagAddedSignature, const FGameplayTag& /*AddedTag*/);
@@ -53,11 +54,11 @@ protected:
 	UFUNCTION()
 	void OnRep_CurrentWeaponSlot(uint8 OldSlot);
 
-	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_WeaponTagSlot)
+	UPROPERTY(BlueprintReadOnly)
 	TArray<FGameplayTag> WeaponTagSlot;
 
-	UFUNCTION()
-	void OnRep_WeaponTagSlot();
+	UPROPERTY(BlueprintReadOnly)
+	TArray<AWeaponActor*> WeaponActorSlot;
 
 public:
 	//~ Begin AbilitySystemInterface
@@ -72,4 +73,6 @@ public:
 	void ChangeWeaponSlot(int32 NewWeaponSlot);
 
 	const FGameplayTag GetCurrentWeaponTag() const;
+
+	void AddStartupWeapons();
 };

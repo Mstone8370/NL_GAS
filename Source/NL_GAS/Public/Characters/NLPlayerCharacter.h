@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Characters/NLCharacterBase.h"
+#include "GameplayTagContainer.h"
 #include "NLPlayerCharacter.generated.h"
 
 class USpringArmComponent;
@@ -49,7 +50,6 @@ public:
 	virtual void Landed(const FHitResult& Hit) override;
 	void OnFallingStarted();
 
-protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USpringArmComponent> SpringArmComponent;
 
@@ -57,11 +57,9 @@ protected:
 	TObjectPtr<USkeletalMeshComponent> ArmMesh;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<USkeletalMeshComponent> ViewWeaponMesh;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UCameraComponent> CameraComponent;
 
+protected:
 	TObjectPtr<UNLCharacterMovementComponent> NLCharacterMovementComponent;
 
 	TObjectPtr<ANLPlayerController> NLPlayerController;
@@ -75,6 +73,8 @@ protected:
 	void Server_InvokeLookPitchReplication();
 
 	FTimerHandle LookPitchRepTimerHandle;
+
+	void AddStartupWeapons();
 
 	//~Begin Crouch Interpolation
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
@@ -110,8 +110,6 @@ protected:
 	bool IsCrouchInterpolatableCharacter();
 	virtual void InterpolateCrouch(float DeltaSeconds);
 	//~End Crouch Interpolation
-
-	void AddStartupWeapons();
 
 public:
 	void GetCrouchedHalfHeightAdjust(float& OutHalfHeightAdjust, float& OutScaledHalfHeightAdjust) const;

@@ -36,6 +36,7 @@ UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Melee);
 // Weapon Tag
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(Weapon_Unarmed);
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(Weapon_Pistol_Glock);
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(Weapon_Rifle_ACR);
 
 // Weapon Status
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Weapon_Holstered);

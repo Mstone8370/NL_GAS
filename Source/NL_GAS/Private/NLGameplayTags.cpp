@@ -29,7 +29,8 @@ UE_DEFINE_GAMEPLAY_TAG(Ability_Melee, "Ability.Melee");
 
 // Weapon Tag
 UE_DEFINE_GAMEPLAY_TAG(Weapon_Unarmed, "Weapon.Unarmed");
-UE_DEFINE_GAMEPLAY_TAG(Weapon_Pistol_Glock, "Weapon.Glock");
+UE_DEFINE_GAMEPLAY_TAG(Weapon_Pistol_Glock, "Weapon.Pistol.Glock");
+UE_DEFINE_GAMEPLAY_TAG(Weapon_Rifle_ACR, "Weapon.Rifle.ACR");
 
 // Weapon Status
 UE_DEFINE_GAMEPLAY_TAG(Status_Weapon_Holstered, "Status.Weapon.Holstered");

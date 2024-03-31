@@ -5,7 +5,11 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Data/WeaponInfo.h"
+#include "GameplayTagContainer.h"
+#include "GameplayAbilitySpec.h"
 #include "WeaponActor.generated.h"
+
+class UGameplayAbility;
 
 UCLASS(Blueprintable, BlueprintType)
 class NL_GAS_API AWeaponActor : public AActor
@@ -15,11 +19,7 @@ class NL_GAS_API AWeaponActor : public AActor
 public:
 	AWeaponActor();
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Info")
-	TObjectPtr<UTaggedWeaponInfo> StartupWeaponInfo;
-
-protected:
-	virtual void BeginPlay() override;
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UStaticMeshComponent> WeaponMesh;
@@ -27,7 +27,21 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USkeletalMeshComponent> ViewWeaponMesh;
 
+	FGameplayAbilitySpec PrimaryAbilitySpec;
+
+	FGameplayAbilitySpec SecondaryAbilitySpec;
+
+	FGameplayAbilitySpec ReloadAbilitySpec;
+
+protected:
+	virtual void BeginPlay() override;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated)
+	FGameplayTag WeaponTag;
+
+	bool bInitialized = false;
+
 public:
-	void InitalizeWeapon(const FWeaponInfo* Info);
+	void InitalizeWeapon(const FGameplayTag& InWeaponTag);
 
 };

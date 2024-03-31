@@ -43,11 +43,6 @@ ANLPlayerCharacter::ANLPlayerCharacter()
     ArmMesh->CastShadow = 0;
     ArmMesh->SetupAttachment(SpringArmComponent);
 
-    ViewWeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(FName("ViewWeaponMesh"));
-    ViewWeaponMesh->bOnlyOwnerSee = true;
-    ViewWeaponMesh->CastShadow = 0;
-    ViewWeaponMesh->SetupAttachment(ArmMesh, FName("weapon"));
-
     CameraComponent = CreateDefaultSubobject<UCameraComponent>(FName("Camera"));
     CameraComponent->SetupAttachment(ArmMesh, FName("camera"));
     CameraComponent->FieldOfView = 90.f;
@@ -123,7 +118,7 @@ void ANLPlayerCharacter::PossessedBy(AController* NewController)
 
     // On Server
     InitAbilityActorInfo();
-    // TODO: Give Start up Abilities.
+    
     AddStartupAbilities();
 
     AddStartupWeapons();
@@ -345,10 +340,7 @@ void ANLPlayerCharacter::AddStartupWeapons()
 
     if (ANLPlayerState* PS = GetPlayerState<ANLPlayerState>())
     {
-        for (const FGameplayTag& Tag : PS->StartupWeapons)
-        {
-            
-        }
+        PS->AddStartupWeapons();
     }
 }
 
