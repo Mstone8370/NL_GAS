@@ -15,6 +15,7 @@ AWeaponActor::AWeaponActor()
 
 	WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(FName("WeaponMesh"));
 	WeaponMesh->SetCollisionObjectType(ECC_WeaponProp);
+	WeaponMesh->SetMassOverrideInKg(NAME_None, 2.f, true);
 	SetRootComponent(WeaponMesh);
 
 	ViewWeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(FName("ViewWeaponMesh"));

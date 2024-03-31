@@ -15,19 +15,17 @@ class NL_GAS_API AWeaponActor : public AActor
 public:
 	AWeaponActor();
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Info")
+	TObjectPtr<UTaggedWeaponInfo> StartupWeaponInfo;
+
 protected:
 	virtual void BeginPlay() override;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Info")
-	TObjectPtr<UTaggedWeaponInfo> StartupWeaponInfo;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UStaticMeshComponent> WeaponMesh;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USkeletalMeshComponent> ViewWeaponMesh;
-
-	// TArray<TObjectPtr<UMaterialInstanceDynamic>> ViewMaterials;
 
 public:
 	void InitalizeWeapon(const FWeaponInfo* Info);
