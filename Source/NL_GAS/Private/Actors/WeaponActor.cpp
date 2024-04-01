@@ -92,6 +92,7 @@ void AWeaponActor::SetWeaponState(bool bInIsEuipped)
 		WeaponMeshComponent->SetSimulatePhysics(false);
 		WeaponMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		WeaponMeshComponent->CastShadow = 0;
+		SetActorHiddenInGame(true);
 	}
 	else
 	{
@@ -99,5 +100,6 @@ void AWeaponActor::SetWeaponState(bool bInIsEuipped)
 		WeaponMeshComponent->SetSimulatePhysics(true);
 		WeaponMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		WeaponMeshComponent->CastShadow = 1;
+		SetActorHiddenInGame(false);
 	}
 }

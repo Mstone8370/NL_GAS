@@ -16,6 +16,8 @@
 #include "Materials/MaterialInstanceDynamic.h"
 #include "NLFunctionLibrary.h"
 #include "Data/WeaponInfo.h"
+#include "NLGameplayTags.h"
+#include "Actors/WeaponActor.h"
 
 ANLPlayerCharacter::ANLPlayerCharacter()
     : LookPitchRepTime(0.02f)
@@ -137,6 +139,19 @@ void ANLPlayerCharacter::OnRep_PlayerState()
 
     // On Client
     InitAbilityActorInfo();
+
+    FGameplayTagContainer TagContainer(Ability_WeaponChange_1);
+    GetAbilitySystemComponent()->TryActivateAbilitiesByTag(TagContainer);
+
+    /**
+    * 캐릭터 메시는 들고있는 무기가 바뀔때 업데이트 되는데, 
+    * 늦게 들어온 플레이어 입장에서는 다른 Simulated 캐릭터의 무기가 바뀌기 전까지는 업데이트가 안되므로 기본 상태로 유지됨.
+    * 따라서 Simulated 캐릭터의 플레이어 스테이트가 레플리케이트 되면 한번 업데이트 함.
+    */
+    if (GetLocalRole() == ROLE_SimulatedProxy)
+    {
+        UpdateCharacterMesh();
+    }
 }
 
 void ANLPlayerCharacter::OnRep_Controller()
@@ -351,24 +366,6 @@ void ANLPlayerCharacter::AddStartupWeapons()
     }
 }
 
-void ANLPlayerCharacter::OnCurrentWeaponChanged(const FGameplayTag& InWeaponTag)
-{
-    if (const FWeaponInfo* Info = UNLFunctionLibrary::GetWeaponInfoByTag(this, InWeaponTag))
-    {
-        USkeletalMesh* NewWeaponMesh = Info->ViewModelMesh.Get();
-        if (!NewWeaponMesh)
-        {
-            NewWeaponMesh = Info->ViewModelMesh.LoadSynchronous();
-        }
-        ViewWeaponMesh->SetSkeletalMesh(NewWeaponMesh);
-
-        if (Info->ArmsAnimBP && ArmMesh)
-        {
-            ArmMesh->SetAnimInstanceClass(Info->ArmsAnimBP);
-        }
-    }
-}
-
 void ANLPlayerCharacter::GetCrouchedHalfHeightAdjust(float& OutHalfHeightAdjust, float& OutScaledHalfHeightAdjust) const
 {
     // Change collision size to crouching dimensions
@@ -394,4 +391,54 @@ ANLPlayerController* ANLPlayerCharacter::GetNLPC()
         NLPlayerController = Cast<ANLPlayerController>(GetController());
     }
     return NLPlayerController;
+}
+
+void ANLPlayerCharacter::OnCurrentWeaponChanged(const FGameplayTag& InWeaponTag)
+{
+    if (const FWeaponInfo* Info = UNLFunctionLibrary::GetWeaponInfoByTag(this, InWeaponTag))
+    {
+        USkeletalMesh* NewWeaponMesh = Info->ViewModelMesh.Get();
+        if (!NewWeaponMesh)
+        {
+            NewWeaponMesh = Info->ViewModelMesh.LoadSynchronous();
+        }
+        ViewWeaponMesh->SetSkeletalMesh(NewWeaponMesh);
+
+        if (Info->ArmsAnimBP && ArmMesh)
+        {
+            ArmMesh->SetAnimInstanceClass(Info->ArmsAnimBP);
+        }
+    }
+}
+
+void ANLPlayerCharacter::UpdateCharacterMesh(AWeaponActor* OldWeaponActor)
+{
+    if (OldWeaponActor)
+    {
+        OldWeaponActor->SetActorHiddenInGame(true);
+    }
+
+    if (ANLPlayerState* PS = GetPlayerState<ANLPlayerState>())
+    {
+        const FGameplayTag WeaponTag = PS->GetCurrentWeaponTag();
+        if (!WeaponTag.IsValid())
+        {
+            return;
+        }
+
+        const FWeaponInfo* Info = UNLFunctionLibrary::GetWeaponInfoByTag(this, WeaponTag);
+        if (Info)
+        {
+            if (AWeaponActor* CurrentWeapon = PS->GetCurrentWeapon())
+            {
+                CurrentWeapon->SetActorHiddenInGame(false);
+            }
+
+            // Change Character Mesh AnimBP
+            if (Info->CharacterMeshAnimBP)
+            {
+                GetMesh()->SetAnimInstanceClass(Info->CharacterMeshAnimBP);
+            }
+        }
+    }
 }

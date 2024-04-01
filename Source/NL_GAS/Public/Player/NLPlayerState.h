@@ -54,8 +54,11 @@ protected:
 	UFUNCTION()
 	void OnRep_CurrentWeaponSlot(uint8 OldSlot);
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_WeaponActorSlot)
 	TArray<AWeaponActor*> WeaponActorSlot;
+
+	UFUNCTION()
+	void OnRep_WeaponActorSlot();
 
 public:
 	//~ Begin AbilitySystemInterface

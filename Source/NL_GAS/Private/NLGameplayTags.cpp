@@ -21,10 +21,12 @@ UE_DEFINE_GAMEPLAY_TAG(Input_Weapon_Reload, "Input.Weapon.Reload");
 UE_DEFINE_GAMEPLAY_TAG(Input_Block_Ability, "Input.Block.Ability");
 
 // Ability Tag
-UE_DEFINE_GAMEPLAY_TAG(Ability_Weapon_Primary, "Ability.Weapon.Fire");
-UE_DEFINE_GAMEPLAY_TAG(Ability_Weapon_Secondary, "Ability.Weapon.ADS");
+UE_DEFINE_GAMEPLAY_TAG(Ability_Weapon_Primary, "Ability.Weapon.Primary");
+UE_DEFINE_GAMEPLAY_TAG(Ability_Weapon_Secondary, "Ability.Weapon.Secondary");
 UE_DEFINE_GAMEPLAY_TAG(Ability_Weapon_Reload, "Ability.Weapon.Reload");
-UE_DEFINE_GAMEPLAY_TAG(Ability_WeaponChange, "Ability.WeaponChange");
+UE_DEFINE_GAMEPLAY_TAG(Ability_WeaponChange_1, "Ability.WeaponChange.1");
+UE_DEFINE_GAMEPLAY_TAG(Ability_WeaponChange_2, "Ability.WeaponChange.2");
+UE_DEFINE_GAMEPLAY_TAG(Ability_WeaponChange_3, "Ability.WeaponChange.3");
 UE_DEFINE_GAMEPLAY_TAG(Ability_Melee, "Ability.Melee");
 
 // Weapon Tag

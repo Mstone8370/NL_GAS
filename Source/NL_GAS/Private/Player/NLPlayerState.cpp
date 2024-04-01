@@ -15,7 +15,7 @@
 
 ANLPlayerState::ANLPlayerState()
     : MaxSlotSize(3)
-    , CurrentWeaponSlot(0)
+    , CurrentWeaponSlot(255)
 {
     AbilitySystemComponent = CreateDefaultSubobject<UNLAbilitySystemComponent>("AbilitySystemComponent");
     if (AbilitySystemComponent)
@@ -52,26 +52,9 @@ void ANLPlayerState::OnRep_CurrentWeaponSlot(uint8 OldSlot)
         return;
     }
 
-    const FWeaponInfo* Info = UNLFunctionLibrary::GetWeaponInfoByTag(this, WeaponTag);
-    if (Info)
+    if (ANLPlayerCharacter* PlayerCharacter = Cast<ANLPlayerCharacter>(GetPawn()))
     {
-        if (ANLCharacterBase* NLCharacterBase = Cast<ANLCharacterBase>(GetPawn()))
-        {
-            if (AWeaponActor* OldWeapon = GetWeaponAtSlot(OldSlot))
-            {
-                OldWeapon->SetActorHiddenInGame(true);
-            }
-            if (AWeaponActor* CurrentWeapon = GetCurrentWeapon())
-            {
-                CurrentWeapon->SetActorHiddenInGame(false);
-            }
-
-            // Change Character Mesh AnimBP
-            if (Info->CharacterMeshAnimBP)
-            {
-                NLCharacterBase->GetMesh()->SetAnimInstanceClass(Info->CharacterMeshAnimBP);
-            }
-        }
+        PlayerCharacter->UpdateCharacterMesh(GetWeaponAtSlot(OldSlot));
     }
 }
 
@@ -119,11 +102,10 @@ void ANLPlayerState::AddStartupWeapons()
         ReloadAbilitySpec.DynamicAbilityTags.AddTag(Status_Weapon_Holstered);
         Weapon->ReloadAbilitySpecHandle = GetAbilitySystemComponent()->GiveAbility(ReloadAbilitySpec);
     }
+}
 
-    if (WeaponNum > 0)
-    {
-        ChangeWeaponSlot(0);
-    }
+void ANLPlayerState::OnRep_WeaponActorSlot()
+{
 }
 
 UAbilitySystemComponent* ANLPlayerState::GetAbilitySystemComponent() const
@@ -148,8 +130,6 @@ AWeaponActor* ANLPlayerState::GetWeaponAtSlot(uint8 InSlot) const
 void ANLPlayerState::ChangeWeaponSlot(int32 NewWeaponSlot)
 {
     // On Server and Client by GameplayAbility
-
-    const FGameplayTag PrevWeaponTag = GetCurrentWeaponTag();
 
     if (HasAuthority())
     {
