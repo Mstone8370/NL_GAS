@@ -54,7 +54,7 @@ ANLPlayerCharacter::ANLPlayerCharacter()
 
     CameraComponent = CreateDefaultSubobject<UCameraComponent>(FName("Camera"));
     CameraComponent->SetupAttachment(ArmMesh, FName("camera"));
-    CameraComponent->FieldOfView = 90.f;
+    CameraComponent->FieldOfView = 110.f;
 }
 
 void ANLPlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -413,29 +413,26 @@ void ANLPlayerCharacter::OnCurrentWeaponChanged(const FGameplayTag& InWeaponTag)
 
 void ANLPlayerCharacter::UpdateCharacterMesh(AWeaponActor* OldWeaponActor)
 {
-    if (OldWeaponActor)
+    // Hide Previous Weapon
+    if (IsValid(OldWeaponActor))
     {
         OldWeaponActor->SetActorHiddenInGame(true);
     }
 
     if (ANLPlayerState* PS = GetPlayerState<ANLPlayerState>())
     {
-        const FGameplayTag WeaponTag = PS->GetCurrentWeaponTag();
-        if (!WeaponTag.IsValid())
+        // Show Current Weapon
+        if (AWeaponActor* CurrentWeapon = PS->GetCurrentWeapon())
         {
-            return;
+            CurrentWeapon->SetActorHiddenInGame(false);
         }
 
-        const FWeaponInfo* Info = UNLFunctionLibrary::GetWeaponInfoByTag(this, WeaponTag);
-        if (Info)
+        // Change Character Mesh AnimBP
+        const FGameplayTag WeaponTag = PS->GetCurrentWeaponTag();
+        if (WeaponTag.IsValid())
         {
-            if (AWeaponActor* CurrentWeapon = PS->GetCurrentWeapon())
-            {
-                CurrentWeapon->SetActorHiddenInGame(false);
-            }
-
-            // Change Character Mesh AnimBP
-            if (Info->CharacterMeshAnimBP)
+            const FWeaponInfo* Info = UNLFunctionLibrary::GetWeaponInfoByTag(this, WeaponTag);
+            if (Info && Info->CharacterMeshAnimBP)
             {
                 GetMesh()->SetAnimInstanceClass(Info->CharacterMeshAnimBP);
             }
