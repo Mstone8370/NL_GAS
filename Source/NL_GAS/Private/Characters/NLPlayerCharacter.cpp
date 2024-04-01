@@ -14,6 +14,8 @@
 #include "AbilitySystem/NLAbilitySystemComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "NLFunctionLibrary.h"
+#include "Data/WeaponInfo.h"
 
 ANLPlayerCharacter::ANLPlayerCharacter()
     : LookPitchRepTime(0.02f)
@@ -42,6 +44,11 @@ ANLPlayerCharacter::ANLPlayerCharacter()
     ArmMesh->bOnlyOwnerSee = true;
     ArmMesh->CastShadow = 0;
     ArmMesh->SetupAttachment(SpringArmComponent);
+
+    ViewWeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(FName("ViewWeaponMesh"));
+    ViewWeaponMesh->bOnlyOwnerSee = true;
+    ViewWeaponMesh->CastShadow = 0;
+    ViewWeaponMesh->SetupAttachment(ArmMesh, FName("weapon"));
 
     CameraComponent = CreateDefaultSubobject<UCameraComponent>(FName("Camera"));
     CameraComponent->SetupAttachment(ArmMesh, FName("camera"));
@@ -341,6 +348,24 @@ void ANLPlayerCharacter::AddStartupWeapons()
     if (ANLPlayerState* PS = GetPlayerState<ANLPlayerState>())
     {
         PS->AddStartupWeapons();
+    }
+}
+
+void ANLPlayerCharacter::OnCurrentWeaponChanged(const FGameplayTag& InWeaponTag)
+{
+    if (const FWeaponInfo* Info = UNLFunctionLibrary::GetWeaponInfoByTag(this, InWeaponTag))
+    {
+        USkeletalMesh* NewWeaponMesh = Info->ViewModelMesh.Get();
+        if (!NewWeaponMesh)
+        {
+            NewWeaponMesh = Info->ViewModelMesh.LoadSynchronous();
+        }
+        ViewWeaponMesh->SetSkeletalMesh(NewWeaponMesh);
+
+        if (Info->ArmsAnimBP && ArmMesh)
+        {
+            ArmMesh->SetAnimInstanceClass(Info->ArmsAnimBP);
+        }
     }
 }
 

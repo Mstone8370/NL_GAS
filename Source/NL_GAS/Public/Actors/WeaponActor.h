@@ -22,16 +22,16 @@ public:
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<UStaticMeshComponent> WeaponMesh;
+	TObjectPtr<UStaticMeshComponent> WeaponMeshComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<USkeletalMeshComponent> ViewWeaponMesh;
+	TSubclassOf<UGameplayAbility> PrimaryAbilityClass;
+	FGameplayAbilitySpecHandle PrimaryAbilitySpecHandle;
 
-	FGameplayAbilitySpec PrimaryAbilitySpec;
+	TSubclassOf<UGameplayAbility> SecondaryAbilityClass;
+	FGameplayAbilitySpecHandle SecondaryAbilitySpecHandle;
 
-	FGameplayAbilitySpec SecondaryAbilitySpec;
-
-	FGameplayAbilitySpec ReloadAbilitySpec;
+	TSubclassOf<UGameplayAbility> ReloadAbilityClass;
+	FGameplayAbilitySpecHandle ReloadAbilitySpecHandle;
 
 protected:
 	virtual void BeginPlay() override;
@@ -39,9 +39,21 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated)
 	FGameplayTag WeaponTag;
 
+	UPROPERTY(BlueprintReadOnly)
+	TObjectPtr<USkeletalMesh> ViewWeaponMesh;
+
 	bool bInitialized = false;
+
+	bool bIsEquipped = false;
 
 public:
 	void InitalizeWeapon(const FGameplayTag& InWeaponTag);
 
+	FORCEINLINE bool IsEquipped() const { return bIsEquipped; }
+
+	FORCEINLINE USkeletalMesh* GetViewWeaponMesh() const { return ViewWeaponMesh; }
+
+	FORCEINLINE const FGameplayTag& GetWeaponTag() const { return WeaponTag; }
+
+	void SetWeaponState(bool bInIsEuipped);
 };

@@ -54,10 +54,7 @@ protected:
 	UFUNCTION()
 	void OnRep_CurrentWeaponSlot(uint8 OldSlot);
 
-	UPROPERTY(BlueprintReadOnly)
-	TArray<FGameplayTag> WeaponTagSlot;
-
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated)
 	TArray<AWeaponActor*> WeaponActorSlot;
 
 public:
@@ -68,6 +65,10 @@ public:
 	FORCEINLINE UAttributeSet* GetAttributeSet() const { return AttributeSet; }
 
 	const int32 GetCurrentWeaponSlot() const { return CurrentWeaponSlot; }
+
+	AWeaponActor* GetCurrentWeapon() const;
+
+	AWeaponActor* GetWeaponAtSlot(uint8 InSlot) const;
 
 	UFUNCTION(BlueprintCallable)
 	void ChangeWeaponSlot(int32 NewWeaponSlot);

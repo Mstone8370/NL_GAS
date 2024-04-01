@@ -20,7 +20,7 @@ void UNLAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& Input
         if (AbilitySpec.Ability && bIsInputTagAbility && !bIsWeaponHolstered)
         {
             InputPressedSpecHandles.AddUnique(AbilitySpec.Handle);
-            InputHeldSpecHandles.AddUnique(AbilitySpec.Handle);
+            //InputHeldSpecHandles.AddUnique(AbilitySpec.Handle);
         }
     }
 }
@@ -39,7 +39,7 @@ void UNLAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& Inpu
         if (AbilitySpec.Ability && bIsInputTagAbility && !bIsWeaponHolstered)
         {
             InputReleasedSpecHandles.AddUnique(AbilitySpec.Handle);
-            InputHeldSpecHandles.Remove(AbilitySpec.Handle);
+            //InputHeldSpecHandles.Remove(AbilitySpec.Handle);
         }
     }
 }

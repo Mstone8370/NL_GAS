@@ -17,16 +17,11 @@ AWeaponActor::AWeaponActor()
 	bReplicates = true;
 	SetReplicateMovement(true);
 
-	WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(FName("WeaponMesh"));
-	WeaponMesh->SetCollisionObjectType(ECC_WeaponProp);
-	WeaponMesh->SetMassOverrideInKg(NAME_None, 2.f, true);
-	WeaponMesh->bOwnerNoSee = true;
-	SetRootComponent(WeaponMesh);
-
-	ViewWeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(FName("ViewWeaponMesh"));
-	ViewWeaponMesh->bOnlyOwnerSee = true;
-	ViewWeaponMesh->CastShadow = 0;
-	ViewWeaponMesh->SetupAttachment(GetRootComponent());
+	WeaponMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(FName("WeaponMesh"));
+	WeaponMeshComponent->SetCollisionObjectType(ECC_WeaponProp);
+	WeaponMeshComponent->SetMassOverrideInKg(NAME_None, 2.f, true);
+	WeaponMeshComponent->bOwnerNoSee = true;
+	SetRootComponent(WeaponMeshComponent);
 }
 
 void AWeaponActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -40,15 +35,12 @@ void AWeaponActor::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	if (!bInitialized)
+	if (!bInitialized && WeaponTag.IsValid())
 	{
 		InitalizeWeapon(WeaponTag);
 	}
 
-	if (IsValid(GetOwner()))
-	{
-
-	}
+	SetWeaponState(IsValid(GetOwner()));
 }
 
 void AWeaponActor::InitalizeWeapon(const FGameplayTag& InWeaponTag)
@@ -74,38 +66,38 @@ void AWeaponActor::InitalizeWeapon(const FGameplayTag& InWeaponTag)
 	{
 		PropMesh = Info->PropMesh.LoadSynchronous();
 	}
-	WeaponMesh->SetStaticMesh(PropMesh);
+	WeaponMeshComponent->SetStaticMesh(PropMesh);
 
 	// Init View Weapon Mesh
-	USkeletalMesh* ViewMesh = Info->ViewModelMesh.Get();
-	if (!ViewMesh)
+	ViewWeaponMesh = Info->ViewModelMesh.Get();
+	if (!ViewWeaponMesh)
 	{
-		ViewMesh = Info->ViewModelMesh.LoadSynchronous();
-	}
-	ViewWeaponMesh->SetSkeletalMesh(ViewMesh);
-
-	// Init Material Instance Dynamic
-	for (uint8 i = 0; i < ViewWeaponMesh->GetNumMaterials(); i++)
-	{
-		UMaterialInstanceDynamic* MatInstDynamic = ViewWeaponMesh->CreateAndSetMaterialInstanceDynamic(i);
-		MatInstDynamic->SetScalarParameterValue(FName("FOV"), 80.f);
+		ViewWeaponMesh = Info->ViewModelMesh.LoadSynchronous();
 	}
 
-	// Is Prop?
-	if (!IsValid(GetOwner()))
-	{
-		WeaponMesh->SetSimulatePhysics(true);
-	}
-
-	if (HasAuthority())
-	{
-		PrimaryAbilitySpec = FGameplayAbilitySpec(Info->PrimaryAbility, 1);
-		PrimaryAbilitySpec.DynamicAbilityTags.AddTag(Input_Weapon_PrimaryAction);
-		SecondaryAbilitySpec = FGameplayAbilitySpec(Info->SecondaryAbility, 1);
-		SecondaryAbilitySpec.DynamicAbilityTags.AddTag(Input_Weapon_SecondaryAction);
-		ReloadAbilitySpec = FGameplayAbilitySpec(Info->ReloadAbility, 1);
-		ReloadAbilitySpec.DynamicAbilityTags.AddTag(Input_Weapon_Reload);
-	}
+	PrimaryAbilityClass = Info->PrimaryAbility;
+	SecondaryAbilityClass = Info->SecondaryAbility;
+	ReloadAbilityClass = Info->ReloadAbility;
 
 	bInitialized = true;
+}
+
+void AWeaponActor::SetWeaponState(bool bInIsEuipped)
+{
+	bIsEquipped = bInIsEuipped;
+
+	if (bIsEquipped)
+	{
+		WeaponMeshComponent->bOwnerNoSee = true;
+		WeaponMeshComponent->SetSimulatePhysics(false);
+		WeaponMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		WeaponMeshComponent->CastShadow = 0;
+	}
+	else
+	{
+		WeaponMeshComponent->bOwnerNoSee = false;
+		WeaponMeshComponent->SetSimulatePhysics(true);
+		WeaponMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		WeaponMeshComponent->CastShadow = 1;
+	}
 }

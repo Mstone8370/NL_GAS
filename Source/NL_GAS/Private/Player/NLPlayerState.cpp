@@ -15,7 +15,7 @@
 
 ANLPlayerState::ANLPlayerState()
     : MaxSlotSize(3)
-    , CurrentWeaponSlot(255)
+    , CurrentWeaponSlot(0)
 {
     AbilitySystemComponent = CreateDefaultSubobject<UNLAbilitySystemComponent>("AbilitySystemComponent");
     if (AbilitySystemComponent)
@@ -35,14 +35,12 @@ void ANLPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
     DOREPLIFETIME_CONDITION_NOTIFY(ANLPlayerState, CurrentWeaponSlot, COND_SimulatedOnly, REPNOTIFY_OnChanged);
-    // DOREPLIFETIME_CONDITION_NOTIFY(ANLPlayerState, WeaponTagSlot, COND_None, REPNOTIFY_OnChanged);
+    DOREPLIFETIME_CONDITION_NOTIFY(ANLPlayerState, WeaponActorSlot, COND_None, REPNOTIFY_OnChanged);
 }
 
 void ANLPlayerState::BeginPlay()
 {
     Super::BeginPlay();
-
-    WeaponTagSlot.Reset(MaxSlotSize);
 }
 
 void ANLPlayerState::OnRep_CurrentWeaponSlot(uint8 OldSlot)
@@ -59,13 +57,14 @@ void ANLPlayerState::OnRep_CurrentWeaponSlot(uint8 OldSlot)
     {
         if (ANLCharacterBase* NLCharacterBase = Cast<ANLCharacterBase>(GetPawn()))
         {
-            // Change Weapon Mesh
-            UStaticMesh* Mesh = Info->PropMesh.Get();
-            if (!Info->PropMesh.IsValid()) // = !IsValid(Mesh)
+            if (AWeaponActor* OldWeapon = GetWeaponAtSlot(OldSlot))
             {
-                Mesh = Info->PropMesh.LoadSynchronous();
+                OldWeapon->SetActorHiddenInGame(true);
             }
-            NLCharacterBase->SetWeaponMesh(Mesh);
+            if (AWeaponActor* CurrentWeapon = GetCurrentWeapon())
+            {
+                CurrentWeapon->SetActorHiddenInGame(false);
+            }
 
             // Change Character Mesh AnimBP
             if (Info->CharacterMeshAnimBP)
@@ -82,35 +81,48 @@ void ANLPlayerState::AddStartupWeapons()
 
     ANLPlayerCharacter* PlayerCharacter = Cast<ANLPlayerCharacter>(GetPawn());
 
+    int32 WeaponNum = FMath::Min(int32(MaxSlotSize), StartupWeapons.Num());
+    WeaponActorSlot.Reset(WeaponNum);
+
     for (const FGameplayTag& Tag : StartupWeapons)
     {
-        if (WeaponTagSlot.Num() >= MaxSlotSize)
-        {
-            break;
-        }
-
-        WeaponTagSlot.Add(Tag);
-
         FTransform SpawnTransform;
         SpawnTransform.SetLocation(GetPawn()->GetActorLocation());
-        SpawnTransform.SetRotation(FQuat::Identity);
+        SpawnTransform.SetRotation(FRotator(0.f, -90.f, 0.f).Quaternion());
         SpawnTransform.SetScale3D(FVector::OneVector);
         AWeaponActor* Weapon = GetWorld()->SpawnActorDeferred<AWeaponActor>(
             AWeaponActor::StaticClass(),
             SpawnTransform,
-            this,
+            GetPawn(),
             GetPawn(),
             ESpawnActorCollisionHandlingMethod::AlwaysSpawn
         );
         Weapon->InitalizeWeapon(Tag);
-        Weapon->AttachToActor(GetPawn(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-        Weapon->ViewWeaponMesh->AttachToComponent(PlayerCharacter->ArmMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("weapon"));
-        Weapon->WeaponMesh->AttachToComponent(PlayerCharacter->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("hand_r"));
+        FAttachmentTransformRules AttachRule = FAttachmentTransformRules::SnapToTargetNotIncludingScale;
+        AttachRule.RotationRule = EAttachmentRule::KeepRelative;
+        Weapon->AttachToComponent(PlayerCharacter->GetMesh(), AttachRule, FName("weapon_r"));
         Weapon->FinishSpawning(SpawnTransform);
+        WeaponActorSlot.Add(Weapon);
 
-        GetAbilitySystemComponent()->GiveAbility(Weapon->PrimaryAbilitySpec);
-        GetAbilitySystemComponent()->GiveAbility(Weapon->SecondaryAbilitySpec);
-        GetAbilitySystemComponent()->GiveAbility(Weapon->ReloadAbilitySpec);
+        FGameplayAbilitySpec PrimaryAbilitySpec = FGameplayAbilitySpec(Weapon->PrimaryAbilityClass, 1);
+        PrimaryAbilitySpec.DynamicAbilityTags.AddTag(Input_Weapon_PrimaryAction);
+        PrimaryAbilitySpec.DynamicAbilityTags.AddTag(Status_Weapon_Holstered);
+        Weapon->PrimaryAbilitySpecHandle = GetAbilitySystemComponent()->GiveAbility(PrimaryAbilitySpec);
+
+        FGameplayAbilitySpec SecondaryAbilitySpec = FGameplayAbilitySpec(Weapon->PrimaryAbilityClass, 1);
+        SecondaryAbilitySpec.DynamicAbilityTags.AddTag(Input_Weapon_SecondaryAction);
+        SecondaryAbilitySpec.DynamicAbilityTags.AddTag(Status_Weapon_Holstered);
+        Weapon->SecondaryAbilitySpecHandle = GetAbilitySystemComponent()->GiveAbility(SecondaryAbilitySpec);
+
+        FGameplayAbilitySpec ReloadAbilitySpec = FGameplayAbilitySpec(Weapon->PrimaryAbilityClass, 1);
+        ReloadAbilitySpec.DynamicAbilityTags.AddTag(Input_Weapon_Reload);
+        ReloadAbilitySpec.DynamicAbilityTags.AddTag(Status_Weapon_Holstered);
+        Weapon->ReloadAbilitySpecHandle = GetAbilitySystemComponent()->GiveAbility(ReloadAbilitySpec);
+    }
+
+    if (WeaponNum > 0)
+    {
+        ChangeWeaponSlot(0);
     }
 }
 
@@ -119,19 +131,54 @@ UAbilitySystemComponent* ANLPlayerState::GetAbilitySystemComponent() const
     return AbilitySystemComponent;
 }
 
+AWeaponActor* ANLPlayerState::GetCurrentWeapon() const
+{
+    return GetWeaponAtSlot(CurrentWeaponSlot);
+}
+
+AWeaponActor* ANLPlayerState::GetWeaponAtSlot(uint8 InSlot) const
+{
+    if (0 <= InSlot && InSlot < WeaponActorSlot.Num())
+    {
+        return WeaponActorSlot[InSlot];
+    }
+    return nullptr;
+}
+
 void ANLPlayerState::ChangeWeaponSlot(int32 NewWeaponSlot)
 {
     // On Server and Client by GameplayAbility
 
+    const FGameplayTag PrevWeaponTag = GetCurrentWeaponTag();
+
+    if (HasAuthority())
+    {
+        if (AWeaponActor* PrevWeapon = GetCurrentWeapon())
+        {
+            GetAbilitySystemComponent()->CancelAbilityHandle(PrevWeapon->PrimaryAbilitySpecHandle);
+            FGameplayAbilitySpec* PS = GetAbilitySystemComponent()->FindAbilitySpecFromHandle(PrevWeapon->PrimaryAbilitySpecHandle);
+            PS->DynamicAbilityTags.AddTag(Status_Weapon_Holstered);
+            GetAbilitySystemComponent()->MarkAbilitySpecDirty(*PS);
+        }
+        if (AWeaponActor* NewWeapon = GetWeaponAtSlot(NewWeaponSlot))
+        {
+            FGameplayAbilitySpec* PS = GetAbilitySystemComponent()->FindAbilitySpecFromHandle(NewWeapon->PrimaryAbilitySpecHandle);
+            PS->DynamicAbilityTags.RemoveTag(Status_Weapon_Holstered);
+            GetAbilitySystemComponent()->MarkAbilitySpecDirty(*PS);
+        }
+    }
     CurrentWeaponSlot = NewWeaponSlot;
     CurrentWeaponSlotChanged.Broadcast(CurrentWeaponSlot);
+
+    ANLPlayerCharacter* PlayerCharacter = Cast<ANLPlayerCharacter>(GetPawn());
+    PlayerCharacter->OnCurrentWeaponChanged(GetCurrentWeaponTag());
 }
 
 const FGameplayTag ANLPlayerState::GetCurrentWeaponTag() const
 {
-    if (CurrentWeaponSlot <= WeaponTagSlot.Num())
+    if (CurrentWeaponSlot < WeaponActorSlot.Num() && IsValid(WeaponActorSlot[CurrentWeaponSlot]))
     {
-        return WeaponTagSlot[CurrentWeaponSlot];
+        return WeaponActorSlot[CurrentWeaponSlot]->GetWeaponTag();
     }
     return FGameplayTag();
 }

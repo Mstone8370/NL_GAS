@@ -57,6 +57,9 @@ public:
 	TObjectPtr<USkeletalMeshComponent> ArmMesh;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<USkeletalMeshComponent> ViewWeaponMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UCameraComponent> CameraComponent;
 
 protected:
@@ -119,4 +122,6 @@ public:
 	bool IsListenServerControlledCharacter();
 
 	ANLPlayerController* GetNLPC();
+
+	void OnCurrentWeaponChanged(const FGameplayTag& InWeaponTag);
 };
