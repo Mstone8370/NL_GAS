@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Characters/NLCharacterBase.h"
+#include "Interface/PlayerInterface.h"
 #include "GameplayTagContainer.h"
 #include "NLPlayerCharacter.generated.h"
 
@@ -12,12 +13,13 @@ class UCameraComponent;
 class UNLCharacterMovementComponent;
 class ANLPlayerController;
 class AWeaponActor;
+class UNLPlayerComponent;
 
 /**
  * 
  */
 UCLASS()
-class NL_GAS_API ANLPlayerCharacter : public ANLCharacterBase
+class NL_GAS_API ANLPlayerCharacter : public ANLCharacterBase, public IPlayerInterface
 {
 	GENERATED_BODY()
 	
@@ -39,6 +41,11 @@ public:
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_PlayerState() override;
 	virtual void OnRep_Controller() override;
+
+	//~Begin PlayerInterface
+	virtual void OnWeaponAdded(AWeaponActor* Weapon) override;
+	virtual bool StartChangeWeaponSlot_Implementation(int32 NewSlot) override;
+	//~End PlayerInterface
 
 	//~Begin Crouch functions override
 	virtual bool CanCrouch() const override;
@@ -63,6 +70,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UCameraComponent> CameraComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UNLPlayerComponent> NLPlayerComponent;
+
 protected:
 	TObjectPtr<UNLCharacterMovementComponent> NLCharacterMovementComponent;
 
@@ -77,8 +87,6 @@ protected:
 	void Server_InvokeLookPitchReplication();
 
 	FTimerHandle LookPitchRepTimerHandle;
-
-	void AddStartupWeapons();
 
 	//~Begin Crouch Interpolation
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)

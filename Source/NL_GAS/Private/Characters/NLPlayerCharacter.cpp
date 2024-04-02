@@ -18,6 +18,7 @@
 #include "Data/WeaponInfo.h"
 #include "NLGameplayTags.h"
 #include "Actors/WeaponActor.h"
+#include "Components/Player/NLPlayerComponent.h"
 
 ANLPlayerCharacter::ANLPlayerCharacter()
     : LookPitchRepTime(0.02f)
@@ -55,6 +56,8 @@ ANLPlayerCharacter::ANLPlayerCharacter()
     CameraComponent = CreateDefaultSubobject<UCameraComponent>(FName("Camera"));
     CameraComponent->SetupAttachment(ArmMesh, FName("camera"));
     CameraComponent->FieldOfView = 110.f;
+
+    NLPlayerComponent = CreateDefaultSubobject<UNLPlayerComponent>(FName("NLPlayerComponent"));
 }
 
 void ANLPlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -130,7 +133,8 @@ void ANLPlayerCharacter::PossessedBy(AController* NewController)
     
     AddStartupAbilities();
 
-    AddStartupWeapons();
+    // AddStartupWeapons();
+    NLPlayerComponent->AddStartupWeapons();
 }
 
 void ANLPlayerCharacter::OnRep_PlayerState()
@@ -140,18 +144,7 @@ void ANLPlayerCharacter::OnRep_PlayerState()
     // On Client
     InitAbilityActorInfo();
 
-    FGameplayTagContainer TagContainer(Ability_WeaponChange_1);
-    GetAbilitySystemComponent()->TryActivateAbilitiesByTag(TagContainer);
-
-    /**
-    * 캐릭터 메시는 들고있는 무기가 바뀔때 업데이트 되는데, 
-    * 늦게 들어온 플레이어 입장에서는 다른 Simulated 캐릭터의 무기가 바뀌기 전까지는 업데이트가 안되므로 기본 상태로 유지됨.
-    * 따라서 Simulated 캐릭터의 플레이어 스테이트가 레플리케이트 되면 한번 업데이트 함.
-    */
-    if (GetLocalRole() == ROLE_SimulatedProxy)
-    {
-        UpdateCharacterMesh();
-    }
+    NLPlayerComponent->ValidateStartupWeapons();
 }
 
 void ANLPlayerCharacter::OnRep_Controller()
@@ -160,6 +153,16 @@ void ANLPlayerCharacter::OnRep_Controller()
 
     // On Client
     NLPlayerController = Cast<ANLPlayerController>(GetController());
+}
+
+void ANLPlayerCharacter::OnWeaponAdded(AWeaponActor* Weapon)
+{
+    NLPlayerComponent->WeaponAdded(Weapon);
+}
+
+bool ANLPlayerCharacter::StartChangeWeaponSlot_Implementation(int32 NewSlot)
+{
+    return false;
 }
 
 bool ANLPlayerCharacter::CanCrouch() const
@@ -356,16 +359,6 @@ void ANLPlayerCharacter::InterpolateCrouch(float DeltaSeconds)
     }
 }
 
-void ANLPlayerCharacter::AddStartupWeapons()
-{
-    // On Server
-
-    if (ANLPlayerState* PS = GetPlayerState<ANLPlayerState>())
-    {
-        PS->AddStartupWeapons();
-    }
-}
-
 void ANLPlayerCharacter::GetCrouchedHalfHeightAdjust(float& OutHalfHeightAdjust, float& OutScaledHalfHeightAdjust) const
 {
     // Change collision size to crouching dimensions
@@ -419,23 +412,21 @@ void ANLPlayerCharacter::UpdateCharacterMesh(AWeaponActor* OldWeaponActor)
         OldWeaponActor->SetActorHiddenInGame(true);
     }
 
-    if (ANLPlayerState* PS = GetPlayerState<ANLPlayerState>())
+    // Show Current Weapon
+    AWeaponActor* CurrentWeapon = NLPlayerComponent->GetCurrentWeaponActor();
+    if (IsValid(CurrentWeapon))
     {
-        // Show Current Weapon
-        if (AWeaponActor* CurrentWeapon = PS->GetCurrentWeapon())
-        {
-            CurrentWeapon->SetActorHiddenInGame(false);
-        }
+        CurrentWeapon->SetActorHiddenInGame(false);
+    }
 
-        // Change Character Mesh AnimBP
-        const FGameplayTag WeaponTag = PS->GetCurrentWeaponTag();
-        if (WeaponTag.IsValid())
+    // Change Character Mesh AnimBP
+    const FGameplayTag WeaponTag = NLPlayerComponent->GetCurrentWeaponTag();
+    if (WeaponTag.IsValid())
+    {
+        const FWeaponInfo* Info = UNLFunctionLibrary::GetWeaponInfoByTag(this, WeaponTag);
+        if (Info && Info->CharacterMeshAnimBP)
         {
-            const FWeaponInfo* Info = UNLFunctionLibrary::GetWeaponInfoByTag(this, WeaponTag);
-            if (Info && Info->CharacterMeshAnimBP)
-            {
-                GetMesh()->SetAnimInstanceClass(Info->CharacterMeshAnimBP);
-            }
+            GetMesh()->SetAnimInstanceClass(Info->CharacterMeshAnimBP);
         }
     }
 }

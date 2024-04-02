@@ -42,7 +42,7 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	TObjectPtr<USkeletalMesh> ViewWeaponMesh;
 
-	bool bInitialized = false;
+	bool bIsInitialized = false;
 
 	bool bIsEquipped = false;
 
@@ -50,6 +50,8 @@ public:
 	void InitalizeWeapon(const FGameplayTag& InWeaponTag);
 
 	FORCEINLINE bool IsEquipped() const { return bIsEquipped; }
+
+	FORCEINLINE bool IsInitialized() const { return bIsInitialized; }
 
 	FORCEINLINE USkeletalMesh* GetViewWeaponMesh() const { return ViewWeaponMesh; }
 

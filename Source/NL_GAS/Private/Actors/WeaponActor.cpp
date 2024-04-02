@@ -10,6 +10,7 @@
 #include "NLFunctionLibrary.h"
 #include "Net/UnrealNetwork.h"
 #include "NLGameplayTags.h"
+#include "Interface/PlayerInterface.h"
 
 AWeaponActor::AWeaponActor()
 {
@@ -35,16 +36,16 @@ void AWeaponActor::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	if (!bInitialized && WeaponTag.IsValid())
-	{
-		InitalizeWeapon(WeaponTag);
-	}
-
-	SetWeaponState(IsValid(GetOwner()));
+	InitalizeWeapon(WeaponTag);
 }
 
 void AWeaponActor::InitalizeWeapon(const FGameplayTag& InWeaponTag)
 {
+	if (bIsInitialized)
+	{
+		return;
+	}
+
 	if (!InWeaponTag.IsValid())
 	{
 		UE_LOG(LogTemp, Error, TEXT("[%s] WeaponActor Initialize failed. WeaponTag is not valid"), *GetNameSafe(this));
@@ -79,7 +80,17 @@ void AWeaponActor::InitalizeWeapon(const FGameplayTag& InWeaponTag)
 	SecondaryAbilityClass = Info->SecondaryAbility;
 	ReloadAbilityClass = Info->ReloadAbility;
 
-	bInitialized = true;
+	bIsInitialized = true;
+
+	bool bHasOwner = IsValid(GetOwner());
+	SetWeaponState(bHasOwner);
+	if (bHasOwner)
+	{
+		if (GetOwner()->Implements<UPlayerInterface>())
+		{
+			Cast<IPlayerInterface>(GetOwner())->OnWeaponAdded(this);
+		}
+	}
 }
 
 void AWeaponActor::SetWeaponState(bool bInIsEuipped)

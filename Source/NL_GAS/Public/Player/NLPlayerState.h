@@ -10,11 +10,6 @@
 
 class UAbilitySystemComponent;
 class UAttributeSet;
-class AWeaponActor;
-
-DECLARE_MULTICAST_DELEGATE_OneParam(FCurrentWeaponSlotChangedSignature, uint8 /*NewSlot*/);
-DECLARE_MULTICAST_DELEGATE_OneParam(FWeaponTagAddedSignature, const FGameplayTag& /*AddedTag*/);
-DECLARE_MULTICAST_DELEGATE_OneParam(FWeaponTagRemovedSignature, const FGameplayTag& /*RemovedTag*/);
 
 /**
  * 
@@ -29,13 +24,6 @@ public:
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	FCurrentWeaponSlotChangedSignature CurrentWeaponSlotChanged;
-	FWeaponTagAddedSignature WeaponTagAdded;
-	FWeaponTagRemovedSignature WeaponTagRemoved;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	uint8 MaxSlotSize;
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TArray<FGameplayTag> StartupWeapons;
 
@@ -48,35 +36,10 @@ protected:
 	UPROPERTY()
 	TObjectPtr<UAttributeSet> AttributeSet;
 
-	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_CurrentWeaponSlot)
-	uint8 CurrentWeaponSlot;
-
-	UFUNCTION()
-	void OnRep_CurrentWeaponSlot(uint8 OldSlot);
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_WeaponActorSlot)
-	TArray<AWeaponActor*> WeaponActorSlot;
-
-	UFUNCTION()
-	void OnRep_WeaponActorSlot();
-
 public:
 	//~ Begin AbilitySystemInterface
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	//~ End AbilitySystemInterface
 
 	FORCEINLINE UAttributeSet* GetAttributeSet() const { return AttributeSet; }
-
-	const int32 GetCurrentWeaponSlot() const { return CurrentWeaponSlot; }
-
-	AWeaponActor* GetCurrentWeapon() const;
-
-	AWeaponActor* GetWeaponAtSlot(uint8 InSlot) const;
-
-	UFUNCTION(BlueprintCallable)
-	void ChangeWeaponSlot(int32 NewWeaponSlot);
-
-	const FGameplayTag GetCurrentWeaponTag() const;
-
-	void AddStartupWeapons();
 };
