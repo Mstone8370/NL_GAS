@@ -209,11 +209,8 @@ void UNLPlayerComponent::ValidateStartupWeapons()
             }
             else if (GetOwnerRole() == ROLE_SimulatedProxy)
             {
-                /**
-                * 캐릭터 메시는 들고있는 무기가 바뀔때 업데이트 되는데,
-                * 늦게 들어온 플레이어 입장에서는 다른 Simulated 캐릭터의 무기가 바뀌기 전까지는 업데이트가 안되므로 기본 상태로 유지됨.
-                * 따라서 Simulated 캐릭터의 플레이어 스테이트가 레플리케이트 되면 한번 업데이트 함.
-                */
+                // Update Simulated Character Mesh
+                // 나중에 접속한 클라이언트 입장에서도 기존에 접속했던 플레이어들의 무기 정보에 맞게 업데이트
                 GetOwningPlayer()->UpdateCharacterMesh();
             }
 
