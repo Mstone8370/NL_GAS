@@ -10,15 +10,16 @@
 class AWeaponActor;
 class ANLPlayerState;
 class ANLPlayerCharacter;
+class ANLCharacterBase;
 class UAbilitySystemComponent;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class NL_GAS_API UNLPlayerComponent : public UActorComponent
+class NL_GAS_API UNLCharacterComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:	
-	UNLPlayerComponent();
+	UNLCharacterComponent();
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
@@ -40,13 +41,16 @@ protected:
 	UFUNCTION()
 	void OnRep_WeaponActorSlot();
 
+	// 현재 들고있는 무기 정보로 무기의 Hidden 상태와 메시의 애니메이션 업데이트
+	void UpdateOwningCharacterMesh(AWeaponActor* OldWeaponActor = nullptr);
+
 private:
 	bool bStartupWeaponInitFinished;
 
 	TArray<AWeaponActor*> InitializedStartupWeapons;
 
 public:	
-	ANLPlayerCharacter* GetOwningPlayer() const;
+	ANLCharacterBase* GetOwningPlayer() const;
 	
 	ANLPlayerState* GetOwningPlayerState() const;
 
@@ -66,4 +70,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void ChangeWeaponSlot_Simple(int32 NewWeaponSlot);
+
+	bool CanAttack() const;
+
+	UFUNCTION(BlueprintCallable)
+	bool CommitWeaponCost();
 };

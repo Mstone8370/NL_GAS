@@ -10,9 +10,14 @@
 #include "NLFunctionLibrary.h"
 #include "Net/UnrealNetwork.h"
 #include "NLGameplayTags.h"
-#include "Interface/PlayerInterface.h"
+#include "Interface/CombatInterface.h"
 
 AWeaponActor::AWeaponActor()
+	: MagSize(0)
+	, CurrentBulletNum(0)
+	, bIsInitialized(false)
+	, bIsEquipped(false)
+	, ReloadState(EReloadState::None)
 {
  	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
@@ -30,6 +35,7 @@ void AWeaponActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME_CONDITION(AWeaponActor, WeaponTag, COND_InitialOnly);
+	DOREPLIFETIME_CONDITION_NOTIFY(AWeaponActor, CurrentBulletNum, COND_AutonomousOnly, REPNOTIFY_OnChanged);
 }
 
 void AWeaponActor::BeginPlay()
@@ -37,6 +43,11 @@ void AWeaponActor::BeginPlay()
 	Super::BeginPlay();
 	
 	InitalizeWeapon(WeaponTag);
+}
+
+void AWeaponActor::OnRep_CurrentBulletNum(int32 OldNum)
+{
+	UE_LOG(LogTemp, Warning, TEXT("[%s] CurrentBulletNum Replicated. From %d to %d"), *WeaponTag.ToString(), CurrentBulletNum, OldNum);
 }
 
 void AWeaponActor::InitalizeWeapon(const FGameplayTag& InWeaponTag)
@@ -59,6 +70,8 @@ void AWeaponActor::InitalizeWeapon(const FGameplayTag& InWeaponTag)
 		return;
 	}
 
+	WeaponName = Info->WeaponName;
+
 	WeaponTag = InWeaponTag;
 
 	// Init Weapon Mesh
@@ -76,19 +89,24 @@ void AWeaponActor::InitalizeWeapon(const FGameplayTag& InWeaponTag)
 		ViewWeaponMesh = Info->ViewModelMesh.LoadSynchronous();
 	}
 
+	// Set Ability Class;
 	PrimaryAbilityClass = Info->PrimaryAbility;
 	SecondaryAbilityClass = Info->SecondaryAbility;
 	ReloadAbilityClass = Info->ReloadAbility;
 
+	MagSize = Info->MagSize;
+	CurrentBulletNum = MagSize;
+
+	// Initialize finished
 	bIsInitialized = true;
 
 	bool bHasOwner = IsValid(GetOwner());
 	SetWeaponState(bHasOwner);
 	if (bHasOwner)
 	{
-		if (GetOwner()->Implements<UPlayerInterface>())
+		if (GetOwner()->Implements<UCombatInterface>())
 		{
-			Cast<IPlayerInterface>(GetOwner())->OnWeaponAdded(this);
+			Cast<ICombatInterface>(GetOwner())->OnWeaponAdded(this);
 		}
 	}
 }
@@ -113,4 +131,29 @@ void AWeaponActor::SetWeaponState(bool bInIsEuipped)
 		WeaponMeshComponent->CastShadow = 1;
 		SetActorHiddenInGame(false);
 	}
+}
+
+bool AWeaponActor::CanAttack() const
+{
+	return ReloadState >= EReloadState::None && !IsMagEmpty();
+}
+
+void AWeaponActor::Drawn()
+{
+
+}
+
+void AWeaponActor::Holstered()
+{
+
+}
+
+bool AWeaponActor::CommitWeaponCost()
+{
+	if (CanAttack())
+	{
+		CurrentBulletNum--;
+		return true;
+	}
+	return false;
 }

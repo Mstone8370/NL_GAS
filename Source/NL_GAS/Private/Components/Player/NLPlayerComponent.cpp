@@ -8,9 +8,11 @@
 #include "AbilitySystemComponent.h"
 #include "Player/NLPlayerState.h"
 #include "Characters/NLPlayerCharacter.h"
+#include "Characters/NLCharacterBase.h"
 #include "Actors/WeaponActor.h"
+#include "NLFunctionLibrary.h"
 
-UNLPlayerComponent::UNLPlayerComponent()
+UNLCharacterComponent::UNLCharacterComponent()
     : MaxWeaponSlotSize(3)
     , CurrentWeaponSlot(255)
     , bStartupWeaponInitFinished(false)
@@ -20,22 +22,23 @@ UNLPlayerComponent::UNLPlayerComponent()
     SetIsReplicatedByDefault(true);
 }
 
-void UNLPlayerComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+void UNLCharacterComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-    DOREPLIFETIME_CONDITION_NOTIFY(UNLPlayerComponent, CurrentWeaponSlot, COND_SimulatedOnly, REPNOTIFY_OnChanged);
-    DOREPLIFETIME_CONDITION_NOTIFY(UNLPlayerComponent, WeaponActorSlot, COND_None, REPNOTIFY_OnChanged);
+    DOREPLIFETIME_CONDITION_NOTIFY(UNLCharacterComponent, CurrentWeaponSlot, COND_SimulatedOnly, REPNOTIFY_OnChanged);
+    DOREPLIFETIME_CONDITION_NOTIFY(UNLCharacterComponent, WeaponActorSlot, COND_None, REPNOTIFY_OnChanged);
 }
 
-void UNLPlayerComponent::AddStartupWeapons()
+void UNLCharacterComponent::AddStartupWeapons()
 {
     // On Server
 
     ANLPlayerState* PS = GetOwningPlayerState();
     UAbilitySystemComponent* ASC = GetASC();
-    ANLPlayerCharacter* OwningPlayer = GetOwningPlayer();
+    ANLCharacterBase* OwningPlayer = GetOwningPlayer();
 
+    // TODO: This code runs on server. Use alternative way to check pointers instead of check() macro.
     check(PS);
     check(ASC);
     check(OwningPlayer);
@@ -87,7 +90,7 @@ void UNLPlayerComponent::AddStartupWeapons()
     }
 }
 
-void UNLPlayerComponent::OnRep_CurrentWeaponSlot(uint8 OldSlot)
+void UNLCharacterComponent::OnRep_CurrentWeaponSlot(uint8 OldSlot)
 {
     // 레플리케이트 되었다면 Simulated 액터라는 뜻이므로 3인칭 애니메이션과 3인칭 메시 설정.
     AWeaponActor* Weapon = GetWeaponActorAtSlot(CurrentWeaponSlot);
@@ -97,10 +100,10 @@ void UNLPlayerComponent::OnRep_CurrentWeaponSlot(uint8 OldSlot)
     }
 
     AWeaponActor* OldWeapon = GetWeaponActorAtSlot(OldSlot);
-    GetOwningPlayer()->UpdateCharacterMesh(OldWeapon);
+    UpdateOwningCharacterMesh(OldWeapon);
 }
 
-void UNLPlayerComponent::OnRep_WeaponActorSlot()
+void UNLCharacterComponent::OnRep_WeaponActorSlot()
 {
     if (!bStartupWeaponInitFinished)
     {
@@ -108,12 +111,39 @@ void UNLPlayerComponent::OnRep_WeaponActorSlot()
     }
 }
 
-ANLPlayerCharacter* UNLPlayerComponent::GetOwningPlayer() const
+void UNLCharacterComponent::UpdateOwningCharacterMesh(AWeaponActor* OldWeaponActor)
 {
-    return Cast<ANLPlayerCharacter>(GetOwner());
+    // Hide Previous Weapon
+    if (IsValid(OldWeaponActor))
+    {
+        OldWeaponActor->SetActorHiddenInGame(true);
+    }
+
+    // Show Current Weapon
+    AWeaponActor* CurrentWeapon = GetCurrentWeaponActor();
+    if (IsValid(CurrentWeapon))
+    {
+        CurrentWeapon->SetActorHiddenInGame(false);
+    }
+
+    // Change Character Mesh AnimBP
+    const FGameplayTag WeaponTag = GetCurrentWeaponTag();
+    if (WeaponTag.IsValid())
+    {
+        const FWeaponInfo* Info = UNLFunctionLibrary::GetWeaponInfoByTag(this, WeaponTag);
+        if (Info && Info->CharacterMeshAnimBP)
+        {
+            GetOwningPlayer()->GetMesh()->SetAnimInstanceClass(Info->CharacterMeshAnimBP);
+        }
+    }
 }
 
-ANLPlayerState* UNLPlayerComponent::GetOwningPlayerState() const
+ANLCharacterBase* UNLCharacterComponent::GetOwningPlayer() const
+{
+    return Cast<ANLCharacterBase>(GetOwner());
+}
+
+ANLPlayerState* UNLCharacterComponent::GetOwningPlayerState() const
 {
     if (IsValid(GetOwningPlayer()))
     {
@@ -122,7 +152,7 @@ ANLPlayerState* UNLPlayerComponent::GetOwningPlayerState() const
     return nullptr;
 }
 
-UAbilitySystemComponent* UNLPlayerComponent::GetASC() const
+UAbilitySystemComponent* UNLCharacterComponent::GetASC() const
 {
     if (GetOwningPlayerState())
     {
@@ -131,7 +161,7 @@ UAbilitySystemComponent* UNLPlayerComponent::GetASC() const
     return nullptr;
 }
 
-AWeaponActor* UNLPlayerComponent::GetWeaponActorAtSlot(uint8 Slot) const
+AWeaponActor* UNLCharacterComponent::GetWeaponActorAtSlot(uint8 Slot) const
 {
     if (Slot < WeaponActorSlot.Num())
     {
@@ -140,12 +170,12 @@ AWeaponActor* UNLPlayerComponent::GetWeaponActorAtSlot(uint8 Slot) const
     return nullptr;
 }
 
-AWeaponActor* UNLPlayerComponent::GetCurrentWeaponActor() const
+AWeaponActor* UNLCharacterComponent::GetCurrentWeaponActor() const
 {
     return GetWeaponActorAtSlot(CurrentWeaponSlot);
 }
 
-const FGameplayTag UNLPlayerComponent::GetWeaponTagAtSlot(uint8 Slot) const
+const FGameplayTag UNLCharacterComponent::GetWeaponTagAtSlot(uint8 Slot) const
 {
     if (IsValid(GetWeaponActorAtSlot(Slot)))
     {
@@ -154,21 +184,25 @@ const FGameplayTag UNLPlayerComponent::GetWeaponTagAtSlot(uint8 Slot) const
     return FGameplayTag();
 }
 
-const FGameplayTag UNLPlayerComponent::GetCurrentWeaponTag() const
+const FGameplayTag UNLCharacterComponent::GetCurrentWeaponTag() const
 {
     return GetWeaponTagAtSlot(CurrentWeaponSlot);
 }
 
-void UNLPlayerComponent::WeaponAdded(AWeaponActor* Weapon)
+void UNLCharacterComponent::WeaponAdded(AWeaponActor* Weapon)
 {
     if (!bStartupWeaponInitFinished)
     {
         InitializedStartupWeapons.AddUnique(Weapon);
         ValidateStartupWeapons();
     }
+    else
+    {
+        // TODO: New weapon equipped while playing
+    }
 }
 
-void UNLPlayerComponent::ValidateStartupWeapons()
+void UNLCharacterComponent::ValidateStartupWeapons()
 {
     // On Client
 
@@ -211,7 +245,7 @@ void UNLPlayerComponent::ValidateStartupWeapons()
             {
                 // Update Simulated Character Mesh
                 // 나중에 접속한 클라이언트 입장에서도 기존에 접속했던 플레이어들의 무기 정보에 맞게 업데이트
-                GetOwningPlayer()->UpdateCharacterMesh();
+                UpdateOwningCharacterMesh();
             }
 
             // Clear up validation data
@@ -220,7 +254,7 @@ void UNLPlayerComponent::ValidateStartupWeapons()
     }
 }
 
-void UNLPlayerComponent::ChangeWeaponSlot_Simple(int32 NewWeaponSlot)
+void UNLCharacterComponent::ChangeWeaponSlot_Simple(int32 NewWeaponSlot)
 {
     // On Server and Client by GameplayAbility
 
@@ -229,18 +263,63 @@ void UNLPlayerComponent::ChangeWeaponSlot_Simple(int32 NewWeaponSlot)
         if (AWeaponActor* PrevWeapon = GetCurrentWeaponActor())
         {
             GetASC()->CancelAbilityHandle(PrevWeapon->PrimaryAbilitySpecHandle);
+            //GetASC()->CancelAbilityHandle(PrevWeapon->SecondaryAbilitySpecHandle);
+            //GetASC()->CancelAbilityHandle(PrevWeapon->ReloadAbilitySpecHandle);
+
             FGameplayAbilitySpec* PAS = GetASC()->FindAbilitySpecFromHandle(PrevWeapon->PrimaryAbilitySpecHandle);
             PAS->DynamicAbilityTags.AddTag(Status_Weapon_Holstered);
             GetASC()->MarkAbilitySpecDirty(*PAS);
+
+            /*
+            FGameplayAbilitySpec* SAS = GetASC()->FindAbilitySpecFromHandle(PrevWeapon->SecondaryAbilitySpecHandle);
+            SAS->DynamicAbilityTags.AddTag(Status_Weapon_Holstered);
+            GetASC()->MarkAbilitySpecDirty(*SAS);
+
+            FGameplayAbilitySpec* RAS = GetASC()->FindAbilitySpecFromHandle(PrevWeapon->ReloadAbilitySpecHandle);
+            RAS->DynamicAbilityTags.AddTag(Status_Weapon_Holstered);
+            GetASC()->MarkAbilitySpecDirty(*RAS);
+            */
         }
         if (AWeaponActor* NewWeapon = GetWeaponActorAtSlot(NewWeaponSlot))
         {
             FGameplayAbilitySpec* PAS = GetASC()->FindAbilitySpecFromHandle(NewWeapon->PrimaryAbilitySpecHandle);
             PAS->DynamicAbilityTags.RemoveTag(Status_Weapon_Holstered);
             GetASC()->MarkAbilitySpecDirty(*PAS);
+
+            /*
+            FGameplayAbilitySpec* SAS = GetASC()->FindAbilitySpecFromHandle(NewWeapon->SecondaryAbilitySpecHandle);
+            SAS->DynamicAbilityTags.RemoveTag(Status_Weapon_Holstered);
+            GetASC()->MarkAbilitySpecDirty(*SAS);
+
+            FGameplayAbilitySpec* RAS = GetASC()->FindAbilitySpecFromHandle(NewWeapon->ReloadAbilitySpecHandle);
+            RAS->DynamicAbilityTags.RemoveTag(Status_Weapon_Holstered);
+            GetASC()->MarkAbilitySpecDirty(*RAS);
+            */
         }
     }
     CurrentWeaponSlot = NewWeaponSlot;
 
-    GetOwningPlayer()->OnCurrentWeaponChanged(GetCurrentWeaponTag());
+    // temp
+    if (ANLPlayerCharacter* PlayerCharacter = Cast<ANLPlayerCharacter>(GetOwningPlayer()))
+    {
+        PlayerCharacter->OnCurrentWeaponChanged(GetCurrentWeaponTag());
+    }
+}
+
+bool UNLCharacterComponent::CanAttack() const
+{
+    if (AWeaponActor* CurrentWeapon = GetCurrentWeaponActor())
+    {
+        return CurrentWeapon->CanAttack();
+    }
+    return false;
+}
+
+bool UNLCharacterComponent::CommitWeaponCost()
+{
+    if (CanAttack())
+    {
+        return GetCurrentWeaponActor()->CommitWeaponCost();
+    }
+    return false;
 }

@@ -12,7 +12,6 @@ class UGameplayAbility;
 /**
  * Single Weapon Info with Gameplay Tag
  */
-
 USTRUCT(BlueprintType)
 struct FWeaponInfo
 {
@@ -45,6 +44,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TSubclassOf<UGameplayAbility> ReloadAbility;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	int32 MagSize;
 };
 
 UCLASS()

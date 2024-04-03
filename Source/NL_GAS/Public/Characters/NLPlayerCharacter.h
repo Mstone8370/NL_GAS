@@ -12,8 +12,8 @@ class USpringArmComponent;
 class UCameraComponent;
 class UNLCharacterMovementComponent;
 class ANLPlayerController;
-class AWeaponActor;
-class UNLPlayerComponent;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FWeaponChangedSignature, uint8, OldSlot, const FGameplayTag&, OldWeaponTag, uint8, NewSlot, const FGameplayTag&, NewWeaponTag);
 
 /**
  * 
@@ -42,10 +42,16 @@ public:
 	virtual void OnRep_PlayerState() override;
 	virtual void OnRep_Controller() override;
 
+	UPROPERTY(BlueprintAssignable)
+	FWeaponChangedSignature WeaponChangedDelegate;
+
 	//~Begin PlayerInterface
-	virtual void OnWeaponAdded(AWeaponActor* Weapon) override;
 	virtual bool StartChangeWeaponSlot_Implementation(int32 NewSlot) override;
 	//~End PlayerInterface
+
+	//~Begin CombatInterface
+	virtual bool CanAttack_Implementation() override;
+	//~End CombatInterface
 
 	//~Begin Crouch functions override
 	virtual bool CanCrouch() const override;
@@ -69,9 +75,6 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UCameraComponent> CameraComponent;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<UNLPlayerComponent> NLPlayerComponent;
 
 protected:
 	TObjectPtr<UNLCharacterMovementComponent> NLCharacterMovementComponent;
@@ -134,6 +137,4 @@ public:
 
 	void OnCurrentWeaponChanged(const FGameplayTag& InWeaponTag);
 
-	// 현재 들고있는 무기 정보로 무기의 Hidden 상태와 메시의 애니메이션 업데이트
-	void UpdateCharacterMesh(AWeaponActor* OldWeaponActor = nullptr);
 };

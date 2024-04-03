@@ -11,6 +11,16 @@
 
 class UGameplayAbility;
 
+UENUM(BlueprintType)
+enum EReloadState : uint8
+{
+	MagOut,
+	MagIn,
+	None,
+
+	MAX
+};
+
 UCLASS(Blueprintable, BlueprintType)
 class NL_GAS_API AWeaponActor : public AActor
 {
@@ -33,6 +43,9 @@ public:
 	TSubclassOf<UGameplayAbility> ReloadAbilityClass;
 	FGameplayAbilitySpecHandle ReloadAbilitySpecHandle;
 
+	UPROPERTY(BlueprintReadOnly)
+	FName WeaponName;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -42,9 +55,19 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	TObjectPtr<USkeletalMesh> ViewWeaponMesh;
 
-	bool bIsInitialized = false;
+	int32 MagSize;
 
-	bool bIsEquipped = false;
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentBulletNum)
+	int32 CurrentBulletNum;
+
+	UFUNCTION()
+	void OnRep_CurrentBulletNum(int32 OldNum);
+
+	bool bIsInitialized;
+
+	bool bIsEquipped;
+
+	EReloadState ReloadState;
 
 public:
 	void InitalizeWeapon(const FGameplayTag& InWeaponTag);
@@ -57,5 +80,15 @@ public:
 
 	FORCEINLINE const FGameplayTag& GetWeaponTag() const { return WeaponTag; }
 
+	FORCEINLINE bool IsMagEmpty() const { return CurrentBulletNum < 1; }
+
+	bool CanAttack() const;
+
 	void SetWeaponState(bool bInIsEuipped);
+
+	void Drawn();
+
+	void Holstered();
+
+	bool CommitWeaponCost();
 };

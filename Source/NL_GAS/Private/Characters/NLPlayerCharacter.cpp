@@ -17,7 +17,6 @@
 #include "NLFunctionLibrary.h"
 #include "Data/WeaponInfo.h"
 #include "NLGameplayTags.h"
-#include "Actors/WeaponActor.h"
 #include "Components/Player/NLPlayerComponent.h"
 
 ANLPlayerCharacter::ANLPlayerCharacter()
@@ -56,8 +55,6 @@ ANLPlayerCharacter::ANLPlayerCharacter()
     CameraComponent = CreateDefaultSubobject<UCameraComponent>(FName("Camera"));
     CameraComponent->SetupAttachment(ArmMesh, FName("camera"));
     CameraComponent->FieldOfView = 110.f;
-
-    NLPlayerComponent = CreateDefaultSubobject<UNLPlayerComponent>(FName("NLPlayerComponent"));
 }
 
 void ANLPlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -133,8 +130,7 @@ void ANLPlayerCharacter::PossessedBy(AController* NewController)
     
     AddStartupAbilities();
 
-    // AddStartupWeapons();
-    NLPlayerComponent->AddStartupWeapons();
+    NLCharacterComponent->AddStartupWeapons();
 }
 
 void ANLPlayerCharacter::OnRep_PlayerState()
@@ -144,7 +140,7 @@ void ANLPlayerCharacter::OnRep_PlayerState()
     // On Client
     InitAbilityActorInfo();
 
-    NLPlayerComponent->ValidateStartupWeapons();
+    NLCharacterComponent->ValidateStartupWeapons();
 }
 
 void ANLPlayerCharacter::OnRep_Controller()
@@ -155,14 +151,14 @@ void ANLPlayerCharacter::OnRep_Controller()
     NLPlayerController = Cast<ANLPlayerController>(GetController());
 }
 
-void ANLPlayerCharacter::OnWeaponAdded(AWeaponActor* Weapon)
-{
-    NLPlayerComponent->WeaponAdded(Weapon);
-}
-
 bool ANLPlayerCharacter::StartChangeWeaponSlot_Implementation(int32 NewSlot)
 {
     return false;
+}
+
+bool ANLPlayerCharacter::CanAttack_Implementation()
+{
+    return NLCharacterComponent->CanAttack();
 }
 
 bool ANLPlayerCharacter::CanCrouch() const
@@ -386,6 +382,7 @@ ANLPlayerController* ANLPlayerCharacter::GetNLPC()
     return NLPlayerController;
 }
 
+// TODO: Move to NLCharacterComponent
 void ANLPlayerCharacter::OnCurrentWeaponChanged(const FGameplayTag& InWeaponTag)
 {
     if (const FWeaponInfo* Info = UNLFunctionLibrary::GetWeaponInfoByTag(this, InWeaponTag))
@@ -400,33 +397,6 @@ void ANLPlayerCharacter::OnCurrentWeaponChanged(const FGameplayTag& InWeaponTag)
         if (Info->ArmsAnimBP && ArmMesh)
         {
             ArmMesh->SetAnimInstanceClass(Info->ArmsAnimBP);
-        }
-    }
-}
-
-void ANLPlayerCharacter::UpdateCharacterMesh(AWeaponActor* OldWeaponActor)
-{
-    // Hide Previous Weapon
-    if (IsValid(OldWeaponActor))
-    {
-        OldWeaponActor->SetActorHiddenInGame(true);
-    }
-
-    // Show Current Weapon
-    AWeaponActor* CurrentWeapon = NLPlayerComponent->GetCurrentWeaponActor();
-    if (IsValid(CurrentWeapon))
-    {
-        CurrentWeapon->SetActorHiddenInGame(false);
-    }
-
-    // Change Character Mesh AnimBP
-    const FGameplayTag WeaponTag = NLPlayerComponent->GetCurrentWeaponTag();
-    if (WeaponTag.IsValid())
-    {
-        const FWeaponInfo* Info = UNLFunctionLibrary::GetWeaponInfoByTag(this, WeaponTag);
-        if (Info && Info->CharacterMeshAnimBP)
-        {
-            GetMesh()->SetAnimInstanceClass(Info->CharacterMeshAnimBP);
         }
     }
 }

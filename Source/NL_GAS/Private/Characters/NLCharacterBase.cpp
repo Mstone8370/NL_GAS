@@ -4,15 +4,13 @@
 #include "Characters/NLCharacterBase.h"
 
 #include "AbilitySystem/NLAbilitySystemComponent.h"
+#include "Components/Player/NLPlayerComponent.h"
 
 ANLCharacterBase::ANLCharacterBase()
 {
     PrimaryActorTick.bCanEverTick = false;
 
-    WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(FName("WeaponMesh"));
-    WeaponMesh->bOwnerNoSee = true;
-    WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-    WeaponMesh->SetupAttachment(GetMesh(), FName("weapon_r"));
+    NLCharacterComponent = CreateDefaultSubobject<UNLCharacterComponent>(FName("NLCharacterComponent"));
 }
 
 void ANLCharacterBase::BeginPlay()
@@ -26,9 +24,9 @@ UAbilitySystemComponent* ANLCharacterBase::GetAbilitySystemComponent() const
     return AbilitySystemComponent;
 }
 
-void ANLCharacterBase::SetWeaponMesh(UStaticMesh* NewMesh)
+void ANLCharacterBase::OnWeaponAdded(AWeaponActor* Weapon)
 {
-    WeaponMesh->SetStaticMesh(NewMesh);
+    NLCharacterComponent->WeaponAdded(Weapon);
 }
 
 void ANLCharacterBase::InitAbilityActorInfo() {}

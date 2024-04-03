@@ -6,14 +6,16 @@
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
 #include "GameplayTagContainer.h"
+#include "Interface/CombatInterface.h"
 #include "NLCharacterBase.generated.h"
 
 class UAbilitySystemComponent;
 class UAttributeSet;
 class UGameplayAbility;
+class UNLCharacterComponent;
 
 UCLASS(Abstract)
-class NL_GAS_API ANLCharacterBase : public ACharacter, public IAbilitySystemInterface
+class NL_GAS_API ANLCharacterBase : public ACharacter, public IAbilitySystemInterface, public ICombatInterface
 {
 	GENERATED_BODY()
 
@@ -24,13 +26,15 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	//~ Begin AbilitySystemInterface
+	//~Begin AbilitySystemInterface
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-	//~ End AbilitySystemInterface
+	//~End AbilitySystemInterface
+
+	//~Begin CombatInterface
+	virtual void OnWeaponAdded(AWeaponActor* Weapon) override;
+	//~End CombatInterface
 
 	FORCEINLINE UAttributeSet* GetAttributeSet() const { return AttributeSet; }
-
-	void SetWeaponMesh(UStaticMesh* NewMesh);
 
 protected:
 	UPROPERTY()
@@ -40,7 +44,7 @@ protected:
 	TObjectPtr<UAttributeSet> AttributeSet;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<UStaticMeshComponent> WeaponMesh;
+	TObjectPtr<UNLCharacterComponent> NLCharacterComponent;
 
 	virtual void InitAbilityActorInfo();
 
