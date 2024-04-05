@@ -17,7 +17,7 @@
 #include "NLFunctionLibrary.h"
 #include "Data/WeaponInfo.h"
 #include "NLGameplayTags.h"
-#include "Components/Player/NLPlayerComponent.h"
+#include "Components/NLCharacterComponent.h"
 
 ANLPlayerCharacter::ANLPlayerCharacter()
     : LookPitchRepTime(0.02f)
@@ -151,9 +151,9 @@ void ANLPlayerCharacter::OnRep_Controller()
     NLPlayerController = Cast<ANLPlayerController>(GetController());
 }
 
-bool ANLPlayerCharacter::StartChangeWeaponSlot_Implementation(int32 NewSlot)
+bool ANLPlayerCharacter::TryChangeWeaponSlot_Implementation(int32 NewSlot)
 {
-    return false;
+    return NLCharacterComponent->TryChangeWeaponSlot(NewSlot);
 }
 
 bool ANLPlayerCharacter::CanAttack_Implementation()
@@ -382,21 +382,82 @@ ANLPlayerController* ANLPlayerCharacter::GetNLPC()
     return NLPlayerController;
 }
 
-// TODO: Move to NLCharacterComponent
-void ANLPlayerCharacter::OnCurrentWeaponChanged(const FGameplayTag& InWeaponTag)
+void ANLPlayerCharacter::UpdateViewWeapon(USkeletalMesh* NewWeaponMesh, UClass* ArmsAnimInstance)
 {
-    if (const FWeaponInfo* Info = UNLFunctionLibrary::GetWeaponInfoByTag(this, InWeaponTag))
+    if (NewWeaponMesh)
     {
-        USkeletalMesh* NewWeaponMesh = Info->ViewModelMesh.Get();
-        if (!NewWeaponMesh)
-        {
-            NewWeaponMesh = Info->ViewModelMesh.LoadSynchronous();
-        }
         ViewWeaponMesh->SetSkeletalMesh(NewWeaponMesh);
+    }
+    if (ArmsAnimInstance && ArmMesh)
+    {
+        ArmMesh->SetAnimInstanceClass(ArmsAnimInstance);
+    }
+}
 
-        if (Info->ArmsAnimBP && ArmMesh)
+float ANLPlayerCharacter::PlayArmsAnimMontage(UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName)
+{
+    UAnimInstance* AnimInstance = (ArmMesh) ? ArmMesh->GetAnimInstance() : nullptr;
+    if (AnimMontage && AnimInstance)
+    {
+        float const Duration = AnimInstance->Montage_Play(AnimMontage, InPlayRate);
+
+        if (Duration > 0.f)
         {
-            ArmMesh->SetAnimInstanceClass(Info->ArmsAnimBP);
+            // Start at a given Section.
+            if (StartSectionName != NAME_None)
+            {
+                AnimInstance->Montage_JumpToSection(StartSectionName, AnimMontage);
+            }
+
+            return Duration;
         }
+    }
+
+    return 0.f;
+}
+
+void ANLPlayerCharacter::StopArmsAnimMontage(UAnimMontage* AnimMontage)
+{
+    UAnimInstance* AnimInstance = (ArmMesh) ? ArmMesh->GetAnimInstance() : nullptr;
+    UAnimMontage* MontageToStop = (AnimMontage) ? AnimMontage : GetCurrentMontage();
+    bool bShouldStopMontage = AnimInstance && MontageToStop && !AnimInstance->Montage_GetIsStopped(MontageToStop);
+
+    if (bShouldStopMontage)
+    {
+        AnimInstance->Montage_Stop(MontageToStop->BlendOut.GetBlendTime(), MontageToStop);
+    }
+}
+
+float ANLPlayerCharacter::PlayWeaponAnimMontage(UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName)
+{
+    UAnimInstance* AnimInstance = (ViewWeaponMesh) ? ViewWeaponMesh->GetAnimInstance() : nullptr;
+    if (AnimMontage && AnimInstance)
+    {
+        float const Duration = AnimInstance->Montage_Play(AnimMontage, InPlayRate);
+
+        if (Duration > 0.f)
+        {
+            // Start at a given Section.
+            if (StartSectionName != NAME_None)
+            {
+                AnimInstance->Montage_JumpToSection(StartSectionName, AnimMontage);
+            }
+
+            return Duration;
+        }
+    }
+
+    return 0.f;
+}
+
+void ANLPlayerCharacter::StopWeaponAnimMontage(UAnimMontage* AnimMontage)
+{
+    UAnimInstance* AnimInstance = (ViewWeaponMesh) ? ViewWeaponMesh->GetAnimInstance() : nullptr;
+    UAnimMontage* MontageToStop = (AnimMontage) ? AnimMontage : GetCurrentMontage();
+    bool bShouldStopMontage = AnimInstance && MontageToStop && !AnimInstance->Montage_GetIsStopped(MontageToStop);
+
+    if (bShouldStopMontage)
+    {
+        AnimInstance->Montage_Stop(MontageToStop->BlendOut.GetBlendTime(), MontageToStop);
     }
 }

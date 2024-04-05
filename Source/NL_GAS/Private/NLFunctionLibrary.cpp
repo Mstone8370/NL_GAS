@@ -23,3 +23,21 @@ const FWeaponInfo* UNLFunctionLibrary::GetWeaponInfoByTag(const UObject* WorldCo
     }
     return nullptr;
 }
+
+const FWeaponAnims* UNLFunctionLibrary::GetWeaponAnimInfoByTag(const UObject* WorldContextObject, const FGameplayTag& WeaponTag)
+{
+    if (const FWeaponInfo* Info = GetWeaponInfoByTag(WorldContextObject, WeaponTag))
+    {
+        return &Info->WeaponAnimInfo->WeaponAnimInfo;
+    }
+    return nullptr;
+}
+
+const FWeaponAnims* UNLFunctionLibrary::GetArmsAnimInfoByTag(const UObject* WorldContextObject, const FGameplayTag& WeaponTag)
+{
+    if (const FWeaponInfo* Info = GetWeaponInfoByTag(WorldContextObject, WeaponTag))
+    {
+        return &Info->ArmsAnimInfo->WeaponAnimInfo;
+    }
+    return nullptr;
+}

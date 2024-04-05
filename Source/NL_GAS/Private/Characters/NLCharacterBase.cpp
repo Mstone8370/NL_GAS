@@ -4,7 +4,7 @@
 #include "Characters/NLCharacterBase.h"
 
 #include "AbilitySystem/NLAbilitySystemComponent.h"
-#include "Components/Player/NLPlayerComponent.h"
+#include "Components/NLCharacterComponent.h"
 
 ANLCharacterBase::ANLCharacterBase()
 {

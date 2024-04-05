@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Components/Player/NLPlayerComponent.h"
+#include "Components/NLCharacterComponent.h"
 
 #include "Net/UnrealNetwork.h"
 #include "NLGameplayTags.h"
@@ -11,6 +11,7 @@
 #include "Characters/NLCharacterBase.h"
 #include "Actors/WeaponActor.h"
 #include "NLFunctionLibrary.h"
+#include "TimerManager.h"
 
 UNLCharacterComponent::UNLCharacterComponent()
     : MaxWeaponSlotSize(3)
@@ -138,9 +139,111 @@ void UNLCharacterComponent::UpdateOwningCharacterMesh(AWeaponActor* OldWeaponAct
     }
 }
 
-ANLCharacterBase* UNLCharacterComponent::GetOwningPlayer() const
+bool UNLCharacterComponent::CanChangeWeaponSlot(int32 NewWeaponSlot) const
+{
+    if (!bIsChangingWeapon && CurrentWeaponSlot == NewWeaponSlot)
+    {
+        return false;
+    }
+
+    if (0 <= NewWeaponSlot && NewWeaponSlot < WeaponActorSlot.Num())
+    {
+        AWeaponActor* Weapon = WeaponActorSlot[NewWeaponSlot];
+        if (IsValid(Weapon) && Weapon->IsInitialized())
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+void UNLCharacterComponent::OnWeaponHolstered()
+{
+    bIsChangingWeapon = false;
+    CurrentWeaponSlot = WeaponChangePendingSlot;
+
+    if (GetOwnerRole() == ROLE_AutonomousProxy)
+    {
+        if (ANLPlayerCharacter* PlayerCharacter = Cast<ANLPlayerCharacter>(GetOwningPlayer()))
+        {
+            AWeaponActor* ChangedWeapon = GetCurrentWeaponActor();
+            PlayerCharacter->UpdateViewWeapon(
+                ChangedWeapon->GetViewWeaponMesh(),
+                ChangedWeapon->GetArmsAnimInstance()
+            );
+        }
+    }
+
+    // Draw New Weapon
+    const FGameplayTag& CurrentWeaponTag = GetCurrentWeaponTag();
+    const FWeaponAnims* ArmsAnimInfo = UNLFunctionLibrary::GetArmsAnimInfoByTag(this, CurrentWeaponTag);
+    const FWeaponAnims* WeaponAnimInfo = UNLFunctionLibrary::GetWeaponAnimInfoByTag(this, CurrentWeaponTag);
+
+    // Play Arms Anim Montage. Should be exist.
+    if (UAnimMontage* ArmsDrawAnimMontage = ArmsAnimInfo->Draw.LoadSynchronous())
+    {
+        const float MontagePlayLength = ArmsDrawAnimMontage->GetPlayLength();
+        const float MontageTimeOverride = ArmsAnimInfo->DrawTime;
+
+        const float MontagePlayRate = MontageTimeOverride > 0.f ? MontagePlayLength / MontageTimeOverride : 1.f;
+        const float ActualMontageLength = GetOwningPlayer()->PlayArmsAnimMontage(ArmsDrawAnimMontage, MontagePlayRate);
+
+        if (ActualMontageLength > 0.f)
+        {
+            GetWorld()->GetTimerManager().SetTimer(
+                DrawTimerHandle,
+                this,
+                &UNLCharacterComponent::OnWeaponDrawn,
+                ActualMontageLength
+            );
+        }
+        else
+        {
+            OnWeaponDrawn();
+        }
+    }
+    // Play Weapon Anim Montage if exist.
+    if (UAnimMontage* WeaponDrawAnimMontage = WeaponAnimInfo->Draw.LoadSynchronous())
+    {
+        const float MontagePlayLength = WeaponDrawAnimMontage->GetPlayLength();
+        const float MontageTimeOverride = WeaponAnimInfo->DrawTime;
+
+        const float MontagePlayRate = MontageTimeOverride > 0.f ? MontagePlayLength / MontageTimeOverride : 1.f;
+        GetOwningPlayer()->PlayWeaponAnimMontage(WeaponDrawAnimMontage, MontagePlayRate);
+    }
+}
+
+void UNLCharacterComponent::OnWeaponDrawn()
+{
+    if (GetOwnerRole() == ROLE_Authority)
+    {
+        if (AWeaponActor* Weapon = GetCurrentWeaponActor())
+        {
+            FGameplayAbilitySpec* PAS = GetASC()->FindAbilitySpecFromHandle(Weapon->PrimaryAbilitySpecHandle);
+            PAS->DynamicAbilityTags.RemoveTag(Status_Weapon_Holstered);
+            GetASC()->MarkAbilitySpecDirty(*PAS);
+
+            /*
+            FGameplayAbilitySpec* SAS = GetASC()->FindAbilitySpecFromHandle(Weapon->SecondaryAbilitySpecHandle);
+            SAS->DynamicAbilityTags.RemoveTag(Status_Weapon_Holstered);
+            GetASC()->MarkAbilitySpecDirty(*SAS);
+
+            FGameplayAbilitySpec* RAS = GetASC()->FindAbilitySpecFromHandle(Weapon->ReloadAbilitySpecHandle);
+            RAS->DynamicAbilityTags.RemoveTag(Status_Weapon_Holstered);
+            GetASC()->MarkAbilitySpecDirty(*RAS);
+            */
+        }
+    }
+}
+
+ANLCharacterBase* UNLCharacterComponent::GetOwningCharacter() const
 {
     return Cast<ANLCharacterBase>(GetOwner());
+}
+
+ANLPlayerCharacter* UNLCharacterComponent::GetOwningPlayer() const
+{
+    return Cast<ANLPlayerCharacter>(GetOwningCharacter());
 }
 
 ANLPlayerState* UNLCharacterComponent::GetOwningPlayerState() const
@@ -254,9 +357,69 @@ void UNLCharacterComponent::ValidateStartupWeapons()
     }
 }
 
-void UNLCharacterComponent::ChangeWeaponSlot_Simple(int32 NewWeaponSlot)
+bool UNLCharacterComponent::TryChangeWeaponSlot(int32 NewWeaponSlot)
 {
     // On Server and Client by GameplayAbility
+
+    if (!IsValid(GetCurrentWeaponActor()))
+    {
+        // Start up
+        OnWeaponHolstered();
+        return true;
+    }
+
+    if (!CanChangeWeaponSlot(NewWeaponSlot))
+    {
+        return false;
+    }
+
+    WeaponChangePendingSlot = NewWeaponSlot;
+
+    if (bIsChangingWeapon)
+    {
+        // TODO: 현재 Holster하고있는 무기와 같은 무기로 변경을 시도하는 경우
+        // 무기 변경을 취소하고 상태를 되돌리는 방법 생각해보기.
+
+        return true;
+    }
+    bIsChangingWeapon = true;
+
+    const FGameplayTag& CurrentWeaponTag = GetCurrentWeaponTag();
+    const FWeaponAnims* ArmsAnimInfo = UNLFunctionLibrary::GetArmsAnimInfoByTag(this, CurrentWeaponTag);
+    const FWeaponAnims* WeaponAnimInfo = UNLFunctionLibrary::GetWeaponAnimInfoByTag(this, CurrentWeaponTag);
+
+    // Play Arms Anim Montage. Should be exist.
+    if (UAnimMontage* ArmsHolsterAnimMontage = ArmsAnimInfo->Holster.LoadSynchronous())
+    {
+        const float MontagePlayLength = ArmsHolsterAnimMontage->GetPlayLength();
+        const float MontageTimeOverride = ArmsAnimInfo->HolsterTime;
+
+        const float MontagePlayRate = MontageTimeOverride > 0.f ? MontagePlayLength / MontageTimeOverride : 1.f;
+        const float ActualMontageLength = GetOwningPlayer()->PlayArmsAnimMontage(ArmsHolsterAnimMontage, MontagePlayRate);
+
+        if (ActualMontageLength > 0.f)
+        {
+            GetWorld()->GetTimerManager().SetTimer(
+                HolsterTimerHandle,
+                this,
+                &UNLCharacterComponent::OnWeaponHolstered,
+                ActualMontageLength
+            );
+        }
+        else
+        {
+            OnWeaponHolstered();
+        }
+    }
+    // Play Weapon Anim Montage if exist.
+    if (UAnimMontage* WeaponHolsterAnimMontage = WeaponAnimInfo->Holster.LoadSynchronous())
+    {
+        const float MontagePlayLength = WeaponHolsterAnimMontage->GetPlayLength();
+        const float MontageTimeOverride = WeaponAnimInfo->HolsterTime;
+
+        const float MontagePlayRate = MontageTimeOverride > 0.f ? MontagePlayLength / MontageTimeOverride : 1.f;
+        GetOwningPlayer()->PlayWeaponAnimMontage(WeaponHolsterAnimMontage, MontagePlayRate);
+    }
 
     if (GetOwnerRole() == ROLE_Authority)
     {
@@ -280,30 +443,8 @@ void UNLCharacterComponent::ChangeWeaponSlot_Simple(int32 NewWeaponSlot)
             GetASC()->MarkAbilitySpecDirty(*RAS);
             */
         }
-        if (AWeaponActor* NewWeapon = GetWeaponActorAtSlot(NewWeaponSlot))
-        {
-            FGameplayAbilitySpec* PAS = GetASC()->FindAbilitySpecFromHandle(NewWeapon->PrimaryAbilitySpecHandle);
-            PAS->DynamicAbilityTags.RemoveTag(Status_Weapon_Holstered);
-            GetASC()->MarkAbilitySpecDirty(*PAS);
-
-            /*
-            FGameplayAbilitySpec* SAS = GetASC()->FindAbilitySpecFromHandle(NewWeapon->SecondaryAbilitySpecHandle);
-            SAS->DynamicAbilityTags.RemoveTag(Status_Weapon_Holstered);
-            GetASC()->MarkAbilitySpecDirty(*SAS);
-
-            FGameplayAbilitySpec* RAS = GetASC()->FindAbilitySpecFromHandle(NewWeapon->ReloadAbilitySpecHandle);
-            RAS->DynamicAbilityTags.RemoveTag(Status_Weapon_Holstered);
-            GetASC()->MarkAbilitySpecDirty(*RAS);
-            */
-        }
     }
-    CurrentWeaponSlot = NewWeaponSlot;
-
-    // temp
-    if (ANLPlayerCharacter* PlayerCharacter = Cast<ANLPlayerCharacter>(GetOwningPlayer()))
-    {
-        PlayerCharacter->OnCurrentWeaponChanged(GetCurrentWeaponTag());
-    }
+    return true;
 }
 
 bool UNLCharacterComponent::CanAttack() const

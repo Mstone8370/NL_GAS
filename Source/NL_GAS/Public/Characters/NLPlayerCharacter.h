@@ -12,6 +12,7 @@ class USpringArmComponent;
 class UCameraComponent;
 class UNLCharacterMovementComponent;
 class ANLPlayerController;
+class UAnimMontage;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FWeaponChangedSignature, uint8, OldSlot, const FGameplayTag&, OldWeaponTag, uint8, NewSlot, const FGameplayTag&, NewWeaponTag);
 
@@ -46,7 +47,7 @@ public:
 	FWeaponChangedSignature WeaponChangedDelegate;
 
 	//~Begin PlayerInterface
-	virtual bool StartChangeWeaponSlot_Implementation(int32 NewSlot) override;
+	virtual bool TryChangeWeaponSlot_Implementation(int32 NewSlot) override;
 	//~End PlayerInterface
 
 	//~Begin CombatInterface
@@ -135,6 +136,17 @@ public:
 
 	ANLPlayerController* GetNLPC();
 
-	void OnCurrentWeaponChanged(const FGameplayTag& InWeaponTag);
+	void UpdateViewWeapon(USkeletalMesh* NewWeaponMesh, UClass* ArmsAnimInstance);
 
+	UFUNCTION(BlueprintCallable, Category = Animation)
+	virtual float PlayArmsAnimMontage(UAnimMontage* AnimMontage, float InPlayRate = 1.f, FName StartSectionName = NAME_None);
+
+	UFUNCTION(BlueprintCallable, Category = Animation)
+	virtual void StopArmsAnimMontage(UAnimMontage* AnimMontage = nullptr);
+
+	UFUNCTION(BlueprintCallable, Category = Animation)
+	virtual float PlayWeaponAnimMontage(UAnimMontage* AnimMontage, float InPlayRate = 1.f, FName StartSectionName = NAME_None);
+
+	UFUNCTION(BlueprintCallable, Category = Animation)
+	virtual void StopWeaponAnimMontage(UAnimMontage* AnimMontage = nullptr);
 };

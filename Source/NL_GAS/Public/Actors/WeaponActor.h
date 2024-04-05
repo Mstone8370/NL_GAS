@@ -55,6 +55,9 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	TObjectPtr<USkeletalMesh> ViewWeaponMesh;
 
+	UPROPERTY(BlueprintReadOnly)
+	TSubclassOf<UAnimInstance> ArmsAnimInstance;
+
 	int32 MagSize;
 
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentBulletNum)
@@ -77,6 +80,8 @@ public:
 	FORCEINLINE bool IsInitialized() const { return bIsInitialized; }
 
 	FORCEINLINE USkeletalMesh* GetViewWeaponMesh() const { return ViewWeaponMesh; }
+
+	FORCEINLINE UClass* GetArmsAnimInstance() const { return ArmsAnimInstance; }
 
 	FORCEINLINE const FGameplayTag& GetWeaponTag() const { return WeaponTag; }
 
