@@ -56,6 +56,9 @@ protected:
 	TObjectPtr<USkeletalMesh> ViewWeaponMesh;
 
 	UPROPERTY(BlueprintReadOnly)
+	TSubclassOf<UAnimInstance> WeaponAnimInstanceClass;
+
+	UPROPERTY(BlueprintReadOnly)
 	TSubclassOf<UAnimInstance> ArmsAnimLayerClass;
 
 	int32 MagSize;
@@ -84,6 +87,8 @@ public:
 	FORCEINLINE bool IsEverDrawn() const { return bIsEverDrawn; }
 
 	FORCEINLINE USkeletalMesh* GetViewWeaponMesh() const { return ViewWeaponMesh; }
+
+	FORCEINLINE TSubclassOf<UAnimInstance> GetWeaponAnimInstanceClass() const { return WeaponAnimInstanceClass; }
 
 	FORCEINLINE TSubclassOf<UAnimInstance> GetArmsAnimLayerClass() const { return ArmsAnimLayerClass; }
 

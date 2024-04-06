@@ -31,10 +31,10 @@ public:
 	TSubclassOf<UAnimInstance> ArmsAnimLayerClass;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TObjectPtr<UWeaponAnimInfo> WeaponAnimInfo;
+	TSubclassOf<UAnimInstance> WeaponAnimBP;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TObjectPtr<UWeaponAnimInfo> ArmsAnimInfo;
+	TObjectPtr<UTaggedAnimMontages> AnimMontages;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TSubclassOf<UAnimInstance> CharacterMeshAnimBP;
@@ -77,61 +77,28 @@ public:
 	const FWeaponInfo* FindTaggedWeaponInfoByTag(const FGameplayTag& InWeaponTag) const;
 };
 
-/**
- * Single Weapon Animation Montage Info with Gameplay Tag
- */
 USTRUCT(BlueprintType)
-struct FWeaponAnims
+struct FTaggedAnimMontageInfo
 {
 	GENERATED_BODY()
 
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TSubclassOf<UAnimInstance> AnimBP;
+	TSoftObjectPtr<UAnimMontage> ArmsAnimMontage;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TSoftObjectPtr<UAnimMontage> Draw;
+	TSoftObjectPtr<UAnimMontage> WeaponAnimMontage;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	float DrawTime = 0.f;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TSoftObjectPtr<UAnimMontage> DrawFirst;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	float DrawFirstTime = 0.f;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TSoftObjectPtr<UAnimMontage> Holster;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	float HolsterTime = 0.f;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TSoftObjectPtr<UAnimMontage> PrimaryAction;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TSoftObjectPtr<UAnimMontage> SecondaryAction;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TSoftObjectPtr<UAnimMontage> ReloadLong;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	float ReloadLongTime = 0.f;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TSoftObjectPtr<UAnimMontage> ReloadShort;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	float ReloadShortTime = 0.f;
+	float PlayLengthOverride = 0.f;
 };
 
 UCLASS()
-class NL_GAS_API UWeaponAnimInfo : public UDataAsset
+class NL_GAS_API UTaggedAnimMontages : public UDataAsset
 {
 	GENERATED_BODY()
 
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	FWeaponAnims WeaponAnimInfo;
+	TMap<FGameplayTag, FTaggedAnimMontageInfo> Data;
 };

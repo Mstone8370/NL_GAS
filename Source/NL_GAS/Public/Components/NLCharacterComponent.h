@@ -58,6 +58,8 @@ protected:
 
 	void OnWeaponDrawn();
 
+	void PlayCurrentWeaponMontageAndSetCallback(const FGameplayTag& MontageTag, FTimerHandle& OutTimerHandle, FTimerDelegate TimerDelegate);
+
 private:
 	bool bStartupWeaponInitFinished;
 

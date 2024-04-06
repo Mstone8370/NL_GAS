@@ -382,11 +382,15 @@ ANLPlayerController* ANLPlayerCharacter::GetNLPC()
     return NLPlayerController;
 }
 
-void ANLPlayerCharacter::UpdateViewWeaponAndAnimLayer(USkeletalMesh* NewWeaponMesh, TSubclassOf<UAnimInstance> NewAnimLayerClass)
+void ANLPlayerCharacter::UpdateViewWeaponAndAnimLayer(USkeletalMesh* NewWeaponMesh, TSubclassOf<UAnimInstance> WeaponAnimInstanceClass, TSubclassOf<UAnimInstance> NewAnimLayerClass)
 {
     if (NewWeaponMesh)
     {
         ViewWeaponMesh->SetSkeletalMesh(NewWeaponMesh);
+    }
+    if (WeaponAnimInstanceClass)
+    {
+        ViewWeaponMesh->SetAnimInstanceClass(WeaponAnimInstanceClass);
     }
     if (NewAnimLayerClass)
     {
@@ -408,6 +412,9 @@ float ANLPlayerCharacter::PlayArmsAnimMontage(UAnimMontage* AnimMontage, float I
             {
                 AnimInstance->Montage_JumpToSection(StartSectionName, AnimMontage);
             }
+
+            // TODO
+            AnimInstance->Montage_GetEndedDelegate(AnimMontage);
 
             return Duration;
         }

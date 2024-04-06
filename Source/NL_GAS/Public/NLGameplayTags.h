@@ -47,3 +47,11 @@ UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Weapon_Changing);
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Weapon_Reloading);
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Weapon_ADS);
 
+// Anim Montage Tag
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(Montage_Weapon_Draw);
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(Montage_Weapon_DrawFirst);
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(Montage_Weapon_Holster);
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(Montage_Weapon_Primary);
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(Montage_Weapon_Secondary);
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(Montage_Weapon_ReloadLong);
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(Montage_Weapon_ReloadShort);

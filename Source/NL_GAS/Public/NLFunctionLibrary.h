@@ -8,7 +8,7 @@
 #include "NLFunctionLibrary.generated.h"
 
 struct FWeaponInfo;
-struct FWeaponAnims;
+struct FTaggedAnimMontageInfo;
 
 /**
  * 
@@ -21,7 +21,6 @@ class NL_GAS_API UNLFunctionLibrary : public UBlueprintFunctionLibrary
 public:
 	static const FWeaponInfo* GetWeaponInfoByTag(const UObject* WorldContextObject, const FGameplayTag& WeaponTag);
 
-	static const FWeaponAnims* GetWeaponAnimInfoByTag(const UObject* WorldContextObject, const FGameplayTag& WeaponTag);
+	static const FTaggedAnimMontageInfo* GetAnimMontageByTag(const UObject* WorldContextObject, const FGameplayTag& WeaponTag, const FGameplayTag& MontageTag);
 
-	static const FWeaponAnims* GetArmsAnimInfoByTag(const UObject* WorldContextObject, const FGameplayTag& WeaponTag);
 };
