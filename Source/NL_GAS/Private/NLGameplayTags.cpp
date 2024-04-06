@@ -40,3 +40,12 @@ UE_DEFINE_GAMEPLAY_TAG(Status_Weapon_Drawn, "Status.Weapon.Drawn");
 UE_DEFINE_GAMEPLAY_TAG(Status_Weapon_Changing, "Status.Weapon.Changing");
 UE_DEFINE_GAMEPLAY_TAG(Status_Weapon_Reloading, "Status.Weapon.Reloading");
 UE_DEFINE_GAMEPLAY_TAG(Status_Weapon_ADS, "Status.Weapon.ADS");
+
+// Anim Montage Tag
+UE_DEFINE_GAMEPLAY_TAG(Montage_Weapon_Draw, "Montage.Weapon.Draw");
+UE_DEFINE_GAMEPLAY_TAG(Montage_Weapon_DrawFirst, "Montage.Weapon.DrawFirst");
+UE_DEFINE_GAMEPLAY_TAG(Montage_Weapon_Holster, "Montage.Weapon.Holster");
+UE_DEFINE_GAMEPLAY_TAG(Montage_Weapon_Primary, "Montage.Weapon.Primary");
+UE_DEFINE_GAMEPLAY_TAG(Montage_Weapon_Secondary, "Montage.Weapon.Secondary");
+UE_DEFINE_GAMEPLAY_TAG(Montage_Weapon_ReloadLong, "Montage.Weapon.ReloadLong");
+UE_DEFINE_GAMEPLAY_TAG(Montage_Weapon_ReloadShort, "Montage.Weapon.ReloadShort");

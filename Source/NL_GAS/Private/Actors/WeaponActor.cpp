@@ -16,6 +16,7 @@ AWeaponActor::AWeaponActor()
 	: MagSize(0)
 	, CurrentBulletNum(0)
 	, bIsInitialized(false)
+	, bIsEverDrawn(false)
 	, bIsEquipped(false)
 	, ReloadState(EReloadState::None)
 {
@@ -88,8 +89,9 @@ void AWeaponActor::InitalizeWeapon(const FGameplayTag& InWeaponTag)
 	{
 		ViewWeaponMesh = Info->ViewModelMesh.LoadSynchronous();
 	}
+	WeaponAnimInstanceClass = Info->WeaponAnimBP;
 
-	ArmsAnimInstance = Info->ArmsAnimBP;
+	ArmsAnimLayerClass = Info->ArmsAnimLayerClass;
 
 	// Set Ability Class;
 	PrimaryAbilityClass = Info->PrimaryAbility;
@@ -142,7 +144,7 @@ bool AWeaponActor::CanAttack() const
 
 void AWeaponActor::Drawn()
 {
-
+	bIsEverDrawn = true;
 }
 
 void AWeaponActor::Holstered()

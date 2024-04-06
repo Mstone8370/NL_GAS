@@ -56,7 +56,10 @@ protected:
 	TObjectPtr<USkeletalMesh> ViewWeaponMesh;
 
 	UPROPERTY(BlueprintReadOnly)
-	TSubclassOf<UAnimInstance> ArmsAnimInstance;
+	TSubclassOf<UAnimInstance> WeaponAnimInstanceClass;
+
+	UPROPERTY(BlueprintReadOnly)
+	TSubclassOf<UAnimInstance> ArmsAnimLayerClass;
 
 	int32 MagSize;
 
@@ -67,6 +70,8 @@ protected:
 	void OnRep_CurrentBulletNum(int32 OldNum);
 
 	bool bIsInitialized;
+
+	bool bIsEverDrawn;
 
 	bool bIsEquipped;
 
@@ -79,9 +84,13 @@ public:
 
 	FORCEINLINE bool IsInitialized() const { return bIsInitialized; }
 
+	FORCEINLINE bool IsEverDrawn() const { return bIsEverDrawn; }
+
 	FORCEINLINE USkeletalMesh* GetViewWeaponMesh() const { return ViewWeaponMesh; }
 
-	FORCEINLINE UClass* GetArmsAnimInstance() const { return ArmsAnimInstance; }
+	FORCEINLINE TSubclassOf<UAnimInstance> GetWeaponAnimInstanceClass() const { return WeaponAnimInstanceClass; }
+
+	FORCEINLINE TSubclassOf<UAnimInstance> GetArmsAnimLayerClass() const { return ArmsAnimLayerClass; }
 
 	FORCEINLINE const FGameplayTag& GetWeaponTag() const { return WeaponTag; }
 

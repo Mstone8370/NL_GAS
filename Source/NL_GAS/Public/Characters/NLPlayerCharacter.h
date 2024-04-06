@@ -136,7 +136,7 @@ public:
 
 	ANLPlayerController* GetNLPC();
 
-	void UpdateViewWeapon(USkeletalMesh* NewWeaponMesh, UClass* ArmsAnimInstance);
+	void UpdateViewWeaponAndAnimLayer(USkeletalMesh* NewWeaponMesh, TSubclassOf<UAnimInstance> WeaponAnimInstanceClass, TSubclassOf<UAnimInstance> NewAnimLayerClass);
 
 	UFUNCTION(BlueprintCallable, Category = Animation)
 	virtual float PlayArmsAnimMontage(UAnimMontage* AnimMontage, float InPlayRate = 1.f, FName StartSectionName = NAME_None);
@@ -145,8 +145,14 @@ public:
 	virtual void StopArmsAnimMontage(UAnimMontage* AnimMontage = nullptr);
 
 	UFUNCTION(BlueprintCallable, Category = Animation)
+	class UAnimMontage* GetCurrentArmsMontage() const;
+
+	UFUNCTION(BlueprintCallable, Category = Animation)
 	virtual float PlayWeaponAnimMontage(UAnimMontage* AnimMontage, float InPlayRate = 1.f, FName StartSectionName = NAME_None);
 
 	UFUNCTION(BlueprintCallable, Category = Animation)
 	virtual void StopWeaponAnimMontage(UAnimMontage* AnimMontage = nullptr);
+
+	UFUNCTION(BlueprintCallable, Category = Animation)
+	class UAnimMontage* GetCurrentWeaponMontage() const;
 };

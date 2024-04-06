@@ -47,6 +47,8 @@ void UNLCharacterComponent::AddStartupWeapons()
     int32 StartupWeaponNum = FMath::Min(int32(MaxWeaponSlotSize), PS->StartupWeapons.Num());
     WeaponActorSlot.Reset(StartupWeaponNum);
 
+    FScopedAbilityListLock ActiveScopeLock(*ASC);
+
     for (int32 i = 0; i < StartupWeaponNum; i++)
     {
         const FGameplayTag& WeaponTag = PS->StartupWeapons[i];
@@ -160,66 +162,42 @@ bool UNLCharacterComponent::CanChangeWeaponSlot(int32 NewWeaponSlot) const
 void UNLCharacterComponent::OnWeaponHolstered()
 {
     bIsChangingWeapon = false;
-    CurrentWeaponSlot = WeaponChangePendingSlot;
+
+    const AWeaponActor* PrevWeapon = GetCurrentWeaponActor();  // Could be nullptr
+    const AWeaponActor* ChangedWeapon = GetWeaponActorAtSlot(WeaponChangePendingSlot);
+    const bool bDrawFirst = !ChangedWeapon->IsEverDrawn();
 
     if (GetOwnerRole() == ROLE_AutonomousProxy)
     {
         if (ANLPlayerCharacter* PlayerCharacter = Cast<ANLPlayerCharacter>(GetOwningPlayer()))
         {
-            AWeaponActor* ChangedWeapon = GetCurrentWeaponActor();
-            PlayerCharacter->UpdateViewWeapon(
+            PlayerCharacter->UpdateViewWeaponAndAnimLayer(
                 ChangedWeapon->GetViewWeaponMesh(),
-                ChangedWeapon->GetArmsAnimInstance()
+                ChangedWeapon->GetWeaponAnimInstanceClass(),
+                ChangedWeapon->GetArmsAnimLayerClass()
             );
         }
     }
+    CurrentWeaponSlot = WeaponChangePendingSlot;
 
     // Draw New Weapon
     const FGameplayTag& CurrentWeaponTag = GetCurrentWeaponTag();
-    const FWeaponAnims* ArmsAnimInfo = UNLFunctionLibrary::GetArmsAnimInfoByTag(this, CurrentWeaponTag);
-    const FWeaponAnims* WeaponAnimInfo = UNLFunctionLibrary::GetWeaponAnimInfoByTag(this, CurrentWeaponTag);
-
-    // Play Weapon Anim Montage if exist.
-    if (UAnimMontage* WeaponDrawAnimMontage = WeaponAnimInfo->Draw.LoadSynchronous())
-    {
-        const float MontagePlayLength = WeaponDrawAnimMontage->GetPlayLength();
-        const float MontageTimeOverride = WeaponAnimInfo->DrawTime;
-
-        const float MontagePlayRate = MontageTimeOverride > 0.f ? MontagePlayLength / MontageTimeOverride : 1.f;
-        GetOwningPlayer()->PlayWeaponAnimMontage(WeaponDrawAnimMontage, MontagePlayRate);
-    }
-    // Play Arms Anim Montage. Should be exist.
-    if (UAnimMontage* ArmsDrawAnimMontage = ArmsAnimInfo->Draw.LoadSynchronous())
-    {
-        const float MontagePlayLength = ArmsDrawAnimMontage->GetPlayLength();
-        const float MontageTimeOverride = ArmsAnimInfo->DrawTime;
-        const float ActualMontageLength = MontageTimeOverride > 0.f ? MontageTimeOverride : MontagePlayLength;
-
-        const float MontagePlayRate = ActualMontageLength / MontagePlayLength;
-        GetOwningPlayer()->PlayArmsAnimMontage(ArmsDrawAnimMontage, MontagePlayRate);  // Only on Client
-
-        if (ActualMontageLength > 0.f)
-        {
-            GetWorld()->GetTimerManager().SetTimer(
-                DrawTimerHandle,
-                this,
-                &UNLCharacterComponent::OnWeaponDrawn,
-                ActualMontageLength - .1f
-            );
-        }
-        else
-        {
-            OnWeaponDrawn();
-        }
-    }
+    const FGameplayTag MontageTag = bDrawFirst ? Montage_Weapon_DrawFirst : Montage_Weapon_Draw;
+    FTimerDelegate TimerDelegate;
+    TimerDelegate.BindUObject(this, &UNLCharacterComponent::OnWeaponDrawn);
+    PlayCurrentWeaponMontageAndSetCallback(MontageTag, DrawTimerHandle, TimerDelegate);
 }
 
 void UNLCharacterComponent::OnWeaponDrawn()
 {
-    if (GetOwnerRole() == ROLE_Authority)
+    if (AWeaponActor* Weapon = GetCurrentWeaponActor())
     {
-        if (AWeaponActor* Weapon = GetCurrentWeaponActor())
+        Weapon->Drawn();
+
+        if (GetOwnerRole() == ROLE_Authority)
         {
+            FScopedAbilityListLock ActiveScopeLock(*GetASC());
+
             FGameplayAbilitySpec* PAS = GetASC()->FindAbilitySpecFromHandle(Weapon->PrimaryAbilitySpecHandle);
             PAS->DynamicAbilityTags.RemoveTag(Status_Weapon_Holstered);
             GetASC()->MarkAbilitySpecDirty(*PAS);
@@ -233,6 +211,52 @@ void UNLCharacterComponent::OnWeaponDrawn()
             RAS->DynamicAbilityTags.RemoveTag(Status_Weapon_Holstered);
             GetASC()->MarkAbilitySpecDirty(*RAS);
             */
+        }
+    }
+}
+
+void UNLCharacterComponent::PlayCurrentWeaponMontageAndSetCallback(const FGameplayTag& MontageTag, FTimerHandle& OutTimerHandle, FTimerDelegate TimerDelegate)
+{
+    OutTimerHandle = FTimerHandle();
+
+    const FGameplayTag& CurrentWeaponTag = GetCurrentWeaponTag();
+    if (!CurrentWeaponTag.IsValid())
+    {
+        return;
+    }
+
+    if (const FTaggedAnimMontageInfo* MontageInfo = UNLFunctionLibrary::GetAnimMontageByTag(this, CurrentWeaponTag, MontageTag))
+    {
+        const float MontageTimeOverride = MontageInfo->PlayLengthOverride;
+
+        // TODO: 무기의 애님 몽타주 PlayRate도 Arms의 몽타주에 맞게 적절한 값 계산.
+        // 두 몽타주의 길이는 서로 다를수 있다는 점을 유의.
+
+        if (UAnimMontage* WeaponAnimMontage = MontageInfo->WeaponAnimMontage.LoadSynchronous())
+        {
+            GetOwningPlayer()->PlayWeaponAnimMontage(WeaponAnimMontage);  // Only on Client
+        }
+        if (UAnimMontage* ArmsAnimMontage = MontageInfo->ArmsAnimMontage.LoadSynchronous())
+        {
+            const float MontagePlayLength = ArmsAnimMontage->GetPlayLength();
+            const float ActualMontageLength = MontageTimeOverride > 0.f ? MontageTimeOverride : MontagePlayLength;
+            const float MontagePlayRate =  MontagePlayLength / ActualMontageLength;
+            GetOwningPlayer()->PlayArmsAnimMontage(ArmsAnimMontage, MontagePlayRate);  // Only on Client
+
+            // On Server and Client
+            if (ActualMontageLength > 0.f)
+            {
+                GetWorld()->GetTimerManager().SetTimer(
+                    OutTimerHandle,
+                    TimerDelegate,
+                    ActualMontageLength - .1f,
+                    false
+                );
+            }
+            else
+            {
+                TimerDelegate.ExecuteIfBound();  // Maybe?
+            }
         }
     }
 }
@@ -341,9 +365,18 @@ void UNLCharacterComponent::ValidateStartupWeapons()
         {
             if (GetOwnerRole() == ROLE_AutonomousProxy)
             {
-                // Try Activate ChangeWeapon Ability
-                FGameplayTagContainer TagContainer(Ability_WeaponChange_1);
-                GetASC()->TryActivateAbilitiesByTag(TagContainer);
+                UAbilitySystemComponent* ASC = GetASC();
+                FTimerHandle TimerHandle;
+                FTimerDelegate TimerDelegate;
+                TimerDelegate.BindLambda(
+                    [ASC]()
+                    {
+                        // Try Activate ChangeWeapon Ability
+                        FGameplayTagContainer TagContainer(Ability_WeaponChange_1);
+                        ASC->TryActivateAbilitiesByTag(TagContainer);
+                    }
+                );
+                GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 1.f, false);
             }
             else if (GetOwnerRole() == ROLE_SimulatedProxy)
             {
@@ -388,6 +421,8 @@ bool UNLCharacterComponent::TryChangeWeaponSlot(int32 NewWeaponSlot)
     // Set Ability State
     if (GetOwnerRole() == ROLE_Authority)
     {
+        FScopedAbilityListLock ActiveScopeLock(*GetASC());
+
         if (AWeaponActor* PrevWeapon = GetCurrentWeaponActor())
         {
             GetASC()->CancelAbilityHandle(PrevWeapon->PrimaryAbilitySpecHandle);
@@ -410,44 +445,15 @@ bool UNLCharacterComponent::TryChangeWeaponSlot(int32 NewWeaponSlot)
         }
     }
 
+    // Stop any playing anim montage. e.g. fire montage.
+    GetOwningPlayer()->StopArmsAnimMontage();
+    GetOwningPlayer()->StopWeaponAnimMontage();
+
     const FGameplayTag& CurrentWeaponTag = GetCurrentWeaponTag();
-    const FWeaponAnims* ArmsAnimInfo = UNLFunctionLibrary::GetArmsAnimInfoByTag(this, CurrentWeaponTag);
-    const FWeaponAnims* WeaponAnimInfo = UNLFunctionLibrary::GetWeaponAnimInfoByTag(this, CurrentWeaponTag);
+    FTimerDelegate TimerDelegate;
+    TimerDelegate.BindUObject(this, &UNLCharacterComponent::OnWeaponHolstered);
+    PlayCurrentWeaponMontageAndSetCallback(Montage_Weapon_Holster, HolsterTimerHandle, TimerDelegate);
 
-    // Play Weapon Anim Montage if exist.
-    GetOwningPlayer()->StopArmsAnimMontage();  // Stop any playing anim montage. e.g. fire montage.
-    if (UAnimMontage* WeaponHolsterAnimMontage = WeaponAnimInfo->Holster.LoadSynchronous())
-    {
-        const float MontagePlayLength = WeaponHolsterAnimMontage->GetPlayLength();
-        const float MontageTimeOverride = WeaponAnimInfo->HolsterTime;
-
-        const float MontagePlayRate = MontageTimeOverride > 0.f ? MontagePlayLength / MontageTimeOverride : 1.f;
-        GetOwningPlayer()->PlayWeaponAnimMontage(WeaponHolsterAnimMontage, MontagePlayRate);
-    }
-    // Play Arms Anim Montage. Should be exist.
-    if (UAnimMontage* ArmsHolsterAnimMontage = ArmsAnimInfo->Holster.LoadSynchronous())
-    {
-        const float MontagePlayLength = ArmsHolsterAnimMontage->GetPlayLength();
-        const float MontageTimeOverride = ArmsAnimInfo->HolsterTime;
-        const float ActualMontageLength = MontageTimeOverride > 0.f ? MontageTimeOverride : MontagePlayLength;
-
-        const float MontagePlayRate = ActualMontageLength / MontagePlayLength;
-        GetOwningPlayer()->PlayArmsAnimMontage(ArmsHolsterAnimMontage, MontagePlayRate);  // Only on Client
-
-        if (ActualMontageLength > 0.f)
-        {
-            GetWorld()->GetTimerManager().SetTimer(
-                HolsterTimerHandle,
-                this,
-                &UNLCharacterComponent::OnWeaponHolstered,
-                ActualMontageLength - .1f
-            );
-        }
-        else
-        {
-            OnWeaponHolstered();
-        }
-    }
     return true;
 }
 
