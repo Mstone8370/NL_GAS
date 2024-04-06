@@ -136,7 +136,7 @@ public:
 
 	ANLPlayerController* GetNLPC();
 
-	void UpdateViewWeapon(USkeletalMesh* NewWeaponMesh, UClass* ArmsAnimInstance);
+	void UpdateViewWeaponWithAnimLayer(USkeletalMesh* NewWeaponMesh, TSubclassOf<UAnimInstance> AnimLayerClass);
 
 	UFUNCTION(BlueprintCallable, Category = Animation)
 	virtual float PlayArmsAnimMontage(UAnimMontage* AnimMontage, float InPlayRate = 1.f, FName StartSectionName = NAME_None);

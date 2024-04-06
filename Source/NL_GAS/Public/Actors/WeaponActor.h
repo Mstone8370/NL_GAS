@@ -56,7 +56,7 @@ protected:
 	TObjectPtr<USkeletalMesh> ViewWeaponMesh;
 
 	UPROPERTY(BlueprintReadOnly)
-	TSubclassOf<UAnimInstance> ArmsAnimInstance;
+	TSubclassOf<UAnimInstance> ArmsAnimLayerClass;
 
 	int32 MagSize;
 
@@ -81,7 +81,7 @@ public:
 
 	FORCEINLINE USkeletalMesh* GetViewWeaponMesh() const { return ViewWeaponMesh; }
 
-	FORCEINLINE UClass* GetArmsAnimInstance() const { return ArmsAnimInstance; }
+	FORCEINLINE TSubclassOf<UAnimInstance> GetArmsAnimLayerClass() const { return ArmsAnimLayerClass; }
 
 	FORCEINLINE const FGameplayTag& GetWeaponTag() const { return WeaponTag; }
 

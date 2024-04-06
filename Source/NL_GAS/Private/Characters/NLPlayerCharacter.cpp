@@ -382,15 +382,15 @@ ANLPlayerController* ANLPlayerCharacter::GetNLPC()
     return NLPlayerController;
 }
 
-void ANLPlayerCharacter::UpdateViewWeapon(USkeletalMesh* NewWeaponMesh, UClass* ArmsAnimInstance)
+void ANLPlayerCharacter::UpdateViewWeaponWithAnimLayer(USkeletalMesh* NewWeaponMesh, TSubclassOf<UAnimInstance> AnimLayerClass)
 {
     if (NewWeaponMesh)
     {
         ViewWeaponMesh->SetSkeletalMesh(NewWeaponMesh);
     }
-    if (ArmsAnimInstance && ArmMesh)
+    if (AnimLayerClass)
     {
-        ArmMesh->SetAnimInstanceClass(ArmsAnimInstance);
+        ArmMesh->LinkAnimClassLayers(AnimLayerClass);
     }
 }
 

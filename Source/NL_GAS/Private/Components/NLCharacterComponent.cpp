@@ -167,9 +167,9 @@ void UNLCharacterComponent::OnWeaponHolstered()
         if (ANLPlayerCharacter* PlayerCharacter = Cast<ANLPlayerCharacter>(GetOwningPlayer()))
         {
             AWeaponActor* ChangedWeapon = GetCurrentWeaponActor();
-            PlayerCharacter->UpdateViewWeapon(
+            PlayerCharacter->UpdateViewWeaponWithAnimLayer(
                 ChangedWeapon->GetViewWeaponMesh(),
-                ChangedWeapon->GetArmsAnimInstance()
+                ChangedWeapon->GetArmsAnimLayerClass()
             );
         }
     }

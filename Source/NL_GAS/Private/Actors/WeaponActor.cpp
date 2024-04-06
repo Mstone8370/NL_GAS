@@ -89,7 +89,7 @@ void AWeaponActor::InitalizeWeapon(const FGameplayTag& InWeaponTag)
 		ViewWeaponMesh = Info->ViewModelMesh.LoadSynchronous();
 	}
 
-	ArmsAnimInstance = Info->ArmsAnimBP;
+	ArmsAnimLayerClass = Info->ArmsAnimLayerClass;
 
 	// Set Ability Class;
 	PrimaryAbilityClass = Info->PrimaryAbility;

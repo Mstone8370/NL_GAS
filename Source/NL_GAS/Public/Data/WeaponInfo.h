@@ -28,10 +28,7 @@ public:
 	TSoftObjectPtr<UStaticMesh> PropMesh;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TSubclassOf<UAnimInstance> WeaponAnimBP;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TSubclassOf<UAnimInstance> ArmsAnimBP;
+	TSubclassOf<UAnimInstance> ArmsAnimLayerClass;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TObjectPtr<UWeaponAnimInfo> WeaponAnimInfo;
