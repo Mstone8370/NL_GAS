@@ -382,15 +382,15 @@ ANLPlayerController* ANLPlayerCharacter::GetNLPC()
     return NLPlayerController;
 }
 
-void ANLPlayerCharacter::UpdateViewWeaponWithAnimLayer(USkeletalMesh* NewWeaponMesh, TSubclassOf<UAnimInstance> AnimLayerClass)
+void ANLPlayerCharacter::UpdateViewWeaponAndAnimLayer(USkeletalMesh* NewWeaponMesh, TSubclassOf<UAnimInstance> NewAnimLayerClass)
 {
     if (NewWeaponMesh)
     {
         ViewWeaponMesh->SetSkeletalMesh(NewWeaponMesh);
     }
-    if (AnimLayerClass)
+    if (NewAnimLayerClass)
     {
-        ArmMesh->LinkAnimClassLayers(AnimLayerClass);
+        ArmMesh->LinkAnimClassLayers(NewAnimLayerClass);
     }
 }
 
@@ -419,13 +419,24 @@ float ANLPlayerCharacter::PlayArmsAnimMontage(UAnimMontage* AnimMontage, float I
 void ANLPlayerCharacter::StopArmsAnimMontage(UAnimMontage* AnimMontage)
 {
     UAnimInstance* AnimInstance = (ArmMesh) ? ArmMesh->GetAnimInstance() : nullptr;
-    UAnimMontage* MontageToStop = (AnimMontage) ? AnimMontage : GetCurrentMontage();
+    UAnimMontage* MontageToStop = (AnimMontage) ? AnimMontage : GetCurrentArmsMontage();
     bool bShouldStopMontage = AnimInstance && MontageToStop && !AnimInstance->Montage_GetIsStopped(MontageToStop);
 
     if (bShouldStopMontage)
     {
         AnimInstance->Montage_Stop(MontageToStop->BlendOut.GetBlendTime(), MontageToStop);
     }
+}
+
+UAnimMontage* ANLPlayerCharacter::GetCurrentArmsMontage() const
+{
+    UAnimInstance* AnimInstance = (ArmMesh) ? ArmMesh->GetAnimInstance() : nullptr;
+    if (AnimInstance)
+    {
+        return AnimInstance->GetCurrentActiveMontage();
+    }
+
+    return nullptr;
 }
 
 float ANLPlayerCharacter::PlayWeaponAnimMontage(UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName)
@@ -453,11 +464,22 @@ float ANLPlayerCharacter::PlayWeaponAnimMontage(UAnimMontage* AnimMontage, float
 void ANLPlayerCharacter::StopWeaponAnimMontage(UAnimMontage* AnimMontage)
 {
     UAnimInstance* AnimInstance = (ViewWeaponMesh) ? ViewWeaponMesh->GetAnimInstance() : nullptr;
-    UAnimMontage* MontageToStop = (AnimMontage) ? AnimMontage : GetCurrentMontage();
+    UAnimMontage* MontageToStop = (AnimMontage) ? AnimMontage : GetCurrentWeaponMontage();
     bool bShouldStopMontage = AnimInstance && MontageToStop && !AnimInstance->Montage_GetIsStopped(MontageToStop);
 
     if (bShouldStopMontage)
     {
         AnimInstance->Montage_Stop(MontageToStop->BlendOut.GetBlendTime(), MontageToStop);
     }
+}
+
+UAnimMontage* ANLPlayerCharacter::GetCurrentWeaponMontage() const
+{
+    UAnimInstance* AnimInstance = (ViewWeaponMesh) ? ViewWeaponMesh->GetAnimInstance() : nullptr;
+    if (AnimInstance)
+    {
+        return AnimInstance->GetCurrentActiveMontage();
+    }
+
+    return nullptr;
 }

@@ -68,6 +68,8 @@ protected:
 
 	bool bIsInitialized;
 
+	bool bIsEverDrawn;
+
 	bool bIsEquipped;
 
 	EReloadState ReloadState;
@@ -78,6 +80,8 @@ public:
 	FORCEINLINE bool IsEquipped() const { return bIsEquipped; }
 
 	FORCEINLINE bool IsInitialized() const { return bIsInitialized; }
+
+	FORCEINLINE bool IsEverDrawn() const { return bIsEverDrawn; }
 
 	FORCEINLINE USkeletalMesh* GetViewWeaponMesh() const { return ViewWeaponMesh; }
 

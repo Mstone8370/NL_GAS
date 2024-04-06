@@ -47,6 +47,8 @@ void UNLCharacterComponent::AddStartupWeapons()
     int32 StartupWeaponNum = FMath::Min(int32(MaxWeaponSlotSize), PS->StartupWeapons.Num());
     WeaponActorSlot.Reset(StartupWeaponNum);
 
+    FScopedAbilityListLock ActiveScopeLock(*ASC);
+
     for (int32 i = 0; i < StartupWeaponNum; i++)
     {
         const FGameplayTag& WeaponTag = PS->StartupWeapons[i];
@@ -160,19 +162,22 @@ bool UNLCharacterComponent::CanChangeWeaponSlot(int32 NewWeaponSlot) const
 void UNLCharacterComponent::OnWeaponHolstered()
 {
     bIsChangingWeapon = false;
-    CurrentWeaponSlot = WeaponChangePendingSlot;
+
+    const AWeaponActor* PrevWeapon = GetCurrentWeaponActor();  // Could be nullptr
+    const AWeaponActor* ChangedWeapon = GetWeaponActorAtSlot(WeaponChangePendingSlot);
+    const bool bDrawFirst = !ChangedWeapon->IsEverDrawn();
 
     if (GetOwnerRole() == ROLE_AutonomousProxy)
     {
         if (ANLPlayerCharacter* PlayerCharacter = Cast<ANLPlayerCharacter>(GetOwningPlayer()))
         {
-            AWeaponActor* ChangedWeapon = GetCurrentWeaponActor();
-            PlayerCharacter->UpdateViewWeaponWithAnimLayer(
+            PlayerCharacter->UpdateViewWeaponAndAnimLayer(
                 ChangedWeapon->GetViewWeaponMesh(),
                 ChangedWeapon->GetArmsAnimLayerClass()
             );
         }
     }
+    CurrentWeaponSlot = WeaponChangePendingSlot;
 
     // Draw New Weapon
     const FGameplayTag& CurrentWeaponTag = GetCurrentWeaponTag();
@@ -180,19 +185,19 @@ void UNLCharacterComponent::OnWeaponHolstered()
     const FWeaponAnims* WeaponAnimInfo = UNLFunctionLibrary::GetWeaponAnimInfoByTag(this, CurrentWeaponTag);
 
     // Play Weapon Anim Montage if exist.
-    if (UAnimMontage* WeaponDrawAnimMontage = WeaponAnimInfo->Draw.LoadSynchronous())
+    if (UAnimMontage* WeaponDrawAnimMontage = bDrawFirst ? WeaponAnimInfo->DrawFirst.LoadSynchronous() : WeaponAnimInfo->Draw.LoadSynchronous())
     {
         const float MontagePlayLength = WeaponDrawAnimMontage->GetPlayLength();
-        const float MontageTimeOverride = WeaponAnimInfo->DrawTime;
+        const float MontageTimeOverride = bDrawFirst ? WeaponAnimInfo->DrawFirstTime : WeaponAnimInfo->DrawTime;
 
         const float MontagePlayRate = MontageTimeOverride > 0.f ? MontagePlayLength / MontageTimeOverride : 1.f;
         GetOwningPlayer()->PlayWeaponAnimMontage(WeaponDrawAnimMontage, MontagePlayRate);
     }
     // Play Arms Anim Montage. Should be exist.
-    if (UAnimMontage* ArmsDrawAnimMontage = ArmsAnimInfo->Draw.LoadSynchronous())
+    if (UAnimMontage* ArmsDrawAnimMontage = bDrawFirst ? ArmsAnimInfo->DrawFirst.LoadSynchronous() : ArmsAnimInfo->Draw.LoadSynchronous())
     {
         const float MontagePlayLength = ArmsDrawAnimMontage->GetPlayLength();
-        const float MontageTimeOverride = ArmsAnimInfo->DrawTime;
+        const float MontageTimeOverride = bDrawFirst ? ArmsAnimInfo->DrawFirstTime : ArmsAnimInfo->DrawTime;
         const float ActualMontageLength = MontageTimeOverride > 0.f ? MontageTimeOverride : MontagePlayLength;
 
         const float MontagePlayRate = ActualMontageLength / MontagePlayLength;
@@ -216,10 +221,14 @@ void UNLCharacterComponent::OnWeaponHolstered()
 
 void UNLCharacterComponent::OnWeaponDrawn()
 {
-    if (GetOwnerRole() == ROLE_Authority)
+    if (AWeaponActor* Weapon = GetCurrentWeaponActor())
     {
-        if (AWeaponActor* Weapon = GetCurrentWeaponActor())
+        Weapon->Drawn();
+
+        if (GetOwnerRole() == ROLE_Authority)
         {
+            FScopedAbilityListLock ActiveScopeLock(*GetASC());
+
             FGameplayAbilitySpec* PAS = GetASC()->FindAbilitySpecFromHandle(Weapon->PrimaryAbilitySpecHandle);
             PAS->DynamicAbilityTags.RemoveTag(Status_Weapon_Holstered);
             GetASC()->MarkAbilitySpecDirty(*PAS);
@@ -388,6 +397,8 @@ bool UNLCharacterComponent::TryChangeWeaponSlot(int32 NewWeaponSlot)
     // Set Ability State
     if (GetOwnerRole() == ROLE_Authority)
     {
+        FScopedAbilityListLock ActiveScopeLock(*GetASC());
+
         if (AWeaponActor* PrevWeapon = GetCurrentWeaponActor())
         {
             GetASC()->CancelAbilityHandle(PrevWeapon->PrimaryAbilitySpecHandle);
@@ -410,12 +421,15 @@ bool UNLCharacterComponent::TryChangeWeaponSlot(int32 NewWeaponSlot)
         }
     }
 
+    // Stop any playing anim montage. e.g. fire montage.
+    GetOwningPlayer()->StopArmsAnimMontage();
+    GetOwningPlayer()->StopWeaponAnimMontage();
+
     const FGameplayTag& CurrentWeaponTag = GetCurrentWeaponTag();
     const FWeaponAnims* ArmsAnimInfo = UNLFunctionLibrary::GetArmsAnimInfoByTag(this, CurrentWeaponTag);
     const FWeaponAnims* WeaponAnimInfo = UNLFunctionLibrary::GetWeaponAnimInfoByTag(this, CurrentWeaponTag);
 
     // Play Weapon Anim Montage if exist.
-    GetOwningPlayer()->StopArmsAnimMontage();  // Stop any playing anim montage. e.g. fire montage.
     if (UAnimMontage* WeaponHolsterAnimMontage = WeaponAnimInfo->Holster.LoadSynchronous())
     {
         const float MontagePlayLength = WeaponHolsterAnimMontage->GetPlayLength();

@@ -16,6 +16,7 @@ AWeaponActor::AWeaponActor()
 	: MagSize(0)
 	, CurrentBulletNum(0)
 	, bIsInitialized(false)
+	, bIsEverDrawn(false)
 	, bIsEquipped(false)
 	, ReloadState(EReloadState::None)
 {
@@ -142,7 +143,7 @@ bool AWeaponActor::CanAttack() const
 
 void AWeaponActor::Drawn()
 {
-
+	bIsEverDrawn = true;
 }
 
 void AWeaponActor::Holstered()
