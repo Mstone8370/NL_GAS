@@ -12,6 +12,7 @@
 #include "Actors/WeaponActor.h"
 #include "NLFunctionLibrary.h"
 #include "TimerManager.h"
+#include "Kismet/KismetMathLibrary.h"
 
 UNLCharacterComponent::UNLCharacterComponent()
     : MaxWeaponSlotSize(3)
@@ -229,34 +230,30 @@ void UNLCharacterComponent::PlayCurrentWeaponMontageAndSetCallback(const FGamepl
     {
         const float MontageTimeOverride = MontageInfo->PlayLengthOverride;
 
-        // TODO: 무기의 애님 몽타주 PlayRate도 Arms의 몽타주에 맞게 적절한 값 계산.
-        // 두 몽타주의 길이는 서로 다를수 있다는 점을 유의.
+        UAnimMontage* ArmsAnimMontage = MontageInfo->ArmsAnimMontage.LoadSynchronous();
+        UAnimMontage* WeaponAnimMontage = MontageInfo->WeaponAnimMontage.LoadSynchronous();  // Could be nullptr
 
-        if (UAnimMontage* WeaponAnimMontage = MontageInfo->WeaponAnimMontage.LoadSynchronous())
+        const float MontagePlayLength = ArmsAnimMontage ? ArmsAnimMontage->GetPlayLength() : 0.f;
+        const float OverriddenPlayLength = MontageTimeOverride > 0.f ? MontageTimeOverride : MontagePlayLength;
+        const float MontagePlayRate = UKismetMathLibrary::SafeDivide(MontagePlayLength, OverriddenPlayLength);
+
+        // Only on Client
+        GetOwningPlayer()->PlayWeaponAnimMontage(WeaponAnimMontage, MontagePlayRate);
+        GetOwningPlayer()->PlayArmsAnimMontage(ArmsAnimMontage, MontagePlayRate);
+
+        // On Server and Client
+        if (OverriddenPlayLength > 0.f)
         {
-            GetOwningPlayer()->PlayWeaponAnimMontage(WeaponAnimMontage);  // Only on Client
+            GetWorld()->GetTimerManager().SetTimer(
+                OutTimerHandle,
+                TimerDelegate,
+                OverriddenPlayLength - .1f,
+                false
+            );
         }
-        if (UAnimMontage* ArmsAnimMontage = MontageInfo->ArmsAnimMontage.LoadSynchronous())
+        else
         {
-            const float MontagePlayLength = ArmsAnimMontage->GetPlayLength();
-            const float ActualMontageLength = MontageTimeOverride > 0.f ? MontageTimeOverride : MontagePlayLength;
-            const float MontagePlayRate =  MontagePlayLength / ActualMontageLength;
-            GetOwningPlayer()->PlayArmsAnimMontage(ArmsAnimMontage, MontagePlayRate);  // Only on Client
-
-            // On Server and Client
-            if (ActualMontageLength > 0.f)
-            {
-                GetWorld()->GetTimerManager().SetTimer(
-                    OutTimerHandle,
-                    TimerDelegate,
-                    ActualMontageLength - .1f,
-                    false
-                );
-            }
-            else
-            {
-                TimerDelegate.ExecuteIfBound();  // Maybe?
-            }
+            TimerDelegate.ExecuteIfBound();  // Maybe?
         }
     }
 }

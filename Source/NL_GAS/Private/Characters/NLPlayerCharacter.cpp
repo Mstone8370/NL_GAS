@@ -156,6 +156,18 @@ bool ANLPlayerCharacter::TryChangeWeaponSlot_Implementation(int32 NewSlot)
     return NLCharacterComponent->TryChangeWeaponSlot(NewSlot);
 }
 
+void ANLPlayerCharacter::GetWeaponHandIKLocation_Implementation(FName LeftIKSocketName, FName RightIKSocketName, FVector& OutLeftIKLocation, FVector& OutRightIKLocation) const
+{
+    OutLeftIKLocation = FVector::ZeroVector;
+    OutRightIKLocation = FVector::ZeroVector;
+
+    if (ViewWeaponMesh->GetSkinnedAsset())
+    {
+        OutLeftIKLocation = ViewWeaponMesh->GetSocketLocation(LeftIKSocketName);
+        OutRightIKLocation = ViewWeaponMesh->GetSocketLocation(RightIKSocketName);
+    }
+}
+
 bool ANLPlayerCharacter::CanAttack_Implementation()
 {
     return NLCharacterComponent->CanAttack();

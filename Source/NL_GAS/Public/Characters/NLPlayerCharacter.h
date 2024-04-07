@@ -48,6 +48,7 @@ public:
 
 	//~Begin PlayerInterface
 	virtual bool TryChangeWeaponSlot_Implementation(int32 NewSlot) override;
+	virtual void GetWeaponHandIKLocation_Implementation(FName LeftIKSocketName, FName RightIKSocketName, FVector& OutLeftIKLocation, FVector& OutRightIKLocation) const;
 	//~End PlayerInterface
 
 	//~Begin CombatInterface

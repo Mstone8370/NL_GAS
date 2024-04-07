@@ -25,4 +25,7 @@ class NL_GAS_API IPlayerInterface
 public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	bool TryChangeWeaponSlot(int32 NewSlot);
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	void GetWeaponHandIKLocation(FName LeftIKSocketName, FName RightIKSocketName, FVector& OutLeftIKLocation, FVector& OutRightIKLocation) const;
 };
