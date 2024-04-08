@@ -35,6 +35,9 @@ UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_WeaponChange_2);
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_WeaponChange_3);
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Melee);
 
+// Ability Block Tag
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Block_Weapon);
+
 // Weapon Tag
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(Weapon_Unarmed);
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(Weapon_Pistol_Glock);

@@ -131,6 +131,7 @@ void ANLPlayerCharacter::PossessedBy(AController* NewController)
     AddStartupAbilities();
 
     NLCharacterComponent->AddStartupWeapons();
+    NLCharacterComponent->ValidateStartupWeapons();
 }
 
 void ANLPlayerCharacter::OnRep_PlayerState()

@@ -168,17 +168,11 @@ void UNLCharacterComponent::OnWeaponHolstered()
     const AWeaponActor* ChangedWeapon = GetWeaponActorAtSlot(WeaponChangePendingSlot);
     const bool bDrawFirst = !ChangedWeapon->IsEverDrawn();
 
-    if (GetOwnerRole() == ROLE_AutonomousProxy)
-    {
-        if (ANLPlayerCharacter* PlayerCharacter = Cast<ANLPlayerCharacter>(GetOwningPlayer()))
-        {
-            PlayerCharacter->UpdateViewWeaponAndAnimLayer(
-                ChangedWeapon->GetViewWeaponMesh(),
-                ChangedWeapon->GetWeaponAnimInstanceClass(),
-                ChangedWeapon->GetArmsAnimLayerClass()
-            );
-        }
-    }
+    GetOwningPlayer()->UpdateViewWeaponAndAnimLayer(
+        ChangedWeapon->GetViewWeaponMesh(),
+        ChangedWeapon->GetWeaponAnimInstanceClass(),
+        ChangedWeapon->GetArmsAnimLayerClass()
+    );
     CurrentWeaponSlot = WeaponChangePendingSlot;
 
     // Draw New Weapon
@@ -191,6 +185,8 @@ void UNLCharacterComponent::OnWeaponHolstered()
 
 void UNLCharacterComponent::OnWeaponDrawn()
 {
+    GetWorld()->GetTimerManager().ClearTimer(DrawTimerHandle); // This function could be called by Anim Notify.
+
     if (AWeaponActor* Weapon = GetCurrentWeaponActor())
     {
         Weapon->Drawn();
@@ -203,11 +199,11 @@ void UNLCharacterComponent::OnWeaponDrawn()
             PAS->DynamicAbilityTags.RemoveTag(Status_Weapon_Holstered);
             GetASC()->MarkAbilitySpecDirty(*PAS);
 
-            /*
             FGameplayAbilitySpec* SAS = GetASC()->FindAbilitySpecFromHandle(Weapon->SecondaryAbilitySpecHandle);
             SAS->DynamicAbilityTags.RemoveTag(Status_Weapon_Holstered);
             GetASC()->MarkAbilitySpecDirty(*SAS);
 
+            /*
             FGameplayAbilitySpec* RAS = GetASC()->FindAbilitySpecFromHandle(Weapon->ReloadAbilitySpecHandle);
             RAS->DynamicAbilityTags.RemoveTag(Status_Weapon_Holstered);
             GetASC()->MarkAbilitySpecDirty(*RAS);
@@ -287,9 +283,9 @@ void UNLCharacterComponent::WeaponAdded(AWeaponActor* Weapon)
 
 void UNLCharacterComponent::ValidateStartupWeapons()
 {
-    // On Client
+    // For Client, but also works on Server.
 
-    if (GetOwnerRole() >= ROLE_Authority || bStartupWeaponInitFinished)
+    if (bStartupWeaponInitFinished)
     {
         return;
     }
@@ -318,7 +314,13 @@ void UNLCharacterComponent::ValidateStartupWeapons()
         bStartupWeaponInitFinished = bAllInitalizedAndValid;
         if (bStartupWeaponInitFinished)
         {
-            if (GetOwnerRole() == ROLE_AutonomousProxy)
+            if (GetOwnerRole() == ROLE_SimulatedProxy)
+            {
+                // Update Simulated Character Mesh
+                // 나중에 접속한 클라이언트 입장에서도 기존에 접속했던 플레이어들의 무기 정보에 맞게 업데이트
+                UpdateOwningCharacterMesh();
+            }
+            else
             {
                 UAbilitySystemComponent* ASC = GetASC();
                 FTimerHandle TimerHandle;
@@ -332,12 +334,6 @@ void UNLCharacterComponent::ValidateStartupWeapons()
                     }
                 );
                 GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 1.f, false);
-            }
-            else if (GetOwnerRole() == ROLE_SimulatedProxy)
-            {
-                // Update Simulated Character Mesh
-                // 나중에 접속한 클라이언트 입장에서도 기존에 접속했던 플레이어들의 무기 정보에 맞게 업데이트
-                UpdateOwningCharacterMesh();
             }
 
             // Clear up validation data
@@ -381,18 +377,18 @@ bool UNLCharacterComponent::TryChangeWeaponSlot(int32 NewWeaponSlot)
         if (AWeaponActor* PrevWeapon = GetCurrentWeaponActor())
         {
             GetASC()->CancelAbilityHandle(PrevWeapon->PrimaryAbilitySpecHandle);
-            //GetASC()->CancelAbilityHandle(PrevWeapon->SecondaryAbilitySpecHandle);
+            GetASC()->CancelAbilityHandle(PrevWeapon->SecondaryAbilitySpecHandle);
             //GetASC()->CancelAbilityHandle(PrevWeapon->ReloadAbilitySpecHandle);
 
             FGameplayAbilitySpec* PAS = GetASC()->FindAbilitySpecFromHandle(PrevWeapon->PrimaryAbilitySpecHandle);
             PAS->DynamicAbilityTags.AddTag(Status_Weapon_Holstered);
             GetASC()->MarkAbilitySpecDirty(*PAS);
 
-            /*
             FGameplayAbilitySpec* SAS = GetASC()->FindAbilitySpecFromHandle(PrevWeapon->SecondaryAbilitySpecHandle);
             SAS->DynamicAbilityTags.AddTag(Status_Weapon_Holstered);
             GetASC()->MarkAbilitySpecDirty(*SAS);
 
+            /*
             FGameplayAbilitySpec* RAS = GetASC()->FindAbilitySpecFromHandle(PrevWeapon->ReloadAbilitySpecHandle);
             RAS->DynamicAbilityTags.AddTag(Status_Weapon_Holstered);
             GetASC()->MarkAbilitySpecDirty(*RAS);

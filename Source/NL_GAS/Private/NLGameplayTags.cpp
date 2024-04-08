@@ -29,6 +29,9 @@ UE_DEFINE_GAMEPLAY_TAG(Ability_WeaponChange_2, "Ability.WeaponChange.2");
 UE_DEFINE_GAMEPLAY_TAG(Ability_WeaponChange_3, "Ability.WeaponChange.3");
 UE_DEFINE_GAMEPLAY_TAG(Ability_Melee, "Ability.Melee");
 
+// Ability Block Tag
+UE_DEFINE_GAMEPLAY_TAG(Ability_Block_Weapon, "Ability.Block.Weapon");
+
 // Weapon Tag
 UE_DEFINE_GAMEPLAY_TAG(Weapon_Unarmed, "Weapon.Unarmed");
 UE_DEFINE_GAMEPLAY_TAG(Weapon_Pistol_Glock, "Weapon.Pistol.Glock");
