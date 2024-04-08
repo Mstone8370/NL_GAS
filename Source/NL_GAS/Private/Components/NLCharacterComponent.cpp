@@ -216,48 +216,6 @@ void UNLCharacterComponent::OnWeaponDrawn()
     }
 }
 
-void UNLCharacterComponent::PlayCurrentWeaponMontageAndSetCallback(const FGameplayTag& MontageTag, FTimerHandle& OutTimerHandle, FTimerDelegate TimerDelegate)
-{
-    OutTimerHandle = FTimerHandle();
-
-    const FGameplayTag& CurrentWeaponTag = GetCurrentWeaponTag();
-    if (!CurrentWeaponTag.IsValid())
-    {
-        return;
-    }
-
-    if (const FTaggedAnimMontageInfo* MontageInfo = UNLFunctionLibrary::GetAnimMontageByTag(this, CurrentWeaponTag, MontageTag))
-    {
-        const float MontageTimeOverride = MontageInfo->PlayLengthOverride;
-
-        UAnimMontage* ArmsAnimMontage = MontageInfo->ArmsAnimMontage.LoadSynchronous();
-        UAnimMontage* WeaponAnimMontage = MontageInfo->WeaponAnimMontage.LoadSynchronous();  // Could be nullptr
-
-        const float MontagePlayLength = ArmsAnimMontage ? ArmsAnimMontage->GetPlayLength() : 0.f;
-        const float OverriddenPlayLength = MontageTimeOverride > 0.f ? MontageTimeOverride : MontagePlayLength;
-        const float MontagePlayRate = UKismetMathLibrary::SafeDivide(MontagePlayLength, OverriddenPlayLength);
-
-        // Only on Client
-        GetOwningPlayer()->PlayWeaponAnimMontage(WeaponAnimMontage, MontagePlayRate);
-        GetOwningPlayer()->PlayArmsAnimMontage(ArmsAnimMontage, MontagePlayRate);
-
-        // On Server and Client
-        if (OverriddenPlayLength > 0.f)
-        {
-            GetWorld()->GetTimerManager().SetTimer(
-                OutTimerHandle,
-                TimerDelegate,
-                OverriddenPlayLength - .1f,
-                false
-            );
-        }
-        else
-        {
-            TimerDelegate.ExecuteIfBound();  // Maybe?
-        }
-    }
-}
-
 ANLCharacterBase* UNLCharacterComponent::GetOwningCharacter() const
 {
     return Cast<ANLCharacterBase>(GetOwner());
@@ -470,4 +428,54 @@ bool UNLCharacterComponent::CommitWeaponCost()
         return GetCurrentWeaponActor()->CommitWeaponCost();
     }
     return false;
+}
+
+float UNLCharacterComponent::PlayCurrentWeaponMontage(const FGameplayTag& MontageTag)
+{
+    const FGameplayTag& CurrentWeaponTag = GetCurrentWeaponTag();
+    const FTaggedAnimMontageInfo* MontageInfo = UNLFunctionLibrary::GetAnimMontageByTag(this, CurrentWeaponTag, MontageTag);
+    if (!MontageInfo)
+    {
+        return 0.f;
+    }
+
+    const float MontageTimeOverride = MontageInfo->PlayLengthOverride;
+
+    UAnimMontage* ArmsAnimMontage = MontageInfo->ArmsAnimMontage.LoadSynchronous();
+    UAnimMontage* WeaponAnimMontage = MontageInfo->WeaponAnimMontage.LoadSynchronous();  // Could be nullptr
+
+    const float MontagePlayLength = ArmsAnimMontage ? ArmsAnimMontage->GetPlayLength() : 0.f;
+    const float OverriddenPlayLength = MontageTimeOverride > 0.f ? MontageTimeOverride : MontagePlayLength;
+    const float MontagePlayRate = UKismetMathLibrary::SafeDivide(MontagePlayLength, OverriddenPlayLength);
+
+    // Only on Client
+    GetOwningPlayer()->PlayWeaponAnimMontage(WeaponAnimMontage, MontagePlayRate);
+    GetOwningPlayer()->PlayArmsAnimMontage(ArmsAnimMontage, MontagePlayRate);
+
+    return OverriddenPlayLength;
+}
+
+float UNLCharacterComponent::PlayCurrentWeaponMontageAndSetCallback(const FGameplayTag& MontageTag, FTimerHandle& OutTimerHandle, FTimerDelegate TimerDelegate)
+{
+    OutTimerHandle = FTimerHandle();
+
+    float MontagePlayLength = PlayCurrentWeaponMontage(MontageTag);
+
+    // On Server and Client
+    if (MontagePlayLength > 0.f)
+    {
+        const float BlendOutTime = GetOwningPlayer()->GetCurrentArmsMontage()->GetDefaultBlendOutTime();
+        GetWorld()->GetTimerManager().SetTimer(
+            OutTimerHandle,
+            TimerDelegate,
+            MontagePlayLength - BlendOutTime,
+            false
+        );
+    }
+    else
+    {
+        TimerDelegate.ExecuteIfBound();
+    }
+
+    return MontagePlayLength;
 }

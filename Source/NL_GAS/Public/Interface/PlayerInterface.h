@@ -28,4 +28,7 @@ public:
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void GetWeaponHandIKLocation(FName LeftIKSocketName, FName RightIKSocketName, FVector& OutLeftIKLocation, FVector& OutRightIKLocation) const;
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	float PlayCurrentWeaponMontage(const FGameplayTag& MontageTag);
 };

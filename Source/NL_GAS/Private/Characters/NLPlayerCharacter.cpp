@@ -168,6 +168,11 @@ void ANLPlayerCharacter::GetWeaponHandIKLocation_Implementation(FName LeftIKSock
     }
 }
 
+float ANLPlayerCharacter::PlayCurrentWeaponMontage_Implementation(const FGameplayTag& MontageTag)
+{
+    return NLCharacterComponent->PlayCurrentWeaponMontage(MontageTag);
+}
+
 bool ANLPlayerCharacter::CanAttack_Implementation()
 {
     return NLCharacterComponent->CanAttack();

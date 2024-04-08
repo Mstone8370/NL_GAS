@@ -58,8 +58,6 @@ protected:
 
 	void OnWeaponDrawn();
 
-	void PlayCurrentWeaponMontageAndSetCallback(const FGameplayTag& MontageTag, FTimerHandle& OutTimerHandle, FTimerDelegate TimerDelegate);
-
 private:
 	bool bStartupWeaponInitFinished;
 
@@ -92,4 +90,8 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	bool CommitWeaponCost();
+
+	float PlayCurrentWeaponMontage(const FGameplayTag& MontageTag);
+
+	float PlayCurrentWeaponMontageAndSetCallback(const FGameplayTag& MontageTag, FTimerHandle& OutTimerHandle, FTimerDelegate TimerDelegate);
 };
