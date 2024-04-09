@@ -12,6 +12,7 @@ class ANLPlayerState;
 class ANLPlayerCharacter;
 class ANLCharacterBase;
 class UAbilitySystemComponent;
+class UNLAbilitySystemComponent;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class NL_GAS_API UNLCharacterComponent : public UActorComponent
@@ -52,7 +53,7 @@ protected:
 	FTimerHandle HolsterTimerHandle;
 	FTimerHandle DrawTimerHandle;
 
-	bool CanSwapWeaponSlot(int32 NewWeaponSlot) const;
+	void CancelWeaponSwap();
 
 	void OnWeaponHolstered();
 
@@ -72,6 +73,8 @@ public:
 
 	UAbilitySystemComponent* GetASC() const;
 
+	UNLAbilitySystemComponent* GetNLASC() const;
+
 	AWeaponActor* GetWeaponActorAtSlot(uint8 Slot) const;
 
 	AWeaponActor* GetCurrentWeaponActor() const;
@@ -84,7 +87,9 @@ public:
 
 	void ValidateStartupWeapons();
 
-	bool TrySwapWeaponSlot(int32 NewWeaponSlot);
+	bool CanSwapWeaponSlot(int32 NewWeaponSlot) const;
+
+	void TrySwapWeaponSlot(int32 NewWeaponSlot);
 
 	bool CanAttack() const;
 
@@ -93,5 +98,5 @@ public:
 
 	float PlayCurrentWeaponMontage(const FGameplayTag& MontageTag);
 
-	float PlayCurrentWeaponMontageAndSetCallback(const FGameplayTag& MontageTag, FTimerHandle& OutTimerHandle, FTimerDelegate TimerDelegate);
+	float PlayCurrentWeaponMontageAndSetCallback(const FGameplayTag& MontageTag, FTimerHandle& OutTimerHandle, FTimerDelegate TimerDelegate, bool bOnBlendOut = true);
 };

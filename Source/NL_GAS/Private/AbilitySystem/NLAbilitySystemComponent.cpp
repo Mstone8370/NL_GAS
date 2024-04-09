@@ -5,6 +5,7 @@
 
 #include "NLGameplayTags.h"
 #include "AbilitySystem/Abilities/NLGameplayAbility.h"
+#include "Actors/WeaponActor.h"
 
 void UNLAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& InputTag)
 {
@@ -165,8 +166,73 @@ void UNLAbilitySystemComponent::AddAbilities(const TMap<FGameplayTag, TSubclassO
 	}
 }
 
-void UNLAbilitySystemComponent::TryChangeWeaponSlot(int32 NewWeaponSlot)
+void UNLAbilitySystemComponent::WeaponAdded(AWeaponActor* Weapon)
 {
+	if (GetOwnerRole() == ROLE_Authority)
+	{
+		FGameplayAbilitySpec PrimaryAbilitySpec = FGameplayAbilitySpec(Weapon->PrimaryAbilityClass, 1);
+		PrimaryAbilitySpec.DynamicAbilityTags.AddTag(Input_Weapon_PrimaryAction);
+		PrimaryAbilitySpec.DynamicAbilityTags.AddTag(Status_Weapon_Holstered);
+		Weapon->PrimaryAbilitySpecHandle = GiveAbility(PrimaryAbilitySpec);
+
+		FGameplayAbilitySpec SecondaryAbilitySpec = FGameplayAbilitySpec(Weapon->SecondaryAbilityClass, 1);
+		SecondaryAbilitySpec.DynamicAbilityTags.AddTag(Input_Weapon_SecondaryAction);
+		SecondaryAbilitySpec.DynamicAbilityTags.AddTag(Status_Weapon_Holstered);
+		Weapon->SecondaryAbilitySpecHandle = GiveAbility(SecondaryAbilitySpec);
+
+		FGameplayAbilitySpec ReloadAbilitySpec = FGameplayAbilitySpec(Weapon->ReloadAbilityClass, 1);
+		ReloadAbilitySpec.DynamicAbilityTags.AddTag(Input_Weapon_Reload);
+		ReloadAbilitySpec.DynamicAbilityTags.AddTag(Status_Weapon_Holstered);
+		Weapon->ReloadAbilitySpecHandle = GiveAbility(ReloadAbilitySpec);
+	}
+}
+
+void UNLAbilitySystemComponent::WeaponHolstered(const AWeaponActor* Weapon)
+{
+	if (GetOwnerRole() == ROLE_Authority)
+	{
+		FScopedAbilityListLock ActiveScopeLock(*this);
+
+		if (FGameplayAbilitySpec* PAS = FindAbilitySpecFromHandle(Weapon->PrimaryAbilitySpecHandle))
+		{
+			PAS->DynamicAbilityTags.AddTag(Status_Weapon_Holstered);
+			MarkAbilitySpecDirty(*PAS);
+		}
+		if (FGameplayAbilitySpec* SAS = FindAbilitySpecFromHandle(Weapon->SecondaryAbilitySpecHandle))
+		{
+			SAS->DynamicAbilityTags.AddTag(Status_Weapon_Holstered);
+			MarkAbilitySpecDirty(*SAS);
+		}
+		if (FGameplayAbilitySpec* RAS = FindAbilitySpecFromHandle(Weapon->ReloadAbilitySpecHandle))
+		{
+			RAS->DynamicAbilityTags.AddTag(Status_Weapon_Holstered);
+			MarkAbilitySpecDirty(*RAS);
+		}
+	}
+}
+
+void UNLAbilitySystemComponent::WeaponDrawn(const AWeaponActor* Weapon)
+{
+	if (GetOwnerRole() == ROLE_Authority)
+	{
+		FScopedAbilityListLock ActiveScopeLock(*this);
+
+		if (FGameplayAbilitySpec* PAS = FindAbilitySpecFromHandle(Weapon->PrimaryAbilitySpecHandle))
+		{
+			PAS->DynamicAbilityTags.RemoveTag(Status_Weapon_Holstered);
+			MarkAbilitySpecDirty(*PAS);
+		}
+		if (FGameplayAbilitySpec* SAS = FindAbilitySpecFromHandle(Weapon->SecondaryAbilitySpecHandle))
+		{
+			SAS->DynamicAbilityTags.RemoveTag(Status_Weapon_Holstered);
+			MarkAbilitySpecDirty(*SAS);
+		}
+		if (FGameplayAbilitySpec* RAS = FindAbilitySpecFromHandle(Weapon->ReloadAbilitySpecHandle))
+		{
+			RAS->DynamicAbilityTags.RemoveTag(Status_Weapon_Holstered);
+			MarkAbilitySpecDirty(*RAS);
+		}
+	}
 }
 
 void UNLAbilitySystemComponent::OnRep_ActivateAbilities()

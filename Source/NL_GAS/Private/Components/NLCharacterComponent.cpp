@@ -6,6 +6,7 @@
 #include "Net/UnrealNetwork.h"
 #include "NLGameplayTags.h"
 #include "AbilitySystemComponent.h"
+#include "AbilitySystem/NLAbilitySystemComponent.h"
 #include "Player/NLPlayerState.h"
 #include "Characters/NLPlayerCharacter.h"
 #include "Characters/NLCharacterBase.h"
@@ -77,20 +78,7 @@ void UNLCharacterComponent::AddStartupWeapons()
         WeaponActorSlot.Add(Weapon);
 
         // Add Weapon Abilities
-        FGameplayAbilitySpec PrimaryAbilitySpec = FGameplayAbilitySpec(Weapon->PrimaryAbilityClass, 1);
-        PrimaryAbilitySpec.DynamicAbilityTags.AddTag(Input_Weapon_PrimaryAction);
-        PrimaryAbilitySpec.DynamicAbilityTags.AddTag(Status_Weapon_Holstered);
-        Weapon->PrimaryAbilitySpecHandle = ASC->GiveAbility(PrimaryAbilitySpec);
-
-        FGameplayAbilitySpec SecondaryAbilitySpec = FGameplayAbilitySpec(Weapon->SecondaryAbilityClass, 1);
-        SecondaryAbilitySpec.DynamicAbilityTags.AddTag(Input_Weapon_SecondaryAction);
-        SecondaryAbilitySpec.DynamicAbilityTags.AddTag(Status_Weapon_Holstered);
-        Weapon->SecondaryAbilitySpecHandle = ASC->GiveAbility(SecondaryAbilitySpec);
-
-        FGameplayAbilitySpec ReloadAbilitySpec = FGameplayAbilitySpec(Weapon->ReloadAbilityClass, 1);
-        ReloadAbilitySpec.DynamicAbilityTags.AddTag(Input_Weapon_Reload);
-        ReloadAbilitySpec.DynamicAbilityTags.AddTag(Status_Weapon_Holstered);
-        Weapon->ReloadAbilitySpecHandle = ASC->GiveAbility(ReloadAbilitySpec);
+        GetNLASC()->WeaponAdded(Weapon);
     }
 }
 
@@ -142,40 +130,45 @@ void UNLCharacterComponent::UpdateOwningCharacterMesh(AWeaponActor* OldWeaponAct
     }
 }
 
-bool UNLCharacterComponent::CanSwapWeaponSlot(int32 NewWeaponSlot) const
+void UNLCharacterComponent::CancelWeaponSwap()
 {
-    if (!bIsSwappingWeapon && CurrentWeaponSlot == NewWeaponSlot)
-    {
-        return false;
-    }
+    bIsSwappingWeapon = false;
 
-    if (0 <= NewWeaponSlot && NewWeaponSlot < WeaponActorSlot.Num())
-    {
-        AWeaponActor* Weapon = WeaponActorSlot[NewWeaponSlot];
-        if (IsValid(Weapon) && Weapon->IsInitialized())
-        {
-            return true;
-        }
-    }
-    return false;
+    GetWorld()->GetTimerManager().ClearTimer(HolsterTimerHandle);
+
+    UAnimMontage* ArmsHolsterMontage = GetOwningPlayer()->GetCurrentArmsMontage();
+    GetOwningPlayer()->StopArmsAnimMontage();
+    GetOwningPlayer()->StopWeaponAnimMontage(ArmsHolsterMontage);
+
+    // Draw again
+    const bool bDrawFirst = !GetCurrentWeaponActor()->IsEverDrawn();
+    const FGameplayTag& CurrentWeaponTag = GetCurrentWeaponTag();
+    const FGameplayTag MontageTag = bDrawFirst ? Montage_Weapon_DrawFirst : Montage_Weapon_Draw;
+    FTimerDelegate TimerDelegate;
+    TimerDelegate.BindUObject(this, &UNLCharacterComponent::OnWeaponDrawn);
+    PlayCurrentWeaponMontageAndSetCallback(MontageTag, DrawTimerHandle, TimerDelegate);
 }
 
 void UNLCharacterComponent::OnWeaponHolstered()
 {
     bIsSwappingWeapon = false;
 
-    const AWeaponActor* PrevWeapon = GetCurrentWeaponActor();  // Could be nullptr
+    if (const AWeaponActor* PrevWeapon = GetCurrentWeaponActor())  // Could be nullptr
+    {
+        GetNLASC()->WeaponHolstered(PrevWeapon);
+    }
     const AWeaponActor* ChangedWeapon = GetWeaponActorAtSlot(WeaponSwapPendingSlot);
-    const bool bDrawFirst = !ChangedWeapon->IsEverDrawn();
+
+    CurrentWeaponSlot = WeaponSwapPendingSlot;
 
     GetOwningPlayer()->UpdateViewWeaponAndAnimLayer(
         ChangedWeapon->GetViewWeaponMesh(),
         ChangedWeapon->GetWeaponAnimInstanceClass(),
         ChangedWeapon->GetArmsAnimLayerClass()
     );
-    CurrentWeaponSlot = WeaponSwapPendingSlot;
 
     // Draw New Weapon
+    const bool bDrawFirst = !ChangedWeapon->IsEverDrawn();
     const FGameplayTag& CurrentWeaponTag = GetCurrentWeaponTag();
     const FGameplayTag MontageTag = bDrawFirst ? Montage_Weapon_DrawFirst : Montage_Weapon_Draw;
     FTimerDelegate TimerDelegate;
@@ -185,31 +178,13 @@ void UNLCharacterComponent::OnWeaponHolstered()
 
 void UNLCharacterComponent::OnWeaponDrawn()
 {
-    GetWorld()->GetTimerManager().ClearTimer(DrawTimerHandle); // This function could be called by Anim Notify.
+    // This function could be called by Anim Notify before timer.
+    GetWorld()->GetTimerManager().ClearTimer(DrawTimerHandle);
 
-    if (AWeaponActor* Weapon = GetCurrentWeaponActor())
-    {
-        Weapon->Drawn();
+    GetASC()->SetLooseGameplayTagCount(Ability_Block_Weapon, 0);
+    GetNLASC()->WeaponDrawn(GetCurrentWeaponActor());
 
-        if (GetOwnerRole() == ROLE_Authority)
-        {
-            FScopedAbilityListLock ActiveScopeLock(*GetASC());
-
-            FGameplayAbilitySpec* PAS = GetASC()->FindAbilitySpecFromHandle(Weapon->PrimaryAbilitySpecHandle);
-            PAS->DynamicAbilityTags.RemoveTag(Status_Weapon_Holstered);
-            GetASC()->MarkAbilitySpecDirty(*PAS);
-
-            FGameplayAbilitySpec* SAS = GetASC()->FindAbilitySpecFromHandle(Weapon->SecondaryAbilitySpecHandle);
-            SAS->DynamicAbilityTags.RemoveTag(Status_Weapon_Holstered);
-            GetASC()->MarkAbilitySpecDirty(*SAS);
-
-            /*
-            FGameplayAbilitySpec* RAS = GetASC()->FindAbilitySpecFromHandle(Weapon->ReloadAbilitySpecHandle);
-            RAS->DynamicAbilityTags.RemoveTag(Status_Weapon_Holstered);
-            GetASC()->MarkAbilitySpecDirty(*RAS);
-            */
-        }
-    }
+    GetCurrentWeaponActor()->Drawn();
 }
 
 ANLCharacterBase* UNLCharacterComponent::GetOwningCharacter() const
@@ -236,6 +211,15 @@ UAbilitySystemComponent* UNLCharacterComponent::GetASC() const
     if (GetOwningPlayerState())
     {
         return GetOwningPlayerState()->GetAbilitySystemComponent();
+    }
+    return nullptr;
+}
+
+UNLAbilitySystemComponent* UNLCharacterComponent::GetNLASC() const
+{
+    if (GetASC())
+    {
+        return Cast<UNLAbilitySystemComponent>(GetASC());
     }
     return nullptr;
 }
@@ -342,7 +326,25 @@ void UNLCharacterComponent::ValidateStartupWeapons()
     }
 }
 
-bool UNLCharacterComponent::TrySwapWeaponSlot(int32 NewWeaponSlot)
+bool UNLCharacterComponent::CanSwapWeaponSlot(int32 NewWeaponSlot) const
+{
+    if (!bIsSwappingWeapon && CurrentWeaponSlot == NewWeaponSlot)
+    {
+        return false;
+    }
+
+    if (0 <= NewWeaponSlot && NewWeaponSlot < WeaponActorSlot.Num())
+    {
+        AWeaponActor* Weapon = WeaponActorSlot[NewWeaponSlot];
+        if (IsValid(Weapon) && Weapon->IsInitialized())
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+void UNLCharacterComponent::TrySwapWeaponSlot(int32 NewWeaponSlot)
 {
     // On Server and Client by GameplayAbility
 
@@ -350,62 +352,38 @@ bool UNLCharacterComponent::TrySwapWeaponSlot(int32 NewWeaponSlot)
     {
         // Start up
         OnWeaponHolstered();
-        return true;
+        return;
     }
 
     if (!CanSwapWeaponSlot(NewWeaponSlot))
     {
-        return false;
+        return;
     }
 
     WeaponSwapPendingSlot = NewWeaponSlot;
 
     if (bIsSwappingWeapon)
     {
-        // TODO: 현재 Holster하고있는 무기와 같은 무기로 변경을 시도하는 경우
-        // 무기 변경을 취소하고 상태를 되돌리는 방법 생각해보기.
-
-        return true;
+        if (WeaponSwapPendingSlot == CurrentWeaponSlot)
+        {
+            CancelWeaponSwap();
+        }
+        return;
     }
     bIsSwappingWeapon = true;
 
-    // Set Ability State
-    if (GetOwnerRole() == ROLE_Authority)
-    {
-        FScopedAbilityListLock ActiveScopeLock(*GetASC());
-
-        if (AWeaponActor* PrevWeapon = GetCurrentWeaponActor())
-        {
-            GetASC()->CancelAbilityHandle(PrevWeapon->PrimaryAbilitySpecHandle);
-            GetASC()->CancelAbilityHandle(PrevWeapon->SecondaryAbilitySpecHandle);
-            //GetASC()->CancelAbilityHandle(PrevWeapon->ReloadAbilitySpecHandle);
-
-            FGameplayAbilitySpec* PAS = GetASC()->FindAbilitySpecFromHandle(PrevWeapon->PrimaryAbilitySpecHandle);
-            PAS->DynamicAbilityTags.AddTag(Status_Weapon_Holstered);
-            GetASC()->MarkAbilitySpecDirty(*PAS);
-
-            FGameplayAbilitySpec* SAS = GetASC()->FindAbilitySpecFromHandle(PrevWeapon->SecondaryAbilitySpecHandle);
-            SAS->DynamicAbilityTags.AddTag(Status_Weapon_Holstered);
-            GetASC()->MarkAbilitySpecDirty(*SAS);
-
-            /*
-            FGameplayAbilitySpec* RAS = GetASC()->FindAbilitySpecFromHandle(PrevWeapon->ReloadAbilitySpecHandle);
-            RAS->DynamicAbilityTags.AddTag(Status_Weapon_Holstered);
-            GetASC()->MarkAbilitySpecDirty(*RAS);
-            */
-        }
-    }
-
-    // Stop any playing anim montage. e.g. fire montage.
-    GetOwningPlayer()->StopArmsAnimMontage();
-    GetOwningPlayer()->StopWeaponAnimMontage();
+    // Block Weapon Ability
+    GetASC()->AddLooseGameplayTag(Ability_Block_Weapon);
+    
+    // 무기 스왑은 현재 무기가 drawn 되기 전에 시작될 수 있음.
+    // 그런 경우에는 draw 타이머가 설정되어있으므로 holster중인 무기가 drawn 되어서 사용 가능하게 됨.
+    // 따라서 draw 타이머를 clear함.
+    GetWorld()->GetTimerManager().ClearTimer(DrawTimerHandle);
 
     const FGameplayTag& CurrentWeaponTag = GetCurrentWeaponTag();
     FTimerDelegate TimerDelegate;
     TimerDelegate.BindUObject(this, &UNLCharacterComponent::OnWeaponHolstered);
     PlayCurrentWeaponMontageAndSetCallback(Montage_Weapon_Holster, HolsterTimerHandle, TimerDelegate);
-
-    return true;
 }
 
 bool UNLCharacterComponent::CanAttack() const
@@ -451,7 +429,7 @@ float UNLCharacterComponent::PlayCurrentWeaponMontage(const FGameplayTag& Montag
     return OverriddenPlayLength;
 }
 
-float UNLCharacterComponent::PlayCurrentWeaponMontageAndSetCallback(const FGameplayTag& MontageTag, FTimerHandle& OutTimerHandle, FTimerDelegate TimerDelegate)
+float UNLCharacterComponent::PlayCurrentWeaponMontageAndSetCallback(const FGameplayTag& MontageTag, FTimerHandle& OutTimerHandle, FTimerDelegate TimerDelegate, bool bOnBlendOut)
 {
     OutTimerHandle = FTimerHandle();
 
@@ -464,7 +442,7 @@ float UNLCharacterComponent::PlayCurrentWeaponMontageAndSetCallback(const FGamep
         GetWorld()->GetTimerManager().SetTimer(
             OutTimerHandle,
             TimerDelegate,
-            MontagePlayLength - BlendOutTime,
+            bOnBlendOut ? MontagePlayLength - BlendOutTime : MontagePlayLength,
             false
         );
     }

@@ -152,7 +152,12 @@ void ANLPlayerCharacter::OnRep_Controller()
     NLPlayerController = Cast<ANLPlayerController>(GetController());
 }
 
-bool ANLPlayerCharacter::TrySwapWeaponSlot_Implementation(int32 NewSlot)
+bool ANLPlayerCharacter::CanSwapWeaponSlot_Implementation(int32 NewSlot)
+{
+    return NLCharacterComponent->CanSwapWeaponSlot(NewSlot);
+}
+
+void ANLPlayerCharacter::TrySwapWeaponSlot_Implementation(int32 NewSlot)
 {
     return NLCharacterComponent->TrySwapWeaponSlot(NewSlot);
 }
