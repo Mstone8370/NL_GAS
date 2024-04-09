@@ -7,6 +7,8 @@
 #include "GameplayTagContainer.h"
 #include "NLAbilitySystemComponent.generated.h"
 
+class AWeaponActor;
+
 /**
  * 
  */
@@ -24,7 +26,11 @@ public:
 
 	void AddAbilities(const TMap<FGameplayTag, TSubclassOf<UGameplayAbility>>& Abilities);
 
-	void TryChangeWeaponSlot(int32 NewWeaponSlot);
+	void WeaponAdded(AWeaponActor* Weapon);
+
+	void WeaponHolstered(const AWeaponActor* Weapon);
+
+	void WeaponDrawn(const AWeaponActor* Weapon);
 
 protected:
 	virtual void OnRep_ActivateAbilities() override;

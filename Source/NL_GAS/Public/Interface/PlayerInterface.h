@@ -24,7 +24,10 @@ class NL_GAS_API IPlayerInterface
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	bool TryChangeWeaponSlot(int32 NewSlot);
+	bool CanSwapWeaponSlot(int32 NewSlot);
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	void TrySwapWeaponSlot(int32 NewSlot);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void GetWeaponHandIKLocation(FName LeftIKSocketName, FName RightIKSocketName, FVector& OutLeftIKLocation, FVector& OutRightIKLocation) const;
