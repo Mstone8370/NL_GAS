@@ -77,6 +77,8 @@ protected:
 
 	EReloadState ReloadState;
 
+	FGameplayTagContainer AttachmentTags;
+
 public:
 	void InitalizeWeapon(const FGameplayTag& InWeaponTag);
 

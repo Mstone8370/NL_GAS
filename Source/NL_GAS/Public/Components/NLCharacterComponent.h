@@ -45,14 +45,14 @@ protected:
 	void UpdateOwningCharacterMesh(AWeaponActor* OldWeaponActor = nullptr);
 
 	UPROPERTY(BlueprintReadOnly)
-	bool bIsChangingWeapon;
+	bool bIsSwappingWeapon;
 
-	uint8 WeaponChangePendingSlot;
+	uint8 WeaponSwapPendingSlot;
 
 	FTimerHandle HolsterTimerHandle;
 	FTimerHandle DrawTimerHandle;
 
-	bool CanChangeWeaponSlot(int32 NewWeaponSlot) const;
+	bool CanSwapWeaponSlot(int32 NewWeaponSlot) const;
 
 	void OnWeaponHolstered();
 
@@ -84,7 +84,7 @@ public:
 
 	void ValidateStartupWeapons();
 
-	bool TryChangeWeaponSlot(int32 NewWeaponSlot);
+	bool TrySwapWeaponSlot(int32 NewWeaponSlot);
 
 	bool CanAttack() const;
 

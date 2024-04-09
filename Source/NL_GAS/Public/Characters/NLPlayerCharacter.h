@@ -47,7 +47,7 @@ public:
 	FWeaponChangedSignature WeaponChangedDelegate;
 
 	//~Begin PlayerInterface
-	virtual bool TryChangeWeaponSlot_Implementation(int32 NewSlot) override;
+	virtual bool TrySwapWeaponSlot_Implementation(int32 NewSlot) override;
 	virtual void GetWeaponHandIKLocation_Implementation(FName LeftIKSocketName, FName RightIKSocketName, FVector& OutLeftIKLocation, FVector& OutRightIKLocation) const;
 	virtual float PlayCurrentWeaponMontage_Implementation(const FGameplayTag& MontageTag);
 	//~End PlayerInterface

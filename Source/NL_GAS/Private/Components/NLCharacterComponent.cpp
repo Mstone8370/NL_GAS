@@ -142,9 +142,9 @@ void UNLCharacterComponent::UpdateOwningCharacterMesh(AWeaponActor* OldWeaponAct
     }
 }
 
-bool UNLCharacterComponent::CanChangeWeaponSlot(int32 NewWeaponSlot) const
+bool UNLCharacterComponent::CanSwapWeaponSlot(int32 NewWeaponSlot) const
 {
-    if (!bIsChangingWeapon && CurrentWeaponSlot == NewWeaponSlot)
+    if (!bIsSwappingWeapon && CurrentWeaponSlot == NewWeaponSlot)
     {
         return false;
     }
@@ -162,10 +162,10 @@ bool UNLCharacterComponent::CanChangeWeaponSlot(int32 NewWeaponSlot) const
 
 void UNLCharacterComponent::OnWeaponHolstered()
 {
-    bIsChangingWeapon = false;
+    bIsSwappingWeapon = false;
 
     const AWeaponActor* PrevWeapon = GetCurrentWeaponActor();  // Could be nullptr
-    const AWeaponActor* ChangedWeapon = GetWeaponActorAtSlot(WeaponChangePendingSlot);
+    const AWeaponActor* ChangedWeapon = GetWeaponActorAtSlot(WeaponSwapPendingSlot);
     const bool bDrawFirst = !ChangedWeapon->IsEverDrawn();
 
     GetOwningPlayer()->UpdateViewWeaponAndAnimLayer(
@@ -173,7 +173,7 @@ void UNLCharacterComponent::OnWeaponHolstered()
         ChangedWeapon->GetWeaponAnimInstanceClass(),
         ChangedWeapon->GetArmsAnimLayerClass()
     );
-    CurrentWeaponSlot = WeaponChangePendingSlot;
+    CurrentWeaponSlot = WeaponSwapPendingSlot;
 
     // Draw New Weapon
     const FGameplayTag& CurrentWeaponTag = GetCurrentWeaponTag();
@@ -342,7 +342,7 @@ void UNLCharacterComponent::ValidateStartupWeapons()
     }
 }
 
-bool UNLCharacterComponent::TryChangeWeaponSlot(int32 NewWeaponSlot)
+bool UNLCharacterComponent::TrySwapWeaponSlot(int32 NewWeaponSlot)
 {
     // On Server and Client by GameplayAbility
 
@@ -353,21 +353,21 @@ bool UNLCharacterComponent::TryChangeWeaponSlot(int32 NewWeaponSlot)
         return true;
     }
 
-    if (!CanChangeWeaponSlot(NewWeaponSlot))
+    if (!CanSwapWeaponSlot(NewWeaponSlot))
     {
         return false;
     }
 
-    WeaponChangePendingSlot = NewWeaponSlot;
+    WeaponSwapPendingSlot = NewWeaponSlot;
 
-    if (bIsChangingWeapon)
+    if (bIsSwappingWeapon)
     {
         // TODO: 현재 Holster하고있는 무기와 같은 무기로 변경을 시도하는 경우
         // 무기 변경을 취소하고 상태를 되돌리는 방법 생각해보기.
 
         return true;
     }
-    bIsChangingWeapon = true;
+    bIsSwappingWeapon = true;
 
     // Set Ability State
     if (GetOwnerRole() == ROLE_Authority)

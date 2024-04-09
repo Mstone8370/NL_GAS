@@ -152,9 +152,9 @@ void ANLPlayerCharacter::OnRep_Controller()
     NLPlayerController = Cast<ANLPlayerController>(GetController());
 }
 
-bool ANLPlayerCharacter::TryChangeWeaponSlot_Implementation(int32 NewSlot)
+bool ANLPlayerCharacter::TrySwapWeaponSlot_Implementation(int32 NewSlot)
 {
-    return NLCharacterComponent->TryChangeWeaponSlot(NewSlot);
+    return NLCharacterComponent->TrySwapWeaponSlot(NewSlot);
 }
 
 void ANLPlayerCharacter::GetWeaponHandIKLocation_Implementation(FName LeftIKSocketName, FName RightIKSocketName, FVector& OutLeftIKLocation, FVector& OutRightIKLocation) const
