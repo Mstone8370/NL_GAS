@@ -179,6 +179,10 @@ float ANLPlayerCharacter::PlayCurrentWeaponMontage_Implementation(const FGamepla
     return NLCharacterComponent->PlayCurrentWeaponMontage(MontageTag);
 }
 
+void ANLPlayerCharacter::WeaponFired_Implementation()
+{
+}
+
 bool ANLPlayerCharacter::CanAttack_Implementation()
 {
     return NLCharacterComponent->CanAttack();
