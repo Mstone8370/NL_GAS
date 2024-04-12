@@ -18,6 +18,7 @@
 #include "Data/WeaponInfo.h"
 #include "NLGameplayTags.h"
 #include "Components/NLCharacterComponent.h"
+#include "Components/ControlShakeManager.h"
 
 ANLPlayerCharacter::ANLPlayerCharacter()
     : LookPitchRepTime(0.02f)
@@ -55,6 +56,8 @@ ANLPlayerCharacter::ANLPlayerCharacter()
     CameraComponent = CreateDefaultSubobject<UCameraComponent>(FName("Camera"));
     CameraComponent->SetupAttachment(ArmMesh, FName("camera"));
     CameraComponent->FieldOfView = 110.f;
+
+    ControlShakeManager = CreateDefaultSubobject<UControlShakeManager>(FName("ControlShakeManager"));
 }
 
 void ANLPlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

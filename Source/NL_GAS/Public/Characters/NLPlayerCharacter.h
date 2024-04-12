@@ -13,6 +13,7 @@ class UCameraComponent;
 class UNLCharacterMovementComponent;
 class ANLPlayerController;
 class UAnimMontage;
+class UControlShakeManager;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FWeaponChangedSignature, uint8, OldSlot, const FGameplayTag&, OldWeaponTag, uint8, NewSlot, const FGameplayTag&, NewWeaponTag);
 
@@ -80,6 +81,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UCameraComponent> CameraComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UControlShakeManager> ControlShakeManager;
 
 protected:
 	TObjectPtr<UNLCharacterMovementComponent> NLCharacterMovementComponent;
