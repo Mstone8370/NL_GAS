@@ -36,7 +36,7 @@ bool UControlShake::UpdateShake(float DeltaTime, FRotator& OutDeltaRotation)
     OutDeltaRotation = FRotator(
         ShakeMagnitude.Pitch * CurveValue_Delta.X,
         ShakeMagnitude.Yaw * CurveValue_Delta.Y,
-        ShakeMagnitude.Roll * CurveValue_Delta.Z
+        0.f  // Roll is ignored.
     );
 
     return bIsActive;

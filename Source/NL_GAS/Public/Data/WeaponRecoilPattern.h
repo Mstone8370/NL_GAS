@@ -16,13 +16,19 @@ struct FWeaponRecoilInfo
 
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TObjectPtr<UCurveVector> RecoilCurve;
+	TObjectPtr<UCurveVector> PatternSequence;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	int32 LoopStartOffset;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	int32 LoopEndOffset;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TObjectPtr<UCurveVector> SingleRecoilCurve;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float SingleRecoilDuration = 1.f;
 };
 
 /**

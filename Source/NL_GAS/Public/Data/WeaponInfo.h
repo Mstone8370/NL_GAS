@@ -8,6 +8,8 @@
 #include "WeaponInfo.generated.h"
 
 class UGameplayAbility;
+class UWeaponRecoilPattern;
+class UCurveVector;
 
 /**
  * Single Weapon Info with Gameplay Tag

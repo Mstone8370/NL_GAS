@@ -49,6 +49,8 @@ public:
 
 	void Activate(FControlShakeParams Params);
 
+	FORCEINLINE bool IsActive() const { return bIsActive; }
+
 protected:
 	bool bIsActive;
 

@@ -4,6 +4,7 @@
 #include "Components/ControlShakeManager.h"
 
 #include "GameFramework/Character.h"
+#include "Data/WeaponRecoilPattern.h"
 
 UControlShakeManager::UControlShakeManager()
 {
@@ -29,8 +30,8 @@ void UControlShakeManager::TickComponent(float DeltaTime, ELevelTick TickType, F
 
 void UControlShakeManager::UpdateShakes(float DeltaTime)
 {
-    static TArray<int32> ExpiredShakesIdx;
-    ExpiredShakesIdx.Reset();
+    static TArray<int32> ExpiredShakeIndices;
+    ExpiredShakeIndices.Reset();
 
     FRotator DeltaSum = FRotator::ZeroRotator;
 
@@ -39,38 +40,33 @@ void UControlShakeManager::UpdateShakes(float DeltaTime)
         TObjectPtr<UControlShake> Shake = ActiveShakes[i];
         if (!Shake)
         {
-            ExpiredShakesIdx.Add(i);
+            ExpiredShakeIndices.Add(i);
             continue;
         }
 
         FRotator CurrentDelta;
-        bool bIsStillActive = Shake->UpdateShake(DeltaTime, CurrentDelta);
-        DeltaSum += CurrentDelta;
-
-        if (!bIsStillActive)
+        if (!Shake->UpdateShake(DeltaTime, CurrentDelta))
         {
-            ExpiredShakesIdx.Add(i);
+            ExpiredShakeIndices.Add(i);
         }
+        DeltaSum += CurrentDelta;
     }
 
-    for (int32 i = ExpiredShakesIdx.Num() - 1; i >= 0; i--)
+    for (int32 i = ExpiredShakeIndices.Num() - 1; i >= 0; i--)
     {
-        UControlShake* ExpiredShake = ActiveShakes[ExpiredShakesIdx[i]];
-        if (ExpiredPool.Num() < 10)
+        UControlShake* ExpiredShake = ActiveShakes[ExpiredShakeIndices[i]];
+        if (ExpiredPool.Num() < 6)
         {
             ExpiredPool.Add(ExpiredShake);
         }
-        ActiveShakes.RemoveAt(ExpiredShakesIdx[i]);
+        ActiveShakes.RemoveAt(ExpiredShakeIndices[i]);
     }
 
     if (OwningCharacter)
     {
         OwningCharacter->AddControllerPitchInput(DeltaSum.Pitch);
         OwningCharacter->AddControllerYawInput(DeltaSum.Yaw);
-        //OwningCharacter->AddControllerRollInput(DeltaSum.Roll);
     }
-
-    UE_LOG(LogTemp, Warning, TEXT("ActiveShake Num: %d, ExpiredPool Num: %d"), ActiveShakes.Num(), ExpiredPool.Num());
 }
 
 void UControlShakeManager::AddShake(float InDuration, UCurveVector* InCurve, FRotator InShakeMagnitude)
@@ -89,9 +85,40 @@ void UControlShakeManager::AddShake(FControlShakeParams Params)
     AddShake(Params.Duration, Params.Curve, Params.ShakeMagnitude);
 }
 
+void UControlShakeManager::WeaponFired(const FGameplayTag& WeaponTag)
+{
+    if (!RecoilPatternData || !RecoilPatternData->HasRecoilPattern(WeaponTag))
+    {
+        return;
+    }
+    
+    int32& WeaponRecoilOffset = RecoilOffsetsMap.FindOrAdd(WeaponTag, 0);
+    FTimerHandle& WeaponRecoilOffsetResetTimer = RecoilOffsetResetTimersMap.FindOrAdd(WeaponTag);
+
+    const FVector RecoilPattern = RecoilPatternData->GetRecoilPatternAt(WeaponTag, WeaponRecoilOffset);
+    const FWeaponRecoilInfo& Info = RecoilPatternData->Data[WeaponTag];
+
+    AddShake(
+        Info.SingleRecoilDuration,
+        Info.SingleRecoilCurve,
+        FRotator(RecoilPattern.X, RecoilPattern.Y, RecoilPattern.Z)
+    );
+
+    WeaponRecoilOffset++;
+    GetWorld()->GetTimerManager().SetTimer(
+        WeaponRecoilOffsetResetTimer,
+        [this, WeaponTag]()
+        {
+            ResetRecoilOffset(WeaponTag);
+        },
+        0.2f,
+        false
+    );
+}
+
 UControlShake* UControlShakeManager::ReclaimShakeFromExpiredPool()
 {
-    if (ExpiredPool.Num() > 0)
+    if (!ExpiredPool.IsEmpty())
     {
         return ExpiredPool.Pop();
     }
@@ -105,5 +132,13 @@ ACharacter* UControlShakeManager::GetOwningCharacter()
         OwningCharacter = Cast<ACharacter>(GetOwner());
     }
     return OwningCharacter;
+}
+
+void UControlShakeManager::ResetRecoilOffset(const FGameplayTag& WeaponTag)
+{
+    if (RecoilOffsetsMap.Contains(WeaponTag))
+    {
+        RecoilOffsetsMap[WeaponTag] = 0;
+    }
 }
 

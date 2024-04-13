@@ -5,7 +5,10 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "Objects/ControlShake.h"
+#include "GameplayTagContainer.h"
 #include "ControlShakeManager.generated.h"
+
+class UWeaponRecoilPattern;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class NL_GAS_API UControlShakeManager : public UActorComponent
@@ -28,7 +31,13 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void AddShake(FControlShakeParams Params);
 
+	UFUNCTION(BlueprintCallable)
+	void WeaponFired(const FGameplayTag& WeaponTag);
+
 protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TObjectPtr<UWeaponRecoilPattern> RecoilPatternData;
+
 	UPROPERTY(BlueprintReadOnly)
 	TObjectPtr<ACharacter> OwningCharacter;
 
@@ -41,4 +50,10 @@ protected:
 	UControlShake* ReclaimShakeFromExpiredPool();
 
 	ACharacter* GetOwningCharacter();
+
+	TMap<FGameplayTag, int32> RecoilOffsetsMap;
+
+	TMap<FGameplayTag, FTimerHandle> RecoilOffsetResetTimersMap;
+
+	void ResetRecoilOffset(const FGameplayTag& WeaponTag);
 };
