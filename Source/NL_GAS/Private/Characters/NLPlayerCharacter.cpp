@@ -115,6 +115,8 @@ void ANLPlayerCharacter::InitAbilityActorInfo()
 
     AttributeSet = PS->GetAttributeSet();
     // TODO: Init Default Attributes
+
+    AbilitySystemComponent->RegisterGameplayTagEvent(Ability_Weapon_Secondary, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ANLPlayerCharacter::OnGameplayTagCountChanged);
 }
 
 void ANLPlayerCharacter::Tick(float DeltaSeconds)
@@ -184,6 +186,7 @@ float ANLPlayerCharacter::PlayCurrentWeaponMontage_Implementation(const FGamepla
 
 void ANLPlayerCharacter::WeaponFired_Implementation()
 {
+    ControlShakeManager->WeaponFired(NLCharacterComponent->GetCurrentWeaponTag());
 }
 
 bool ANLPlayerCharacter::CanAttack_Implementation()
@@ -385,6 +388,14 @@ void ANLPlayerCharacter::InterpolateCrouch(float DeltaSeconds)
     }
 }
 
+void ANLPlayerCharacter::OnGameplayTagCountChanged(const FGameplayTag Tag, int32 TagCount)
+{
+    if (Tag.MatchesTagExact(Ability_Weapon_Secondary))
+    {
+        bIsADS = TagCount > 0;
+    }
+}
+
 void ANLPlayerCharacter::GetCrouchedHalfHeightAdjust(float& OutHalfHeightAdjust, float& OutScaledHalfHeightAdjust) const
 {
     // Change collision size to crouching dimensions
@@ -417,6 +428,10 @@ void ANLPlayerCharacter::UpdateViewWeaponAndAnimLayer(USkeletalMesh* NewWeaponMe
     if (NewWeaponMesh)
     {
         ViewWeaponMesh->SetSkeletalMesh(NewWeaponMesh);
+
+        // temp
+        ViewWeaponMesh->HideBoneByName(FName("gun_sight_attach"), EPhysBodyOp::PBO_None);
+        ViewWeaponMesh->HideBoneByName(FName("gun_muzzle_attach"), EPhysBodyOp::PBO_None);
     }
     if (WeaponAnimInstanceClass)
     {

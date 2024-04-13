@@ -111,7 +111,7 @@ void UControlShakeManager::WeaponFired(const FGameplayTag& WeaponTag)
         {
             ResetRecoilOffset(WeaponTag);
         },
-        0.2f,
+        0.15f,  // TODO: make it variable
         false
     );
 }

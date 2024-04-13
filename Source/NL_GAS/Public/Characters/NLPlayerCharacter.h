@@ -135,6 +135,10 @@ protected:
 	virtual void InterpolateCrouch(float DeltaSeconds);
 	//~End Crouch Interpolation
 
+	bool bIsADS = false;
+
+	void OnGameplayTagCountChanged(const FGameplayTag Tag, int32 TagCount);
+
 public:
 	void GetCrouchedHalfHeightAdjust(float& OutHalfHeightAdjust, float& OutScaledHalfHeightAdjust) const;
 
@@ -163,4 +167,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = Animation)
 	class UAnimMontage* GetCurrentWeaponMontage() const;
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	FORCEINLINE bool IsADS() const { return bIsADS; }
 };
