@@ -395,13 +395,20 @@ bool UNLCharacterComponent::CanAttack() const
     return false;
 }
 
-bool UNLCharacterComponent::CommitWeaponCost()
+bool UNLCharacterComponent::CommitWeaponCost(bool& bIsLast)
 {
+    bool Ret = false;
+    bIsLast = false;
+
     if (CanAttack())
     {
-        return GetCurrentWeaponActor()->CommitWeaponCost();
+        Ret = GetCurrentWeaponActor()->CommitWeaponCost();
+        if (Ret)
+        {
+            bIsLast = IsCurrentWeaponMagEmpty();
+        }
     }
-    return false;
+    return Ret;
 }
 
 float UNLCharacterComponent::PlayCurrentWeaponMontage(const FGameplayTag& MontageTag)
@@ -416,9 +423,13 @@ float UNLCharacterComponent::PlayCurrentWeaponMontage(const FGameplayTag& Montag
     const float MontageTimeOverride = MontageInfo->PlayLengthOverride;
 
     UAnimMontage* ArmsAnimMontage = MontageInfo->ArmsAnimMontage.LoadSynchronous();
-    UAnimMontage* WeaponAnimMontage = MontageInfo->WeaponAnimMontage.LoadSynchronous();  // Could be nullptr
+    UAnimMontage* WeaponAnimMontage = MontageInfo->WeaponAnimMontage.LoadSynchronous();
+    if (!ArmsAnimMontage && !WeaponAnimMontage)
+    {
+        return 0.f;
+    }
 
-    const float MontagePlayLength = ArmsAnimMontage ? ArmsAnimMontage->GetPlayLength() : 0.f;
+    const float MontagePlayLength = ArmsAnimMontage ? ArmsAnimMontage->GetPlayLength() : WeaponAnimMontage->GetPlayLength();  // Arms Montage First
     const float OverriddenPlayLength = MontageTimeOverride > 0.f ? MontageTimeOverride : MontagePlayLength;
     const float MontagePlayRate = UKismetMathLibrary::SafeDivide(MontagePlayLength, OverriddenPlayLength);
 
@@ -452,4 +463,39 @@ float UNLCharacterComponent::PlayCurrentWeaponMontageAndSetCallback(const FGamep
     }
 
     return MontagePlayLength;
+}
+
+bool UNLCharacterComponent::IsCurrentWeaponMagEmpty() const
+{
+    if (GetCurrentWeaponActor())
+    {
+        return GetCurrentWeaponActor()->IsMagEmpty();
+    }
+    return false;
+}
+
+bool UNLCharacterComponent::CanReload() const
+{
+    return GetCurrentWeaponActor()->CanReload();
+}
+
+bool UNLCharacterComponent::StartReload()
+{
+    if (!CanReload())
+    {
+        return false;
+    }
+
+    FTimerHandle Handle;
+    FTimerDelegate Dele;
+    Dele.BindLambda(
+        [&]()
+        {
+            GetCurrentWeaponActor()->TEMP_FillMag();
+        }
+    );
+
+    const FGameplayTag ReloadMontageTag = GetCurrentWeaponActor()->IsMagEmpty() ? Montage_Weapon_ReloadLong : Montage_Weapon_ReloadShort;
+    PlayCurrentWeaponMontageAndSetCallback(ReloadMontageTag, Handle, Dele);
+    return true;
 }

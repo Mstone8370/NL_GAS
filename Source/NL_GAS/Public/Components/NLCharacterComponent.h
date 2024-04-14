@@ -94,9 +94,18 @@ public:
 	bool CanAttack() const;
 
 	UFUNCTION(BlueprintCallable)
-	bool CommitWeaponCost();
+	bool CommitWeaponCost(bool& bIsLast);
 
 	float PlayCurrentWeaponMontage(const FGameplayTag& MontageTag);
 
 	float PlayCurrentWeaponMontageAndSetCallback(const FGameplayTag& MontageTag, FTimerHandle& OutTimerHandle, FTimerDelegate TimerDelegate, bool bOnBlendOut = true);
+
+	UFUNCTION(BlueprintCallable)
+	bool IsCurrentWeaponMagEmpty() const;
+
+	UFUNCTION(BlueprintCallable)
+	bool CanReload() const;
+
+	UFUNCTION(BlueprintCallable)
+	bool StartReload();
 };

@@ -55,6 +55,12 @@ UE_DECLARE_GAMEPLAY_TAG_EXTERN(Montage_Weapon_Draw);
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(Montage_Weapon_DrawFirst);
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(Montage_Weapon_Holster);
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(Montage_Weapon_Primary);
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(Montage_Weapon_LastFire);
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(Montage_Weapon_Secondary);
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(Montage_Weapon_ReloadLong);
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(Montage_Weapon_ReloadShort);
+
+// Anim Event
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(AnimEvent_Reload_MagOut);
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(AnimEvent_Reload_MagIn);
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(AnimEvent_Reload_Finished);

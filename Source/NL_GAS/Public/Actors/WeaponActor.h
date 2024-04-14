@@ -107,4 +107,8 @@ public:
 	void Holstered();
 
 	bool CommitWeaponCost();
+
+	FORCEINLINE bool CanReload() const { return CurrentBulletNum < MagSize; }
+
+	void TEMP_FillMag();
 };

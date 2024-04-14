@@ -49,6 +49,12 @@ UE_DEFINE_GAMEPLAY_TAG(Montage_Weapon_Draw, "Montage.Weapon.Draw");
 UE_DEFINE_GAMEPLAY_TAG(Montage_Weapon_DrawFirst, "Montage.Weapon.DrawFirst");
 UE_DEFINE_GAMEPLAY_TAG(Montage_Weapon_Holster, "Montage.Weapon.Holster");
 UE_DEFINE_GAMEPLAY_TAG(Montage_Weapon_Primary, "Montage.Weapon.Primary");
+UE_DEFINE_GAMEPLAY_TAG(Montage_Weapon_LastFire, "Montage.Weapon.LastFire");
 UE_DEFINE_GAMEPLAY_TAG(Montage_Weapon_Secondary, "Montage.Weapon.Secondary");
 UE_DEFINE_GAMEPLAY_TAG(Montage_Weapon_ReloadLong, "Montage.Weapon.ReloadLong");
 UE_DEFINE_GAMEPLAY_TAG(Montage_Weapon_ReloadShort, "Montage.Weapon.ReloadShort");
+
+// Anim Event
+UE_DEFINE_GAMEPLAY_TAG(AnimEvent_Reload_MagOut, "AnimEvent.Reload.MagOut");
+UE_DEFINE_GAMEPLAY_TAG(AnimEvent_Reload_MagIn, "AnimEvent.Reload.MagIn");
+UE_DEFINE_GAMEPLAY_TAG(AnimEvent_Reload_Finished, "AnimEvent.Reload.Finished");

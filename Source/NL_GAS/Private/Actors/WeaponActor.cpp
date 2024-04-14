@@ -161,3 +161,8 @@ bool AWeaponActor::CommitWeaponCost()
 	}
 	return false;
 }
+
+void AWeaponActor::TEMP_FillMag()
+{
+	CurrentBulletNum = MagSize;
+}

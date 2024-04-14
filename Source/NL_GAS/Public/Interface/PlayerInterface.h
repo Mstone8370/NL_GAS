@@ -37,4 +37,13 @@ public:
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void WeaponFired();
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	void OnWeaponMagOut();
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	void OnWeaponMagIn();
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	void OnWeaponReloadFinished();
 };
