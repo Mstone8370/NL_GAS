@@ -79,6 +79,8 @@ public:
 
 	AWeaponActor* GetCurrentWeaponActor() const;
 
+	AWeaponActor* GetEquippedWeaponActorByTag(const FGameplayTag& WeaponTag) const;
+
 	const FGameplayTag GetWeaponTagAtSlot(uint8 Slot) const;
 
 	const FGameplayTag GetCurrentWeaponTag() const;
@@ -108,4 +110,6 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	bool StartReload();
+
+	void OnWeaponReloadStateChanged(const FGameplayTag& WeaponTag, const FGameplayTag& StateTag);
 };

@@ -39,11 +39,8 @@ public:
 	void WeaponFired();
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	void OnWeaponMagOut();
+	bool StartReload();
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	void OnWeaponMagIn();
-
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	void OnWeaponReloadFinished();
+	void OnWeaponReloadStateChanged(const FGameplayTag& WeaponTag, const FGameplayTag& StateTag);
 };

@@ -75,6 +75,8 @@ protected:
 
 	bool bIsEquipped;
 
+	bool bIsTacticalReload;
+
 	EReloadState ReloadState;
 
 	FGameplayTagContainer AttachmentTags;
@@ -108,7 +110,7 @@ public:
 
 	bool CommitWeaponCost();
 
-	FORCEINLINE bool CanReload() const { return CurrentBulletNum < MagSize; }
+	FORCEINLINE bool CanReload() const { return CurrentBulletNum < MagSize || ReloadState < EReloadState::None; }
 
-	void TEMP_FillMag();
+	void ReloadStateChanged(const FGameplayTag& StateTag);
 };

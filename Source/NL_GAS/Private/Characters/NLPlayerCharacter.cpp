@@ -189,6 +189,16 @@ void ANLPlayerCharacter::WeaponFired_Implementation()
     ControlShakeManager->WeaponFired(NLCharacterComponent->GetCurrentWeaponTag());
 }
 
+bool ANLPlayerCharacter::StartReload_Implementation()
+{
+    return NLCharacterComponent->StartReload();
+}
+
+void ANLPlayerCharacter::OnWeaponReloadStateChanged_Implementation(const FGameplayTag& WeaponTag, const FGameplayTag& StateTag)
+{
+    NLCharacterComponent->OnWeaponReloadStateChanged(WeaponTag, StateTag);
+}
+
 bool ANLPlayerCharacter::CanAttack_Implementation()
 {
     return NLCharacterComponent->CanAttack();

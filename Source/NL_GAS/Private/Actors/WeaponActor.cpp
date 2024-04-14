@@ -11,6 +11,8 @@
 #include "Net/UnrealNetwork.h"
 #include "NLGameplayTags.h"
 #include "Interface/CombatInterface.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
 
 AWeaponActor::AWeaponActor()
 	: MagSize(0)
@@ -145,6 +147,15 @@ bool AWeaponActor::CanAttack() const
 void AWeaponActor::Drawn()
 {
 	bIsEverDrawn = true;
+
+	if (ReloadState < EReloadState::None)
+	{
+		if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetOwner()))
+		{
+			FGameplayTagContainer TagContainer(Ability_Weapon_Reload);
+			ASC->TryActivateAbilitiesByTag(TagContainer);
+		}
+	}
 }
 
 void AWeaponActor::Holstered()
@@ -162,7 +173,25 @@ bool AWeaponActor::CommitWeaponCost()
 	return false;
 }
 
-void AWeaponActor::TEMP_FillMag()
+void AWeaponActor::ReloadStateChanged(const FGameplayTag& StateTag)
 {
-	CurrentBulletNum = MagSize;
+	if (StateTag.IsValid())
+	{
+		if (StateTag.MatchesTagExact(Event_Reload_MagOut))
+		{
+			ReloadState = EReloadState::MagOut;
+			bIsTacticalReload = CurrentBulletNum > 0;
+			CurrentBulletNum = 0;
+		}
+		else if (StateTag.MatchesTagExact(Event_Reload_MagIn))
+		{
+			ReloadState = EReloadState::MagIn;
+			CurrentBulletNum = bIsTacticalReload ? MagSize + 1 : MagSize;
+		}
+		else if (StateTag.MatchesTagExact(Event_Reload_Finished))
+		{
+			ReloadState = EReloadState::None;
+			bIsTacticalReload = false;
+		}
+	}
 }

@@ -54,7 +54,7 @@ UE_DEFINE_GAMEPLAY_TAG(Montage_Weapon_Secondary, "Montage.Weapon.Secondary");
 UE_DEFINE_GAMEPLAY_TAG(Montage_Weapon_ReloadLong, "Montage.Weapon.ReloadLong");
 UE_DEFINE_GAMEPLAY_TAG(Montage_Weapon_ReloadShort, "Montage.Weapon.ReloadShort");
 
-// Anim Event
-UE_DEFINE_GAMEPLAY_TAG(AnimEvent_Reload_MagOut, "AnimEvent.Reload.MagOut");
-UE_DEFINE_GAMEPLAY_TAG(AnimEvent_Reload_MagIn, "AnimEvent.Reload.MagIn");
-UE_DEFINE_GAMEPLAY_TAG(AnimEvent_Reload_Finished, "AnimEvent.Reload.Finished");
+// Event Tag
+UE_DEFINE_GAMEPLAY_TAG(Event_Reload_MagOut, "Event.Reload.MagOut");
+UE_DEFINE_GAMEPLAY_TAG(Event_Reload_MagIn, "Event.Reload.MagIn");
+UE_DEFINE_GAMEPLAY_TAG(Event_Reload_Finished, "Event.Reload.Finished");

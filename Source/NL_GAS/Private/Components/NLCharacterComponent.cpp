@@ -238,6 +238,18 @@ AWeaponActor* UNLCharacterComponent::GetCurrentWeaponActor() const
     return GetWeaponActorAtSlot(CurrentWeaponSlot);
 }
 
+AWeaponActor* UNLCharacterComponent::GetEquippedWeaponActorByTag(const FGameplayTag& WeaponTag) const
+{
+    for (AWeaponActor* Weapon : WeaponActorSlot)
+    {
+        if (IsValid(Weapon) && Weapon->GetWeaponTag().MatchesTagExact(WeaponTag))
+        {
+            return Weapon;
+        }
+    }
+    return nullptr;
+}
+
 const FGameplayTag UNLCharacterComponent::GetWeaponTagAtSlot(uint8 Slot) const
 {
     if (IsValid(GetWeaponActorAtSlot(Slot)))
@@ -486,16 +498,12 @@ bool UNLCharacterComponent::StartReload()
         return false;
     }
 
-    FTimerHandle Handle;
-    FTimerDelegate Dele;
-    Dele.BindLambda(
-        [&]()
-        {
-            GetCurrentWeaponActor()->TEMP_FillMag();
-        }
-    );
-
     const FGameplayTag ReloadMontageTag = GetCurrentWeaponActor()->IsMagEmpty() ? Montage_Weapon_ReloadLong : Montage_Weapon_ReloadShort;
-    PlayCurrentWeaponMontageAndSetCallback(ReloadMontageTag, Handle, Dele);
+    PlayCurrentWeaponMontage(ReloadMontageTag);
     return true;
+}
+
+void UNLCharacterComponent::OnWeaponReloadStateChanged(const FGameplayTag& WeaponTag, const FGameplayTag& StateTag)
+{
+    GetCurrentWeaponActor()->ReloadStateChanged(StateTag);
 }

@@ -53,6 +53,8 @@ public:
 	virtual void GetWeaponHandIKLocation_Implementation(FName LeftIKSocketName, FName RightIKSocketName, FVector& OutLeftIKLocation, FVector& OutRightIKLocation) const;
 	virtual float PlayCurrentWeaponMontage_Implementation(const FGameplayTag& MontageTag) override;
 	virtual void WeaponFired_Implementation() override;
+	virtual bool StartReload_Implementation() override;
+	virtual void OnWeaponReloadStateChanged_Implementation(const FGameplayTag& WeaponTag, const FGameplayTag& StateTag) override;
 	//~End PlayerInterface
 
 	//~Begin CombatInterface

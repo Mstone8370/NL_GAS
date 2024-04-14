@@ -60,7 +60,7 @@ UE_DECLARE_GAMEPLAY_TAG_EXTERN(Montage_Weapon_Secondary);
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(Montage_Weapon_ReloadLong);
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(Montage_Weapon_ReloadShort);
 
-// Anim Event
-UE_DECLARE_GAMEPLAY_TAG_EXTERN(AnimEvent_Reload_MagOut);
-UE_DECLARE_GAMEPLAY_TAG_EXTERN(AnimEvent_Reload_MagIn);
-UE_DECLARE_GAMEPLAY_TAG_EXTERN(AnimEvent_Reload_Finished);
+// Event Tag
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Reload_MagOut);
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Reload_MagIn);
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Reload_Finished);
