@@ -113,4 +113,12 @@ public:
 	FORCEINLINE bool CanReload() const { return CurrentBulletNum < MagSize || ReloadState < EReloadState::None; }
 
 	void ReloadStateChanged(const FGameplayTag& StateTag);
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	FORCEINLINE bool IsReloading() const { return ReloadState < EReloadState::None; }
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	FORCEINLINE bool IsTacticalReload() const { return bIsTacticalReload; }
+
+	FORCEINLINE EReloadState GetReloadState() const { return ReloadState; }
 };

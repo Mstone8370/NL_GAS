@@ -423,7 +423,7 @@ bool UNLCharacterComponent::CommitWeaponCost(bool& bIsLast)
     return Ret;
 }
 
-float UNLCharacterComponent::PlayCurrentWeaponMontage(const FGameplayTag& MontageTag)
+float UNLCharacterComponent::PlayCurrentWeaponMontage(const FGameplayTag& MontageTag, FName StartSectionName)
 {
     const FGameplayTag& CurrentWeaponTag = GetCurrentWeaponTag();
     const FTaggedAnimMontageInfo* MontageInfo = UNLFunctionLibrary::GetAnimMontageByTag(this, CurrentWeaponTag, MontageTag);
@@ -446,17 +446,17 @@ float UNLCharacterComponent::PlayCurrentWeaponMontage(const FGameplayTag& Montag
     const float MontagePlayRate = UKismetMathLibrary::SafeDivide(MontagePlayLength, OverriddenPlayLength);
 
     // Only on Client
-    GetOwningPlayer()->PlayWeaponAnimMontage(WeaponAnimMontage, MontagePlayRate);
-    GetOwningPlayer()->PlayArmsAnimMontage(ArmsAnimMontage, MontagePlayRate);
+    GetOwningPlayer()->PlayWeaponAnimMontage(WeaponAnimMontage, MontagePlayRate, StartSectionName);
+    GetOwningPlayer()->PlayArmsAnimMontage(ArmsAnimMontage, MontagePlayRate, StartSectionName);
 
     return OverriddenPlayLength;
 }
 
-float UNLCharacterComponent::PlayCurrentWeaponMontageAndSetCallback(const FGameplayTag& MontageTag, FTimerHandle& OutTimerHandle, FTimerDelegate TimerDelegate, bool bOnBlendOut)
+float UNLCharacterComponent::PlayCurrentWeaponMontageAndSetCallback(const FGameplayTag& MontageTag, FTimerHandle& OutTimerHandle, FTimerDelegate TimerDelegate, bool bOnBlendOut, FName StartSectionName)
 {
     OutTimerHandle = FTimerHandle();
 
-    float MontagePlayLength = PlayCurrentWeaponMontage(MontageTag);
+    float MontagePlayLength = PlayCurrentWeaponMontage(MontageTag, StartSectionName);
 
     // On Server and Client
     if (MontagePlayLength > 0.f)
@@ -498,8 +498,28 @@ bool UNLCharacterComponent::StartReload()
         return false;
     }
 
-    const FGameplayTag ReloadMontageTag = GetCurrentWeaponActor()->IsMagEmpty() ? Montage_Weapon_ReloadLong : Montage_Weapon_ReloadShort;
-    PlayCurrentWeaponMontage(ReloadMontageTag);
+    if (GetCurrentWeaponActor()->IsReloading())
+    {
+        const FGameplayTag ReloadMontageTag = GetCurrentWeaponActor()->IsTacticalReload() ? Montage_Weapon_ReloadShort : Montage_Weapon_ReloadLong;
+        const EReloadState ReloadState = GetCurrentWeaponActor()->GetReloadState();
+        
+        FName MontageSectionName = NAME_None;
+        if (ReloadState == EReloadState::MagOut)
+        {
+            MontageSectionName = "MagOut";
+        }
+        else if (ReloadState == EReloadState::MagIn)
+        {
+            MontageSectionName = "MagIn";
+        }
+        PlayCurrentWeaponMontage(ReloadMontageTag, MontageSectionName);
+    }
+    else
+    {
+        const FGameplayTag ReloadMontageTag = GetCurrentWeaponActor()->IsMagEmpty() ? Montage_Weapon_ReloadLong : Montage_Weapon_ReloadShort;
+        PlayCurrentWeaponMontage(ReloadMontageTag);
+    }
+    
     return true;
 }
 

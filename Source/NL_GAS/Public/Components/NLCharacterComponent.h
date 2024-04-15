@@ -75,10 +75,13 @@ public:
 
 	UNLAbilitySystemComponent* GetNLASC() const;
 
+	UFUNCTION(BlueprintCallable, BlueprintPure)
 	AWeaponActor* GetWeaponActorAtSlot(uint8 Slot) const;
 
+	UFUNCTION(BlueprintCallable, BlueprintPure)
 	AWeaponActor* GetCurrentWeaponActor() const;
 
+	UFUNCTION(BlueprintCallable, BlueprintPure)
 	AWeaponActor* GetEquippedWeaponActorByTag(const FGameplayTag& WeaponTag) const;
 
 	const FGameplayTag GetWeaponTagAtSlot(uint8 Slot) const;
@@ -98,9 +101,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool CommitWeaponCost(bool& bIsLast);
 
-	float PlayCurrentWeaponMontage(const FGameplayTag& MontageTag);
+	float PlayCurrentWeaponMontage(const FGameplayTag& MontageTag, FName StartSectionName = NAME_None);
 
-	float PlayCurrentWeaponMontageAndSetCallback(const FGameplayTag& MontageTag, FTimerHandle& OutTimerHandle, FTimerDelegate TimerDelegate, bool bOnBlendOut = true);
+	float PlayCurrentWeaponMontageAndSetCallback(const FGameplayTag& MontageTag, FTimerHandle& OutTimerHandle, FTimerDelegate TimerDelegate, bool bOnBlendOut = true, FName StartSectionName = NAME_None);
 
 	UFUNCTION(BlueprintCallable)
 	bool IsCurrentWeaponMagEmpty() const;

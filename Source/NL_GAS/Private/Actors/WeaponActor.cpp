@@ -141,19 +141,18 @@ void AWeaponActor::SetWeaponState(bool bInIsEuipped)
 
 bool AWeaponActor::CanAttack() const
 {
-	return ReloadState >= EReloadState::None && !IsMagEmpty();
+	return !IsReloading() && !IsMagEmpty();
 }
 
 void AWeaponActor::Drawn()
 {
 	bIsEverDrawn = true;
 
-	if (ReloadState < EReloadState::None)
+	if (HasAuthority() && IsReloading())
 	{
 		if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetOwner()))
 		{
-			FGameplayTagContainer TagContainer(Ability_Weapon_Reload);
-			ASC->TryActivateAbilitiesByTag(TagContainer);
+			ASC->TryActivateAbility(ReloadAbilitySpecHandle);
 		}
 	}
 }
