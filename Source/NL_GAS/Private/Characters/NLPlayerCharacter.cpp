@@ -19,6 +19,7 @@
 #include "NLGameplayTags.h"
 #include "Components/NLCharacterComponent.h"
 #include "Components/ControlShakeManager.h"
+#include "Kismet/KismetMathLibrary.h"
 
 ANLPlayerCharacter::ANLPlayerCharacter()
     : LookPitchRepTime(0.02f)
@@ -197,6 +198,14 @@ bool ANLPlayerCharacter::StartReload_Implementation()
 void ANLPlayerCharacter::OnWeaponReloadStateChanged_Implementation(const FGameplayTag& WeaponTag, const FGameplayTag& StateTag)
 {
     NLCharacterComponent->OnWeaponReloadStateChanged(WeaponTag, StateTag);
+}
+
+void ANLPlayerCharacter::ApplyWeaponRandomSpreadAtViewDirection_Implementation(FVector& ViewDirection)
+{
+    if (!IsADS())
+    {
+        ViewDirection = UKismetMathLibrary::RandomUnitVectorInConeInDegrees(ViewDirection, 1.5f); // TEMP
+    }
 }
 
 bool ANLPlayerCharacter::CanAttack_Implementation()

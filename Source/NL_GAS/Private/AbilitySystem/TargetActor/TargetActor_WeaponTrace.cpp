@@ -5,6 +5,7 @@
 #include "DrawDebugHelpers.h"
 #include "GameFramework/LightWeightInstanceSubsystem.h"
 #include "Abilities/GameplayAbility.h"
+#include "Interface/PlayerInterface.h"
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------
 //
@@ -36,14 +37,17 @@ FHitResult ATargetActor_WeaponTrace::PerformTrace(AActor* InSourceActor)
 
 	// 플레이어 컨트롤러의 에임 정보를 기반으로 트레이싱하지만, 카메라에 에니메이션이 적용되지 않은 정보를 사용.
 	APlayerController* PC = OwningAbility->GetCurrentActorInfo()->PlayerController.Get();
+	AActor* AvatarActor = OwningAbility->GetCurrentActorInfo()->AvatarActor.Get();
 	check(PC);
+	check(AvatarActor);
 
 	FVector ViewStart;
 	FRotator ViewRot;
 	PC->GetPlayerViewPoint(ViewStart, ViewRot);
 	ViewRot = PC->GetControlRotation();
 
-	const FVector ViewDir = ViewRot.Vector();
+	FVector ViewDir = ViewRot.Vector();
+	IPlayerInterface::Execute_ApplyWeaponRandomSpreadAtViewDirection(AvatarActor, ViewDir);
 	FVector ViewEnd = ViewStart + (ViewDir * MaxRange);
 
 	FVector TraceStart = ViewStart;

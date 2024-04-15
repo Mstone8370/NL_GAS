@@ -55,6 +55,7 @@ public:
 	virtual void WeaponFired_Implementation() override;
 	virtual bool StartReload_Implementation() override;
 	virtual void OnWeaponReloadStateChanged_Implementation(const FGameplayTag& WeaponTag, const FGameplayTag& StateTag) override;
+	virtual void ApplyWeaponRandomSpreadAtViewDirection_Implementation(FVector& ViewDirection) override;
 	//~End PlayerInterface
 
 	//~Begin CombatInterface

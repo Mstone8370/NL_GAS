@@ -43,4 +43,7 @@ public:
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void OnWeaponReloadStateChanged(const FGameplayTag& WeaponTag, const FGameplayTag& StateTag);
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	void ApplyWeaponRandomSpreadAtViewDirection(FVector& ViewDirection);
 };
