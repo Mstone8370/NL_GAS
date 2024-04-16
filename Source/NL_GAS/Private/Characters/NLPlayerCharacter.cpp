@@ -10,6 +10,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Player/NLPlayerState.h"
 #include "Player/NLPlayerController.h"
+#include "HUD/NLHUD.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystem/NLAbilitySystemComponent.h"
 #include "Net/UnrealNetwork.h"
@@ -118,6 +119,14 @@ void ANLPlayerCharacter::InitAbilityActorInfo()
     // TODO: Init Default Attributes
 
     AbilitySystemComponent->RegisterGameplayTagEvent(Ability_Weapon_Secondary, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ANLPlayerCharacter::OnGameplayTagCountChanged);
+
+    if (ANLPlayerController* PC = Cast<ANLPlayerController>(GetController()))
+    {
+        if (ANLHUD* HUD = Cast<ANLHUD>(PC->GetHUD()))
+        {
+            HUD->Initialize(PC, PS, AbilitySystemComponent, AttributeSet);
+        }
+    }
 }
 
 void ANLPlayerCharacter::Tick(float DeltaSeconds)
