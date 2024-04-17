@@ -187,6 +187,24 @@ void UNLCharacterComponent::OnWeaponDrawn()
     GetCurrentWeaponActor()->Drawn();
 }
 
+void UNLCharacterComponent::OnWeaponBulletNumChanged(const AWeaponActor* Weapon, int32 NewBulletNum)
+{
+    if (Weapon == GetCurrentWeaponActor())
+    {
+        CurrentWeaponBulletNumChanged.Broadcast(NewBulletNum);
+    }
+}
+
+void UNLCharacterComponent::BindWeaponDelegate(AWeaponActor* Weapon)
+{
+    Weapon->BulletNumChanged.AddDynamic(this, &UNLCharacterComponent::OnWeaponBulletNumChanged);
+}
+
+void UNLCharacterComponent::UnBindWeaponDelegate(AWeaponActor* Weapon)
+{
+    Weapon->BulletNumChanged.RemoveAll(this);
+}
+
 ANLCharacterBase* UNLCharacterComponent::GetOwningCharacter() const
 {
     return Cast<ANLCharacterBase>(GetOwner());
@@ -222,6 +240,25 @@ UNLAbilitySystemComponent* UNLCharacterComponent::GetNLASC() const
         return Cast<UNLAbilitySystemComponent>(GetASC());
     }
     return nullptr;
+}
+
+void UNLCharacterComponent::UpdateWeapnTagSlot()
+{
+    WeaponTagSlot.Empty();
+    for (const AWeaponActor* Weapon : WeaponActorSlot)
+    {
+        WeaponTagSlot.Add(Weapon->GetWeaponTag());
+    }
+}
+
+int32 UNLCharacterComponent::GetWeaponSlotSize() const
+{
+    return WeaponActorSlot.Num();
+}
+
+int32 UNLCharacterComponent::GetWeaponSlotMaxSize() const
+{
+    return MaxWeaponSlotSize;
 }
 
 AWeaponActor* UNLCharacterComponent::GetWeaponActorAtSlot(uint8 Slot) const
@@ -274,7 +311,11 @@ void UNLCharacterComponent::WeaponAdded(AWeaponActor* Weapon)
     else
     {
         // TODO: New weapon equipped while playing
+        // 이때에도 validation을 해야하는지 생각해봐야함.
+        // startup 무기는 WeaponActorSlot에 레플리케이트 되어도 클라이언트에서 액터가 생성되지 않으면 nullptr임.
     }
+
+    BindWeaponDelegate(Weapon);
 }
 
 void UNLCharacterComponent::ValidateStartupWeapons()
@@ -360,19 +401,30 @@ void UNLCharacterComponent::TrySwapWeaponSlot(int32 NewWeaponSlot)
 {
     // On Server and Client by GameplayAbility
 
-    if (!IsValid(GetCurrentWeaponActor()))
-    {
-        // Start up
-        OnWeaponHolstered();
-        return;
-    }
-
     if (!CanSwapWeaponSlot(NewWeaponSlot))
     {
         return;
     }
 
     WeaponSwapPendingSlot = NewWeaponSlot;
+
+    // Update Widget
+    WeaponSwapped.Broadcast(
+        GetCurrentWeaponTag(),
+        CurrentWeaponSlot,
+        GetWeaponTagAtSlot(WeaponSwapPendingSlot),
+        WeaponSwapPendingSlot
+    );
+    CurrentWeaponBulletNumChanged.Broadcast(
+        GetWeaponActorAtSlot(WeaponSwapPendingSlot)->GetCurrentBulletNum()
+    );
+
+    if (!IsValid(GetCurrentWeaponActor()))
+    {
+        // Start up
+        OnWeaponHolstered();
+        return;
+    }
 
     if (bIsSwappingWeapon)
     {
@@ -417,7 +469,8 @@ bool UNLCharacterComponent::CommitWeaponCost(bool& bIsLast)
         Ret = GetCurrentWeaponActor()->CommitWeaponCost();
         if (Ret)
         {
-            bIsLast = IsCurrentWeaponMagEmpty();
+            int32 BulletRemained = GetCurrentWeaponActor()->GetCurrentBulletNum();
+            bIsLast = BulletRemained < 1;
         }
     }
     return Ret;

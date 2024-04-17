@@ -14,6 +14,10 @@ class ANLCharacterBase;
 class UAbilitySystemComponent;
 class UNLAbilitySystemComponent;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWeaponSlotChangedSignature, const TArray<FGameplayTag>&, WeaponSlot);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FWeaponSwappedSignature, const FGameplayTag&, FromWeaponTag, int32, FromSlotNum, const FGameplayTag&, ToWeaponTag, int32, ToSlotNum);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCurrentWeaponBulletNumChangedSignature, int32, NewBulletNum);
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class NL_GAS_API UNLCharacterComponent : public UActorComponent
 {
@@ -25,6 +29,13 @@ public:
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	void AddStartupWeapons();
+
+	FWeaponSlotChangedSignature WeaponSlotChanged;
+	FWeaponSwappedSignature WeaponSwapped;
+	FCurrentWeaponBulletNumChangedSignature CurrentWeaponBulletNumChanged;
+
+	UPROPERTY(BlueprintReadOnly)
+	TArray<FGameplayTag> WeaponTagSlot;
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
@@ -59,6 +70,13 @@ protected:
 
 	void OnWeaponDrawn();
 
+	UFUNCTION()
+	void OnWeaponBulletNumChanged(const AWeaponActor* Weapon, int32 NewBulletNum);
+
+	void BindWeaponDelegate(AWeaponActor* Weapon);
+
+	void UnBindWeaponDelegate(AWeaponActor* Weapon);
+
 private:
 	bool bStartupWeaponInitFinished;
 
@@ -75,11 +93,21 @@ public:
 
 	UNLAbilitySystemComponent* GetNLASC() const;
 
+	void UpdateWeapnTagSlot();
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	int32 GetWeaponSlotSize() const;
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	int32 GetWeaponSlotMaxSize() const;
+
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	AWeaponActor* GetWeaponActorAtSlot(uint8 Slot) const;
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	AWeaponActor* GetCurrentWeaponActor() const;
+
+	FORCEINLINE int32 GetCurrentWeaponSlot() const { return CurrentWeaponSlot; }
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	AWeaponActor* GetEquippedWeaponActorByTag(const FGameplayTag& WeaponTag) const;

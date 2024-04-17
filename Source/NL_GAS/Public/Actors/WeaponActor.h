@@ -21,6 +21,8 @@ enum EReloadState : uint8
 	MAX
 };
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FBulletNumChangedSignature, const AWeaponActor*, Weapon, int32, NewBulletNum);
+
 UCLASS(Blueprintable, BlueprintType)
 class NL_GAS_API AWeaponActor : public AActor
 {
@@ -45,6 +47,8 @@ public:
 
 	UPROPERTY(BlueprintReadOnly)
 	FName WeaponName;
+
+	FBulletNumChangedSignature BulletNumChanged;
 
 protected:
 	virtual void BeginPlay() override;
@@ -81,6 +85,8 @@ protected:
 
 	FGameplayTagContainer AttachmentTags;
 
+	void SetBulletNum_Internal(int32 NewBulletNum);
+
 public:
 	void InitalizeWeapon(const FGameplayTag& InWeaponTag);
 
@@ -97,6 +103,8 @@ public:
 	FORCEINLINE TSubclassOf<UAnimInstance> GetArmsAnimLayerClass() const { return ArmsAnimLayerClass; }
 
 	FORCEINLINE const FGameplayTag& GetWeaponTag() const { return WeaponTag; }
+
+	FORCEINLINE int32 GetCurrentBulletNum() const { return CurrentBulletNum; }
 
 	FORCEINLINE bool IsMagEmpty() const { return CurrentBulletNum < 1; }
 

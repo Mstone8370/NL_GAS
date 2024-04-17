@@ -14,6 +14,39 @@ class ANLPlayerController;
 class ANLPlayerState;
 class UNLAbilitySystemComponent;
 class UNLAttributeSet;
+class UNLCharacterComponent;
+
+USTRUCT(BlueprintType)
+struct FWidgetControllerParams
+{
+	GENERATED_BODY()
+
+	FWidgetControllerParams()
+	{}
+
+	FWidgetControllerParams(APlayerController* PC, APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS, UNLCharacterComponent* NLC)
+		: PlayerController(PC)
+		, PlayerState(PS)
+		, AbilitySystemComponent(ASC)
+		, AttributeSet(AS)
+		, NLCharacterComponent(NLC)
+	{}
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<APlayerController> PlayerController = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<APlayerState> PlayerState = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<UAttributeSet> AttributeSet = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<UNLCharacterComponent> NLCharacterComponent = nullptr;
+};
 
 /**
  * 
@@ -24,7 +57,7 @@ class NL_GAS_API UNLWidgetController : public UObject
 	GENERATED_BODY()
 	
 public:
-	void Initialize(APlayerController* PC, APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS);
+	void Initialize(FWidgetControllerParams Params);
 
 	virtual void BindEvents();
 
@@ -35,6 +68,7 @@ public:
 	ANLPlayerState* GetNLPS();
 	UNLAbilitySystemComponent* GetNLASC();
 	UNLAttributeSet* GetNLAS();
+	UNLCharacterComponent* GetNLC();
 
 protected:
 	UPROPERTY(BlueprintReadOnly, Category = "WidgetController")
@@ -54,4 +88,6 @@ protected:
 	TObjectPtr<UNLAbilitySystemComponent> NLAbilitySystemComponent;
 	UPROPERTY(BlueprintReadOnly, Category = "WidgetController")
 	TObjectPtr<UNLAttributeSet> NLAttributeSet;
+	UPROPERTY(BlueprintReadOnly, Category = "WidgetController")
+	TObjectPtr<UNLCharacterComponent> NLCharacterComponent;
 };

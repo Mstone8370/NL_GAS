@@ -10,6 +10,7 @@ class UAbilitySystemComponent;
 class UAttributeSet;
 class UNLUserWidget;
 class UOverlayWidgetController;
+class UNLCharacterComponent;
 
 /**
  * 
@@ -20,7 +21,7 @@ class NL_GAS_API ANLHUD : public AHUD
 	GENERATED_BODY()
 
 public:
-	void Initialize(APlayerController* PC, APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS);
+	void Initialize(APlayerController* PC, APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS, UNLCharacterComponent* NLC);
 	
 protected:
 	UPROPERTY(EditDefaultsOnly)
@@ -34,5 +35,5 @@ protected:
 	TObjectPtr<UOverlayWidgetController> OverlayWidgetController;
 
 public:
-	UOverlayWidgetController* GetOverlayWidgetController(APlayerController* PC, APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS);
+	UOverlayWidgetController* GetOverlayWidgetController(APlayerController* PC, APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS, UNLCharacterComponent* NLC);
 };

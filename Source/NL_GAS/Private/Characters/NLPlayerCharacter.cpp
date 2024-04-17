@@ -124,7 +124,7 @@ void ANLPlayerCharacter::InitAbilityActorInfo()
     {
         if (ANLHUD* HUD = Cast<ANLHUD>(PC->GetHUD()))
         {
-            HUD->Initialize(PC, PS, AbilitySystemComponent, AttributeSet);
+            HUD->Initialize(PC, PS, AbilitySystemComponent, AttributeSet, NLCharacterComponent);
         }
     }
 }

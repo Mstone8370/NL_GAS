@@ -11,13 +11,15 @@
 #include "Player/NLPlayerState.h"
 #include "AbilitySystem/NLAbilitySystemComponent.h"
 #include "AbilitySystem/AttributeSet/NLAttributeSet.h"
+#include "Components/NLCharacterComponent.h"
 
-void UNLWidgetController::Initialize(APlayerController* PC, APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS)
+void UNLWidgetController::Initialize(FWidgetControllerParams Params)
 {
-    PlayerController = PC;
-    PlayerState = PS;
-    AbilitySystemComponent = ASC;
-    AttributeSet = AS;
+    PlayerController = Params.PlayerController;
+    PlayerState = Params.PlayerState;
+    AbilitySystemComponent = Params.AbilitySystemComponent;
+    AttributeSet = Params.AttributeSet;
+    NLCharacterComponent = Params.NLCharacterComponent;
 }
 
 void UNLWidgetController::BindEvents() {}
@@ -58,4 +60,9 @@ UNLAttributeSet* UNLWidgetController::GetNLAS()
         NLAttributeSet = Cast<UNLAttributeSet>(AttributeSet);
     }
     return NLAttributeSet;
+}
+
+UNLCharacterComponent* UNLWidgetController::GetNLC()
+{
+    return NLCharacterComponent;
 }

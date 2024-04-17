@@ -15,8 +15,6 @@ class ANLPlayerController;
 class UAnimMontage;
 class UControlShakeManager;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FWeaponChangedSignature, uint8, OldSlot, const FGameplayTag&, OldWeaponTag, uint8, NewSlot, const FGameplayTag&, NewWeaponTag);
-
 /**
  * 
  */
@@ -43,9 +41,6 @@ public:
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_PlayerState() override;
 	virtual void OnRep_Controller() override;
-
-	UPROPERTY(BlueprintAssignable)
-	FWeaponChangedSignature WeaponChangedDelegate;
 
 	//~Begin PlayerInterface
 	virtual bool CanSwapWeaponSlot_Implementation(int32 NewSlot) override;

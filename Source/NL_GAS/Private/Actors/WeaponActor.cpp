@@ -51,6 +51,7 @@ void AWeaponActor::BeginPlay()
 void AWeaponActor::OnRep_CurrentBulletNum(int32 OldNum)
 {
 	UE_LOG(LogTemp, Warning, TEXT("[%s] CurrentBulletNum Replicated. From %d to %d"), *WeaponTag.ToString(), CurrentBulletNum, OldNum);
+	BulletNumChanged.Broadcast(this, CurrentBulletNum);
 }
 
 void AWeaponActor::InitalizeWeapon(const FGameplayTag& InWeaponTag)
@@ -101,7 +102,7 @@ void AWeaponActor::InitalizeWeapon(const FGameplayTag& InWeaponTag)
 	ReloadAbilityClass = Info->ReloadAbility;
 
 	MagSize = Info->MagSize;
-	CurrentBulletNum = MagSize;
+	SetBulletNum_Internal(MagSize);
 
 	// Initialize finished
 	bIsInitialized = true;
@@ -157,6 +158,12 @@ void AWeaponActor::Drawn()
 	}
 }
 
+void AWeaponActor::SetBulletNum_Internal(int32 NewBulletNum)
+{
+	CurrentBulletNum = NewBulletNum;
+	BulletNumChanged.Broadcast(this, CurrentBulletNum);
+}
+
 void AWeaponActor::Holstered()
 {
 
@@ -166,7 +173,7 @@ bool AWeaponActor::CommitWeaponCost()
 {
 	if (CanAttack())
 	{
-		CurrentBulletNum--;
+		SetBulletNum_Internal(CurrentBulletNum - 1);
 		return true;
 	}
 	return false;
@@ -180,12 +187,12 @@ void AWeaponActor::ReloadStateChanged(const FGameplayTag& StateTag)
 		{
 			ReloadState = EReloadState::MagOut;
 			bIsTacticalReload = CurrentBulletNum > 0;
-			CurrentBulletNum = 0;
+			SetBulletNum_Internal(0);
 		}
 		else if (StateTag.MatchesTagExact(Event_Reload_MagIn))
 		{
 			ReloadState = EReloadState::MagIn;
-			CurrentBulletNum = bIsTacticalReload ? MagSize + 1 : MagSize;
+			SetBulletNum_Internal(bIsTacticalReload ? MagSize + 1 : MagSize);
 		}
 		else if (StateTag.MatchesTagExact(Event_Reload_Finished))
 		{
