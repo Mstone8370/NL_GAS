@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
+#include "Data/WeaponInfo.h"
+#include "GameplayTagContainer.h"
 #include "NLWidgetController.generated.h"
 
 class APlayerController;
@@ -69,6 +71,12 @@ public:
 	UNLAbilitySystemComponent* GetNLASC();
 	UNLAttributeSet* GetNLAS();
 	UNLCharacterComponent* GetNLC();
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TObjectPtr<UUITaggedWeaponInfo> UIWeaponData;
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	const FUIWeaponInfo FindUIWeaponInfoByTag(const FGameplayTag WeaponTag) const;
 
 protected:
 	UPROPERTY(BlueprintReadOnly, Category = "WidgetController")

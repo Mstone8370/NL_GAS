@@ -104,3 +104,31 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TMap<FGameplayTag, FTaggedAnimMontageInfo> Data;
 };
+
+USTRUCT(BlueprintType)
+struct FUIWeaponInfo
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FName WeaponName;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FName WeaponNameShort;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TSoftObjectPtr<UTexture2D> WeaponTexture;
+};
+
+UCLASS()
+class NL_GAS_API UUITaggedWeaponInfo : public UDataAsset
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TMap<FGameplayTag, FUIWeaponInfo> Data;
+
+	const FUIWeaponInfo* FindUIWeaponInfoByTag(const FGameplayTag& InWeaponTag) const;
+};

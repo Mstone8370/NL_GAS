@@ -7,24 +7,30 @@
 
 void UOverlayWidgetController::BindEvents()
 {
+    NLCharacterComponent->WeaponSlotChanged.AddDynamic(this, &UOverlayWidgetController::OnWeaponSlotChanged);
     NLCharacterComponent->WeaponSwapped.AddDynamic(this, &UOverlayWidgetController::OnWeaponSwapped);
     NLCharacterComponent->CurrentWeaponBulletNumChanged.AddDynamic(this, &UOverlayWidgetController::OnCurrentWeaponBulletNumChanged);
 }
 
 void UOverlayWidgetController::BroadcastInitialValues()
 {
-    WeaponChangedSignature.Broadcast(
+    CurrentWeaponUpdated.Broadcast(
         NLCharacterComponent->GetCurrentWeaponTag(),
         NLCharacterComponent->GetCurrentWeaponSlot()
     );
 }
 
+void UOverlayWidgetController::OnWeaponSlotChanged(const TArray<FGameplayTag>& WeaponTagSlot)
+{
+    WeaponSlotUpdated.Broadcast(WeaponTagSlot);
+}
+
 void UOverlayWidgetController::OnWeaponSwapped(const FGameplayTag& FromWeaponTag, int32 FromSlotNum, const FGameplayTag& ToWeaponTag, int32 ToSlotNum)
 {
-    WeaponChangedSignature.Broadcast(ToWeaponTag, ToSlotNum);
+    CurrentWeaponUpdated.Broadcast(ToWeaponTag, ToSlotNum);
 }
 
 void UOverlayWidgetController::OnCurrentWeaponBulletNumChanged(int32 NewBulletNum)
 {
-    UpdateBulletNum.Broadcast(NewBulletNum);
+    BulletNumUpdated.Broadcast(NewBulletNum);
 }

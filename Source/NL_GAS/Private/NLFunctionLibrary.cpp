@@ -8,6 +8,7 @@
 #include "GameModes/NLGameMode.h"
 #include "NLGameInstance.h"
 #include "Data/WeaponInfo.h"
+#include "HUD/NLHUD.h"
 
 const FWeaponInfo* UNLFunctionLibrary::GetWeaponInfoByTag(const UObject* WorldContextObject, const FGameplayTag& WeaponTag)
 {

@@ -7,8 +7,9 @@
 #include "GameplayTagContainer.h"
 #include "OverlayWidgetController.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FWeaponChangedSignature, const FGameplayTag&, WeaponTag, const int32, SlotNum);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FUpdateBulletNumSignature, const int32, BulletNum);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWeaponSlotUpdatedSignature, const TArray<FGameplayTag>&, WeaponSlot);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FCurrentWeaponUpdatedSignature, const FGameplayTag&, WeaponTag, const int32, SlotNum);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FBulletNumUpdatedSignature, const int32, BulletNum);
 
 /**
  * 
@@ -24,12 +25,18 @@ public:
 	virtual void BroadcastInitialValues() override;
 
 	UPROPERTY(BlueprintAssignable)
-	FWeaponChangedSignature WeaponChangedSignature;
+	FWeaponSlotUpdatedSignature WeaponSlotUpdated;
 
 	UPROPERTY(BlueprintAssignable)
-	FUpdateBulletNumSignature UpdateBulletNum;
+	FCurrentWeaponUpdatedSignature CurrentWeaponUpdated;
+
+	UPROPERTY(BlueprintAssignable)
+	FBulletNumUpdatedSignature BulletNumUpdated;
 
 protected:
+	UFUNCTION()
+	void OnWeaponSlotChanged(const TArray<FGameplayTag>& WeaponTagSlot);
+
 	UFUNCTION()
 	void OnWeaponSwapped(const FGameplayTag& FromWeaponTag, int32 FromSlotNum, const FGameplayTag& ToWeaponTag, int32 ToSlotNum);
 	

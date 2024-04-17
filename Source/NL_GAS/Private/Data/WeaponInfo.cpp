@@ -5,11 +5,26 @@
 
 const FWeaponInfo* UTaggedWeaponInfoList::FindTaggedWeaponInfoByTag(const FGameplayTag& InWeaponTag) const
 {
-    for (const UTaggedWeaponInfo* Info : TaggedWeaponInfos)
+    if (InWeaponTag.IsValid())
     {
-        if (Info->WeaponTag.MatchesTagExact(InWeaponTag))
+        for (const UTaggedWeaponInfo* Info : TaggedWeaponInfos)
         {
-            return &Info->WeaponInfo;
+            if (Info->WeaponTag.MatchesTagExact(InWeaponTag))
+            {
+                return &Info->WeaponInfo;
+            }
+        }
+    }
+    return nullptr;
+}
+
+const FUIWeaponInfo* UUITaggedWeaponInfo::FindUIWeaponInfoByTag(const FGameplayTag& InWeaponTag) const
+{
+    if (InWeaponTag.IsValid())
+    {
+        if (Data.Contains(InWeaponTag))
+        {
+            return Data.Find(InWeaponTag);
         }
     }
     return nullptr;

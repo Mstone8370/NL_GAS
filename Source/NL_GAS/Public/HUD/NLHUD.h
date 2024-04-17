@@ -22,7 +22,7 @@ class NL_GAS_API ANLHUD : public AHUD
 
 public:
 	void Initialize(APlayerController* PC, APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS, UNLCharacterComponent* NLC);
-	
+
 protected:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UNLUserWidget> OverlayWidgetClass;

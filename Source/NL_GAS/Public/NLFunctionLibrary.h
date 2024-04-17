@@ -9,6 +9,7 @@
 
 struct FWeaponInfo;
 struct FTaggedAnimMontageInfo;
+struct FUIWeaponInfo;
 
 /**
  * 

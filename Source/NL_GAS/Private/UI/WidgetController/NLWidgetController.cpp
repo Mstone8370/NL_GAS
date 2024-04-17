@@ -66,3 +66,18 @@ UNLCharacterComponent* UNLWidgetController::GetNLC()
 {
     return NLCharacterComponent;
 }
+
+const FUIWeaponInfo UNLWidgetController::FindUIWeaponInfoByTag(const FGameplayTag WeaponTag) const
+{
+    check(UIWeaponData);
+
+    const FUIWeaponInfo* Info = UIWeaponData->FindUIWeaponInfoByTag(WeaponTag);
+    if (Info)
+    {
+        return *Info;
+    }
+    else
+    {
+        return FUIWeaponInfo();
+    }
+}

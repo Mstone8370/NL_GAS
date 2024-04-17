@@ -303,6 +303,8 @@ const FGameplayTag UNLCharacterComponent::GetCurrentWeaponTag() const
 
 void UNLCharacterComponent::WeaponAdded(AWeaponActor* Weapon)
 {
+    BindWeaponDelegate(Weapon);
+
     if (!bStartupWeaponInitFinished)
     {
         InitializedStartupWeapons.AddUnique(Weapon);
@@ -314,8 +316,6 @@ void UNLCharacterComponent::WeaponAdded(AWeaponActor* Weapon)
         // 이때에도 validation을 해야하는지 생각해봐야함.
         // startup 무기는 WeaponActorSlot에 레플리케이트 되어도 클라이언트에서 액터가 생성되지 않으면 nullptr임.
     }
-
-    BindWeaponDelegate(Weapon);
 }
 
 void UNLCharacterComponent::ValidateStartupWeapons()
@@ -371,6 +371,9 @@ void UNLCharacterComponent::ValidateStartupWeapons()
                     }
                 );
                 GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 1.f, false);
+
+                UpdateWeapnTagSlot();
+                WeaponSlotChanged.Broadcast(WeaponTagSlot);
             }
 
             // Clear up validation data
