@@ -118,7 +118,7 @@ public:
 	FName WeaponNameShort;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TSoftObjectPtr<UTexture2D> WeaponTexture;
+	TObjectPtr<UTexture2D> WeaponTexture;
 };
 
 UCLASS()
