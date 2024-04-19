@@ -21,9 +21,12 @@
 #include "Components/NLCharacterComponent.h"
 #include "Components/ControlShakeManager.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "UnrealClient.h"
+#include "Engine/SkinnedAssetCommon.h"
 
 ANLPlayerCharacter::ANLPlayerCharacter()
-    : LookPitchRepTime(0.02f)
+    : ViewModelTargetHorizontalFOV(80.f)
+    , LookPitchRepTime(0.02f)
     , LookPitch(0.f)
     , CrouchInterpSpeed(10.f)
     , CrouchInterpErrorTolerance(0.1f)
@@ -98,6 +101,20 @@ void ANLPlayerCharacter::BeginPlay()
     {
         UMaterialInstanceDynamic* MatInstDynamic = ArmMesh->CreateAndSetMaterialInstanceDynamic(i);
         MatInstDynamic->SetScalarParameterValue(FName("FOV"), 80.f);
+    }
+
+    // FOV setup
+    if (GetNetMode() == ENetMode::NM_Client && GetLocalRole() != ROLE_SimulatedProxy)
+    {
+        // Calculate ViewModel's vertical FOV by ViewModelTargetHorizontalFOV value.
+        ViewModelVerticalFOV = CalcVerticalFOVByAspectRatio(ViewModelTargetHorizontalFOV, 9 / 16.f);
+
+        // Set ViewModel's horizontal FOV that matches the current aspect ratio based on the calculated ViewModelVerticalFOV.
+        FVector2D ViewportSize;
+        GEngine->GameViewport->GetViewportSize(ViewportSize);
+        SetVerticalFOV(ViewportSize);
+
+        FViewport::ViewportResizedEvent.AddUObject(this, &ANLPlayerCharacter::OnViewportResized);
     }
 }
 
@@ -327,6 +344,54 @@ void ANLPlayerCharacter::OnFallingStarted()
     }
 }
 
+void ANLPlayerCharacter::OnViewportResized(FViewport* Viewport, uint32 arg)
+{
+    /**
+    * [PIE]
+    * 여러개의 뷰포트가 있는 경우 하나의 뷰포트의 크기가 변경되더라도 모든 뷰포트에서 각각 이 함수가 호출됨.
+    * 따라서 크기가 변경된 뷰포트를 구분해야함.
+    * 게임 인스턴스는 각 게임마다 생성되므로, 뷰포트 하나당 하나의 게임 인스턴스가 생성됨.
+    * 게임 인스턴스는 UGameViewportClient 객체를 가지고있고, 이걸통해 이 게임 인스턴스가 담당하는 뷰포트가 무엇인지 구분가능함.
+    */
+    if (GetGameInstance()->GetGameViewportClient()->Viewport == Viewport)
+    {
+        FIntPoint ViewportSize = Viewport->GetSizeXY();
+        SetVerticalFOV(ViewportSize);
+    }
+}
+
+void ANLPlayerCharacter::SetVerticalFOV(FVector2D ViewportSize)
+{
+    const double AspectRatio = UKismetMathLibrary::SafeDivide(ViewportSize.X, ViewportSize.Y);
+    CurrentVerticalFOV = CalcVerticalFOVByAspectRatio(ViewModelVerticalFOV, AspectRatio);
+
+    for (UMaterialInterface* MaterialInstance : ArmMesh->GetMaterials())
+    {
+        if (UMaterialInstanceDynamic* MID = Cast<UMaterialInstanceDynamic>(MaterialInstance))
+        {
+            MID->SetScalarParameterValue(FName("FOV"), CurrentVerticalFOV);
+        }
+    }
+    for (UMaterialInterface* MaterialInstance : ViewWeaponMesh->GetMaterials())
+    {
+        if (UMaterialInstanceDynamic* MID = Cast<UMaterialInstanceDynamic>(MaterialInstance))
+        {
+            MID->SetScalarParameterValue(FName("FOV"), CurrentVerticalFOV);
+        }
+    }
+}
+
+void ANLPlayerCharacter::SetVerticalFOV(FIntPoint ViewportSize)
+{
+    SetVerticalFOV(FVector2D(ViewportSize.X, ViewportSize.Y));
+}
+
+double ANLPlayerCharacter::CalcVerticalFOVByAspectRatio(double BaseFOV, double AspectRatio)
+{
+    const double tan = UKismetMathLibrary::DegTan(BaseFOV / 2);
+    return UKismetMathLibrary::DegAtan(tan * AspectRatio) * 2;
+}
+
 void ANLPlayerCharacter::Server_InvokeLookPitchReplication()
 {
     if (HasAuthority())
@@ -456,6 +521,56 @@ void ANLPlayerCharacter::UpdateViewWeaponAndAnimLayer(USkeletalMesh* NewWeaponMe
     if (NewWeaponMesh)
     {
         ViewWeaponMesh->SetSkeletalMesh(NewWeaponMesh);
+
+        /**
+        * 메시만 변경하면 이전에 만든 다른 무기의 다이나믹 머티리얼이 존재해서
+        * 그걸 그대로 사용하므로 무기를 변경할때마다 머티리얼을 새로 지정해줌.
+        * 머티리얼 인스턴스를 저장해둬서 무기를 변경할때마다 새로 생성하지 않고 이전에 쓰던걸 다시 사용함.
+        */
+        const FGameplayTag WeaponTag = NLCharacterComponent->GetCurrentWeaponTag();
+        if (WeaponMaterialMap.Contains(WeaponTag))
+        {
+            FWeaponMaterialInstanceDynamic& WMID = WeaponMaterialMap[WeaponTag];
+            for (uint8 i = 0; i < ViewWeaponMesh->GetNumMaterials(); i++)
+            {
+                UMaterialInstanceDynamic* MID = WMID.MIDs[i];
+                if (MID)
+                {
+                    MID->SetScalarParameterValue(FName("FOV"), CurrentVerticalFOV);
+                }
+                else
+                {
+                    // Could happen?
+                    UE_LOG(LogTemp, Error, TEXT("Material Instance Dynamic [%d] of weapon [%s] is not valid."), i, *WeaponTag.GetTagName().ToString());
+                    
+                    // Create again
+                    FSkeletalMaterial& Mat = NewWeaponMesh->GetMaterials()[i];
+                    ViewWeaponMesh->SetMaterial(i, Mat.MaterialInterface);
+
+                    MID = ViewWeaponMesh->CreateAndSetMaterialInstanceDynamic(i);
+                    MID->SetScalarParameterValue(FName("FOV"), CurrentVerticalFOV);
+                }
+
+                ViewWeaponMesh->SetMaterial(i, MID);
+            }
+        }
+        else
+        {
+            FWeaponMaterialInstanceDynamic WMID;
+            for (uint8 i = 0; i < ViewWeaponMesh->GetNumMaterials(); i++)
+            {
+                // Set WeaponMesh's material
+                FSkeletalMaterial& Mat = NewWeaponMesh->GetMaterials()[i];
+                ViewWeaponMesh->SetMaterial(i, Mat.MaterialInterface);
+
+                // Create Weapon Material Instance Dynamic
+                UMaterialInstanceDynamic* MatInstDynamic = ViewWeaponMesh->CreateAndSetMaterialInstanceDynamic(i);
+                MatInstDynamic->SetScalarParameterValue(FName("FOV"), CurrentVerticalFOV);
+                ViewWeaponMesh->SetMaterial(i, MatInstDynamic);
+                WMID.Add(MatInstDynamic);
+            }
+            WeaponMaterialMap.Add(WeaponTag, WMID);
+        }
 
         // temp
         ViewWeaponMesh->HideBoneByName(FName("gun_sight_attach"), EPhysBodyOp::PBO_None);
