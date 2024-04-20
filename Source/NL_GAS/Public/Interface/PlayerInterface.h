@@ -45,5 +45,8 @@ public:
 	void OnWeaponReloadStateChanged(const FGameplayTag& WeaponTag, const FGameplayTag& StateTag);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	void ApplyWeaponRandomSpreadAtViewDirection(FVector& ViewDirection);
+	float GetWeaponSpreadValue();
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	bool CommitWeaponCost(bool& bIsLast);
 };

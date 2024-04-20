@@ -6,6 +6,7 @@
 #include "GameFramework/LightWeightInstanceSubsystem.h"
 #include "Abilities/GameplayAbility.h"
 #include "Interface/PlayerInterface.h"
+#include "Kismet/KismetMathLibrary.h"
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------
 //
@@ -46,8 +47,8 @@ FHitResult ATargetActor_WeaponTrace::PerformTrace(AActor* InSourceActor)
 	PC->GetPlayerViewPoint(ViewStart, ViewRot);
 	ViewRot = PC->GetControlRotation();
 
-	FVector ViewDir = ViewRot.Vector();
-	IPlayerInterface::Execute_ApplyWeaponRandomSpreadAtViewDirection(AvatarActor, ViewDir);
+	float SpreadVal = IPlayerInterface::Execute_GetWeaponSpreadValue(AvatarActor);
+	FVector ViewDir = UKismetMathLibrary::RandomUnitVectorInConeInDegrees(ViewRot.Vector(), SpreadVal);
 	FVector ViewEnd = ViewStart + (ViewDir * MaxRange);
 
 	FVector TraceStart = ViewStart;

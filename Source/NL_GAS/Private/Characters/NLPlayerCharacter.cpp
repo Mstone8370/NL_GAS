@@ -226,12 +226,34 @@ void ANLPlayerCharacter::OnWeaponReloadStateChanged_Implementation(const FGamepl
     NLCharacterComponent->OnWeaponReloadStateChanged(WeaponTag, StateTag);
 }
 
-void ANLPlayerCharacter::ApplyWeaponRandomSpreadAtViewDirection_Implementation(FVector& ViewDirection)
+float ANLPlayerCharacter::GetWeaponSpreadValue_Implementation()
 {
+    float Ret = 0.f;
     if (!IsADS())
     {
-        ViewDirection = UKismetMathLibrary::RandomUnitVectorInConeInDegrees(ViewDirection, 1.5f); // TEMP
+        Ret = 2.f;
+        if (GetCharacterMovement()->IsFalling())
+        {
+            Ret += 4.f;
+        }
+        else
+        {
+            if (GetCharacterMovement()->GetLastUpdateVelocity().SquaredLength() > 100.f)
+            {
+                Ret += 2.f;
+            }
+            if (bIsCrouched)
+            {
+                Ret -= 2.f;
+            }
+        }
     }
+    return Ret;
+}
+
+bool ANLPlayerCharacter::CommitWeaponCost_Implementation(bool& bIsLast)
+{
+    return NLCharacterComponent->CommitWeaponCost(bIsLast);
 }
 
 bool ANLPlayerCharacter::CanAttack_Implementation()

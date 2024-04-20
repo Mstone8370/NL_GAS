@@ -126,7 +126,6 @@ public:
 
 	bool CanAttack() const;
 
-	UFUNCTION(BlueprintCallable)
 	bool CommitWeaponCost(bool& bIsLast);
 
 	float PlayCurrentWeaponMontage(const FGameplayTag& MontageTag, FName StartSectionName = NAME_None);
