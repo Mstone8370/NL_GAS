@@ -47,7 +47,11 @@ FHitResult ATargetActor_WeaponTrace::PerformTrace(AActor* InSourceActor)
 	PC->GetPlayerViewPoint(ViewStart, ViewRot);
 	ViewRot = PC->GetControlRotation();
 
-	float SpreadVal = IPlayerInterface::Execute_GetWeaponSpreadValue(AvatarActor);
+	float SpreadVal = 0.f;
+	if (!IPlayerInterface::Execute_IsFirstFire(AvatarActor))
+	{
+		SpreadVal = IPlayerInterface::Execute_GetWeaponSpreadValue(AvatarActor);
+	}
 	FVector ViewDir = UKismetMathLibrary::RandomUnitVectorInConeInDegrees(ViewRot.Vector(), SpreadVal);
 	FVector ViewEnd = ViewStart + (ViewDir * MaxRange);
 

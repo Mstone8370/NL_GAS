@@ -70,6 +70,7 @@ public:
 	virtual void OnWeaponReloadStateChanged_Implementation(const FGameplayTag& WeaponTag, const FGameplayTag& StateTag) override;
 	virtual float GetWeaponSpreadValue_Implementation() override;
 	virtual bool CommitWeaponCost_Implementation(bool& bIsLast) override;
+	virtual bool IsFirstFire_Implementation() const override;
 	//~End PlayerInterface
 
 	//~Begin CombatInterface

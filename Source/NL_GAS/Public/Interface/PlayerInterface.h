@@ -49,4 +49,7 @@ public:
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	bool CommitWeaponCost(bool& bIsLast);
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	bool IsFirstFire() const;
 };

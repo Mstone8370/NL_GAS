@@ -34,6 +34,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void WeaponFired(const FGameplayTag& WeaponTag);
 
+	UPROPERTY(BlueprintReadOnly)
+	FRotator TotalShake;
+
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TObjectPtr<UWeaponRecoilPattern> RecoilPatternData;
@@ -56,4 +59,7 @@ protected:
 	TMap<FGameplayTag, FTimerHandle> RecoilOffsetResetTimersMap;
 
 	void ResetRecoilOffset(const FGameplayTag& WeaponTag);
+
+public:
+	int GetRecoilOffset(const FGameplayTag& WeaponTag) const;
 };

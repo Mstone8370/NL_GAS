@@ -31,6 +31,11 @@ AWeaponActor::AWeaponActor()
 	WeaponMeshComponent->SetMassOverrideInKg(NAME_None, 2.f, true);
 	WeaponMeshComponent->bOwnerNoSee = true;
 	SetRootComponent(WeaponMeshComponent);
+
+	if (WeaponTag.IsValid())
+	{
+		InitalizeWeapon(WeaponTag);
+	}
 }
 
 void AWeaponActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

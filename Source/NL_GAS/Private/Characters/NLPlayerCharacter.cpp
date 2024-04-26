@@ -247,6 +247,8 @@ float ANLPlayerCharacter::GetWeaponSpreadValue_Implementation()
                 Ret -= 2.f;
             }
         }
+        int32 RecoilOffset = ControlShakeManager->GetRecoilOffset(NLCharacterComponent->GetCurrentWeaponTag());
+        Ret += FMath::Min(RecoilOffset, 10) * 0.3f;
     }
     return Ret;
 }
@@ -254,6 +256,11 @@ float ANLPlayerCharacter::GetWeaponSpreadValue_Implementation()
 bool ANLPlayerCharacter::CommitWeaponCost_Implementation(bool& bIsLast)
 {
     return NLCharacterComponent->CommitWeaponCost(bIsLast);
+}
+
+bool ANLPlayerCharacter::IsFirstFire_Implementation() const
+{
+    return ControlShakeManager->GetRecoilOffset(NLCharacterComponent->GetCurrentWeaponTag()) == 0;
 }
 
 bool ANLPlayerCharacter::CanAttack_Implementation()

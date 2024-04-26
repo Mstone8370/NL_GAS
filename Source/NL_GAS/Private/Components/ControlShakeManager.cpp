@@ -30,10 +30,15 @@ void UControlShakeManager::TickComponent(float DeltaTime, ELevelTick TickType, F
 
 void UControlShakeManager::UpdateShakes(float DeltaTime)
 {
+    TotalShake = FRotator::ZeroRotator;
+
+    if (ActiveShakes.Num() < 1)
+    {
+        return;
+    }
+
     static TArray<int32> ExpiredShakeIndices;
     ExpiredShakeIndices.Reset();
-
-    FRotator DeltaSum = FRotator::ZeroRotator;
 
     for (int32 i = 0; i < ActiveShakes.Num(); i++)
     {
@@ -49,7 +54,7 @@ void UControlShakeManager::UpdateShakes(float DeltaTime)
         {
             ExpiredShakeIndices.Add(i);
         }
-        DeltaSum += CurrentDelta;
+        TotalShake += CurrentDelta;
     }
 
     for (int32 i = ExpiredShakeIndices.Num() - 1; i >= 0; i--)
@@ -64,8 +69,8 @@ void UControlShakeManager::UpdateShakes(float DeltaTime)
 
     if (OwningCharacter)
     {
-        OwningCharacter->AddControllerPitchInput(DeltaSum.Pitch);
-        OwningCharacter->AddControllerYawInput(DeltaSum.Yaw);
+        OwningCharacter->AddControllerPitchInput(TotalShake.Pitch);
+        OwningCharacter->AddControllerYawInput(TotalShake.Yaw);
     }
 }
 
@@ -136,9 +141,18 @@ ACharacter* UControlShakeManager::GetOwningCharacter()
 
 void UControlShakeManager::ResetRecoilOffset(const FGameplayTag& WeaponTag)
 {
-    if (RecoilOffsetsMap.Contains(WeaponTag))
+    if (WeaponTag.IsValid() && RecoilOffsetsMap.Contains(WeaponTag))
     {
         RecoilOffsetsMap[WeaponTag] = 0;
     }
+}
+
+int UControlShakeManager::GetRecoilOffset(const FGameplayTag& WeaponTag) const
+{
+    if (WeaponTag.IsValid() && RecoilOffsetsMap.Contains(WeaponTag))
+    {
+        return RecoilOffsetsMap[WeaponTag];
+    }
+    return 0;
 }
 
