@@ -362,7 +362,8 @@ void ANLPlayerCharacter::OnViewportResized(FViewport* Viewport, uint32 arg)
     * 게임 인스턴스는 각 게임마다 생성되므로, 뷰포트 하나당 하나의 게임 인스턴스가 생성됨.
     * 게임 인스턴스는 UGameViewportClient 객체를 가지고있고, 이걸통해 이 게임 인스턴스가 담당하는 뷰포트가 무엇인지 구분가능함.
     */
-    if (GetGameInstance()->GetGameViewportClient()->Viewport == Viewport)
+    FViewport* ClientViewport = GetGameInstance()->GetGameViewportClient()->Viewport;
+    if (ClientViewport && ClientViewport == Viewport)
     {
         FIntPoint ViewportSize = Viewport->GetSizeXY();
         SetVerticalFOV(ViewportSize);
