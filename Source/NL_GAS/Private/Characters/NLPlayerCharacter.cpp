@@ -353,7 +353,7 @@ void ANLPlayerCharacter::OnFallingStarted()
     }
 }
 
-void ANLPlayerCharacter::OnViewportResized(FViewport* Viewport, uint32 arg)
+void ANLPlayerCharacter::OnViewportResized(FViewport* InViewport, uint32 arg)
 {
     /**
     * [PIE]
@@ -362,11 +362,17 @@ void ANLPlayerCharacter::OnViewportResized(FViewport* Viewport, uint32 arg)
     * 게임 인스턴스는 각 게임마다 생성되므로, 뷰포트 하나당 하나의 게임 인스턴스가 생성됨.
     * 게임 인스턴스는 UGameViewportClient 객체를 가지고있고, 이걸통해 이 게임 인스턴스가 담당하는 뷰포트가 무엇인지 구분가능함.
     */
-    FViewport* ClientViewport = GetGameInstance()->GetGameViewportClient()->Viewport;
-    if (ClientViewport && ClientViewport == Viewport)
+    if (UGameInstance* GI = GetGameInstance())
     {
-        FIntPoint ViewportSize = Viewport->GetSizeXY();
-        SetVerticalFOV(ViewportSize);
+        if (UGameViewportClient* ViewportClient = GI->GetGameViewportClient())
+        {
+            FViewport* Viewport = ViewportClient->Viewport;
+            if (Viewport && Viewport == InViewport)
+            {
+                FIntPoint ViewportSize = InViewport->GetSizeXY();
+                SetVerticalFOV(ViewportSize);
+            }
+        }
     }
 }
 

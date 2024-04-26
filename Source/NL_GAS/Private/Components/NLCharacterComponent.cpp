@@ -442,6 +442,8 @@ void UNLCharacterComponent::TrySwapWeaponSlot(int32 NewWeaponSlot)
 
     // Block Weapon Ability
     GetASC()->AddLooseGameplayTag(Ability_Block_Weapon);
+    GetOwningPlayer()->StopArmsAnimMontage();
+    GetOwningPlayer()->StopWeaponAnimMontage();
     
     // 무기 스왑은 현재 무기가 drawn 되기 전에 시작될 수 있음.
     // 그런 경우에는 draw 타이머가 설정되어있으므로 holster중인 무기가 drawn 되어서 사용 가능하게 됨.

@@ -9,7 +9,7 @@
 UControlShake::UControlShake()
     : Duration(1.f)
     , Curve(nullptr)
-    , ShakeMagnitude(1.f, 1.f, 0.f)
+    , ShakeMagnitude(1.f, 1.f, 1.f)
     , bIsActive(true)
     , TimeElapsed(0.f)
     , CurveValue_Prev(FVector::ZeroVector)
@@ -36,7 +36,7 @@ bool UControlShake::UpdateShake(float DeltaTime, FRotator& OutDeltaRotation)
     OutDeltaRotation = FRotator(
         ShakeMagnitude.Pitch * CurveValue_Delta.X,
         ShakeMagnitude.Yaw * CurveValue_Delta.Y,
-        0.f  // Roll is ignored.
+        ShakeMagnitude.Roll * CurveValue_Delta.Z  // Roll only affects weapon mesh.
     );
 
     return bIsActive;

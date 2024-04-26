@@ -118,7 +118,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	double CurrentVerticalFOV;
 
-	void OnViewportResized(FViewport* Viewport, uint32 arg);
+	void OnViewportResized(FViewport* InViewport, uint32 arg);
 
 	void SetVerticalFOV(FVector2D ViewportSize);
 	void SetVerticalFOV(FIntPoint ViewportSize);
