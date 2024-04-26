@@ -70,6 +70,9 @@ protected:
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentBulletNum)
 	int32 CurrentBulletNum;
 
+	UPROPERTY()
+	FWeaponSpreadInfo SpreadInfo;
+
 	UFUNCTION()
 	void OnRep_CurrentBulletNum(int32 OldNum);
 
@@ -129,4 +132,6 @@ public:
 	FORCEINLINE bool IsTacticalReload() const { return bIsTacticalReload; }
 
 	FORCEINLINE EReloadState GetReloadState() const { return ReloadState; }
+
+	const FWeaponSpreadInfo* GetSpreadInfo() const;
 };

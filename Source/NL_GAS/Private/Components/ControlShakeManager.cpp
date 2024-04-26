@@ -5,6 +5,7 @@
 
 #include "GameFramework/Character.h"
 #include "Data/WeaponRecoilPattern.h"
+#include "NLFunctionLibrary.h"
 
 UControlShakeManager::UControlShakeManager()
 {
@@ -110,13 +111,24 @@ void UControlShakeManager::WeaponFired(const FGameplayTag& WeaponTag)
     );
 
     WeaponRecoilOffset++;
+
+    float ResetTime = 0.2f; // Default Value
+    if (RecoilOffsetResetTimes.Contains(WeaponTag))
+    {
+        ResetTime = RecoilOffsetResetTimes[WeaponTag];
+    }
+    else
+    {
+        ResetTime = UNLFunctionLibrary::GetRecoilResetTimeByTag(GetOwner(), WeaponTag);
+        RecoilOffsetResetTimes.Add(WeaponTag, ResetTime);
+    }
     GetWorld()->GetTimerManager().SetTimer(
         WeaponRecoilOffsetResetTimer,
         [this, WeaponTag]()
         {
             ResetRecoilOffset(WeaponTag);
         },
-        0.15f,  // TODO: make it variable
+        ResetTime,
         false
     );
 }

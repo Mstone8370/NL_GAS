@@ -13,6 +13,7 @@
 #include "Actors/WeaponActor.h"
 #include "NLFunctionLibrary.h"
 #include "TimerManager.h"
+#include "Data/WeaponInfo.h"
 #include "Kismet/KismetMathLibrary.h"
 
 UNLCharacterComponent::UNLCharacterComponent()
@@ -582,4 +583,41 @@ bool UNLCharacterComponent::StartReload()
 void UNLCharacterComponent::OnWeaponReloadStateChanged(const FGameplayTag& WeaponTag, const FGameplayTag& StateTag)
 {
     GetCurrentWeaponActor()->ReloadStateChanged(StateTag);
+}
+
+float UNLCharacterComponent::GetCurrentWeaponSpreadValue(bool bADS, bool bFalling, bool bCrouched, float CharacterSpeedSquared, int32 RecoilOffset, bool bVisual) const
+{
+    if (bADS)
+    {
+        return 0.f;
+    }
+
+    if (AWeaponActor* Weapon = GetCurrentWeaponActor())
+    {
+        if (const FWeaponSpreadInfo* SpreadInfo = Weapon->GetSpreadInfo())
+        {
+            if (!bVisual && SpreadInfo->bZeroSpreadOnFirstHipFire && RecoilOffset == 0)
+            {
+                return 0.f;
+            }
+            if (bFalling)
+            {
+                return SpreadInfo->Fall;
+            }
+            if (bCrouched)
+            {
+                return SpreadInfo->Crouch;
+            }
+
+            float Val = SpreadInfo->Hip;
+            if (CharacterSpeedSquared >= 100.f)
+            {
+                Val += SpreadInfo->Additive_Walk;
+            }
+            Val += FMath::Min(RecoilOffset, SpreadInfo->RecoilOffsetMax) * SpreadInfo->Additive_Recoil;
+
+            return Val;
+        }
+    }
+    return 0.f;
 }

@@ -54,9 +54,14 @@ protected:
 
 	ACharacter* GetOwningCharacter();
 
+	UPROPERTY()
 	TMap<FGameplayTag, int32> RecoilOffsetsMap;
 
+	UPROPERTY()
 	TMap<FGameplayTag, FTimerHandle> RecoilOffsetResetTimersMap;
+
+	UPROPERTY()
+	TMap<FGameplayTag, float> RecoilOffsetResetTimes;
 
 	void ResetRecoilOffset(const FGameplayTag& WeaponTag);
 

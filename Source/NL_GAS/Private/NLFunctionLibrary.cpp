@@ -39,3 +39,12 @@ const FTaggedAnimMontageInfo* UNLFunctionLibrary::GetAnimMontageByTag(const UObj
     }
     return nullptr;
 }
+
+const float UNLFunctionLibrary::GetRecoilResetTimeByTag(const UObject* WorldContextObject, const FGameplayTag& WeaponTag)
+{
+    if (const FWeaponInfo* Info = GetWeaponInfoByTag(WorldContextObject, WeaponTag))
+    {
+        return Info->RecoilOffsetResetTime;
+    }
+    return .2f;
+}

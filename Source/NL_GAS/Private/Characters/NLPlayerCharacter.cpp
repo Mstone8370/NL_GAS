@@ -226,41 +226,21 @@ void ANLPlayerCharacter::OnWeaponReloadStateChanged_Implementation(const FGamepl
     NLCharacterComponent->OnWeaponReloadStateChanged(WeaponTag, StateTag);
 }
 
-float ANLPlayerCharacter::GetWeaponSpreadValue_Implementation()
+float ANLPlayerCharacter::GetWeaponSpreadValue_Implementation(bool bVisual)
 {
-    float Ret = 0.f;
-    if (!IsADS())
-    {
-        Ret = 2.f;
-        if (GetCharacterMovement()->IsFalling())
-        {
-            Ret += 4.f;
-        }
-        else
-        {
-            if (GetCharacterMovement()->GetLastUpdateVelocity().SquaredLength() > 100.f)
-            {
-                Ret += 2.f;
-            }
-            if (bIsCrouched)
-            {
-                Ret -= 2.f;
-            }
-        }
-        int32 RecoilOffset = ControlShakeManager->GetRecoilOffset(NLCharacterComponent->GetCurrentWeaponTag());
-        Ret += FMath::Min(RecoilOffset, 10) * 0.3f;
-    }
-    return Ret;
+    return NLCharacterComponent->GetCurrentWeaponSpreadValue(
+        bIsADS,
+        GetCharacterMovement()->IsFalling(),
+        bIsCrouched,
+        GetCharacterMovement()->GetLastUpdateVelocity().SquaredLength(),
+        ControlShakeManager->GetRecoilOffset(NLCharacterComponent->GetCurrentWeaponTag()),
+        bVisual
+    );
 }
 
 bool ANLPlayerCharacter::CommitWeaponCost_Implementation(bool& bIsLast)
 {
     return NLCharacterComponent->CommitWeaponCost(bIsLast);
-}
-
-bool ANLPlayerCharacter::IsFirstFire_Implementation() const
-{
-    return ControlShakeManager->GetRecoilOffset(NLCharacterComponent->GetCurrentWeaponTag()) == 0;
 }
 
 bool ANLPlayerCharacter::CanAttack_Implementation()

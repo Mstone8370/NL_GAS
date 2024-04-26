@@ -11,6 +11,34 @@ class UGameplayAbility;
 class UWeaponRecoilPattern;
 class UCurveVector;
 
+USTRUCT(BlueprintType)
+struct FWeaponSpreadInfo
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	bool bZeroSpreadOnFirstHipFire = true;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float Hip = 2.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float Crouch = 1.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float Fall = 4.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float Additive_Walk = 1.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float Additive_Recoil = .3f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	int32 RecoilOffsetMax = 10;
+};
+
 /**
  * Single Weapon Info with Gameplay Tag
  */
@@ -52,6 +80,12 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	int32 MagSize;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FWeaponSpreadInfo SpreadInfo;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float RecoilOffsetResetTime = .2f;
 };
 
 UCLASS()

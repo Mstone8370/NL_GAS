@@ -109,6 +109,8 @@ void AWeaponActor::InitalizeWeapon(const FGameplayTag& InWeaponTag)
 	MagSize = Info->MagSize;
 	SetBulletNum_Internal(MagSize);
 
+	SpreadInfo = Info->SpreadInfo;
+
 	// Initialize finished
 	bIsInitialized = true;
 
@@ -205,4 +207,9 @@ void AWeaponActor::ReloadStateChanged(const FGameplayTag& StateTag)
 			bIsTacticalReload = false;
 		}
 	}
+}
+
+const FWeaponSpreadInfo* AWeaponActor::GetSpreadInfo() const
+{
+	return &SpreadInfo;
 }

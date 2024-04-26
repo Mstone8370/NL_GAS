@@ -45,11 +45,8 @@ public:
 	void OnWeaponReloadStateChanged(const FGameplayTag& WeaponTag, const FGameplayTag& StateTag);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	float GetWeaponSpreadValue();
+	float GetWeaponSpreadValue(bool bVisual = true);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	bool CommitWeaponCost(bool& bIsLast);
-
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	bool IsFirstFire() const;
 };

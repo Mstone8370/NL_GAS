@@ -24,4 +24,5 @@ public:
 
 	static const FTaggedAnimMontageInfo* GetAnimMontageByTag(const UObject* WorldContextObject, const FGameplayTag& WeaponTag, const FGameplayTag& MontageTag);
 
+	static const float GetRecoilResetTimeByTag(const UObject* WorldContextObject, const FGameplayTag& WeaponTag);
 };
