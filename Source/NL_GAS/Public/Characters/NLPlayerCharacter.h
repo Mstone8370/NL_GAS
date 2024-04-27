@@ -68,7 +68,7 @@ public:
 	virtual void WeaponFired_Implementation() override;
 	virtual bool StartReload_Implementation() override;
 	virtual void OnWeaponReloadStateChanged_Implementation(const FGameplayTag& WeaponTag, const FGameplayTag& StateTag) override;
-	virtual float GetWeaponSpreadValue_Implementation(bool bVisual = true) override;
+	virtual float GetWeaponSpreadValue_Implementation() override;
 	virtual bool CommitWeaponCost_Implementation(bool& bIsLast) override;
 	//~End PlayerInterface
 

@@ -18,9 +18,6 @@ struct FWeaponSpreadInfo
 
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	bool bZeroSpreadOnFirstHipFire = true;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float Hip = 2.f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
@@ -33,7 +30,7 @@ public:
 	float Additive_Walk = 1.f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	float Additive_Recoil = .3f;
+	float Additive_Recoil = .2f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	int32 RecoilOffsetMax = 10;

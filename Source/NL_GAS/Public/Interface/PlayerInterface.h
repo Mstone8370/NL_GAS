@@ -45,7 +45,7 @@ public:
 	void OnWeaponReloadStateChanged(const FGameplayTag& WeaponTag, const FGameplayTag& StateTag);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	float GetWeaponSpreadValue(bool bVisual = true);
+	float GetWeaponSpreadValue();
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	bool CommitWeaponCost(bool& bIsLast);

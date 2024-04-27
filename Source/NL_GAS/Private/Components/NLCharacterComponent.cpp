@@ -587,7 +587,7 @@ void UNLCharacterComponent::OnWeaponReloadStateChanged(const FGameplayTag& Weapo
     GetCurrentWeaponActor()->ReloadStateChanged(StateTag);
 }
 
-float UNLCharacterComponent::GetCurrentWeaponSpreadValue(bool bADS, bool bFalling, bool bCrouched, float CharacterSpeedSquared, int32 RecoilOffset, bool bVisual) const
+float UNLCharacterComponent::GetCurrentWeaponSpreadValue(bool bADS, bool bFalling, bool bCrouched, float CharacterSpeedSquared, int32 RecoilOffset) const
 {
     if (bADS)
     {
@@ -598,10 +598,6 @@ float UNLCharacterComponent::GetCurrentWeaponSpreadValue(bool bADS, bool bFallin
     {
         if (const FWeaponSpreadInfo* SpreadInfo = Weapon->GetSpreadInfo())
         {
-            if (!bVisual && SpreadInfo->bZeroSpreadOnFirstHipFire && RecoilOffset == 0)
-            {
-                return 0.f;
-            }
             if (bFalling)
             {
                 return SpreadInfo->Fall;

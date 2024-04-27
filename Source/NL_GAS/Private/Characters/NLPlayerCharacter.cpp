@@ -226,15 +226,14 @@ void ANLPlayerCharacter::OnWeaponReloadStateChanged_Implementation(const FGamepl
     NLCharacterComponent->OnWeaponReloadStateChanged(WeaponTag, StateTag);
 }
 
-float ANLPlayerCharacter::GetWeaponSpreadValue_Implementation(bool bVisual)
+float ANLPlayerCharacter::GetWeaponSpreadValue_Implementation()
 {
     return NLCharacterComponent->GetCurrentWeaponSpreadValue(
         bIsADS,
         GetCharacterMovement()->IsFalling(),
         bIsCrouched,
         GetCharacterMovement()->GetLastUpdateVelocity().SquaredLength(),
-        ControlShakeManager->GetRecoilOffset(NLCharacterComponent->GetCurrentWeaponTag()),
-        bVisual
+        ControlShakeManager->GetRecoilOffset(NLCharacterComponent->GetCurrentWeaponTag())
     );
 }
 
