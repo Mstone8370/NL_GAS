@@ -12,12 +12,11 @@ UControlShake::UControlShake()
     , ShakeMagnitude(1.f, 1.f, 1.f)
     , bIsActive(true)
     , TimeElapsed(0.f)
-    , CurveValue_Prev(FVector::ZeroVector)
 {}
 
-bool UControlShake::UpdateShake(float DeltaTime, FRotator& OutDeltaRotation)
+bool UControlShake::UpdateShake(float DeltaTime, FRotator& OutShake)
 {
-    OutDeltaRotation = FRotator::ZeroRotator;
+    OutShake = FRotator::ZeroRotator;
 
     if (!bIsActive || !Curve)
     {
@@ -29,14 +28,12 @@ bool UControlShake::UpdateShake(float DeltaTime, FRotator& OutDeltaRotation)
     const float CurveTime = UKismetMathLibrary::SafeDivide(TimeElapsed, Duration);
     bIsActive = (CurveTime < 1.f);
 
-    const FVector CurveValue_Current = bIsActive ? Curve->GetVectorValue(CurveTime) : FVector::ZeroVector;
-    const FVector CurveValue_Delta = CurveValue_Current - CurveValue_Prev;
-    CurveValue_Prev = CurveValue_Current;
-
-    OutDeltaRotation = FRotator(
-        ShakeMagnitude.Pitch * CurveValue_Delta.X,
-        ShakeMagnitude.Yaw * CurveValue_Delta.Y,
-        ShakeMagnitude.Roll * CurveValue_Delta.Z  // Roll only affects weapon mesh.
+    const FVector CurveValue = bIsActive ? Curve->GetVectorValue(CurveTime) : FVector::ZeroVector;
+    
+    OutShake = FRotator(
+        ShakeMagnitude.Pitch * CurveValue.X,
+        ShakeMagnitude.Yaw * CurveValue.Y,
+        ShakeMagnitude.Roll * CurveValue.Z  // Roll only affects weapon mesh.
     );
 
     return bIsActive;
@@ -46,7 +43,6 @@ void UControlShake::Activate(float InDuration, UCurveVector* InCurve, FRotator I
 {
     bIsActive = true;
     TimeElapsed = 0.f;
-    CurveValue_Prev = FVector::ZeroVector;
 
     Duration = InDuration;
     Curve = InCurve;

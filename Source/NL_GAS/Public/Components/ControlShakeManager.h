@@ -24,8 +24,18 @@ protected:
 public:	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+protected:
 	void UpdateShakes(float DeltaTime);
 
+	void ApplyShake(float DeltaTime);
+
+	FRotator ShakeSum;
+
+	FRotator ShakeSumPrev;
+
+	FRotator DeltaShake;
+
+public:
 	void AddShake(float InDuration, UCurveVector* InCurve, FRotator InShakeMagnitude);
 
 	UFUNCTION(BlueprintCallable)
@@ -33,9 +43,6 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void WeaponFired(const FGameplayTag& WeaponTag);
-
-	UPROPERTY(BlueprintReadOnly)
-	FRotator TotalShake;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
@@ -67,4 +74,7 @@ protected:
 
 public:
 	int GetRecoilOffset(const FGameplayTag& WeaponTag) const;
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	FRotator GetDeltaShake() const { return DeltaShake; }
 };

@@ -8,6 +8,9 @@
 #include "NLFunctionLibrary.h"
 
 UControlShakeManager::UControlShakeManager()
+    : ShakeSum(FRotator::ZeroRotator)
+    , ShakeSumPrev(FRotator::ZeroRotator)
+    , DeltaShake(FRotator::ZeroRotator)
 {
     PrimaryComponentTick.bCanEverTick = true;
 }
@@ -27,11 +30,12 @@ void UControlShakeManager::TickComponent(float DeltaTime, ELevelTick TickType, F
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
     UpdateShakes(DeltaTime);
+    ApplyShake(DeltaTime);
 }
 
 void UControlShakeManager::UpdateShakes(float DeltaTime)
 {
-    TotalShake = FRotator::ZeroRotator;
+    ShakeSum = FRotator::ZeroRotator;
 
     if (ActiveShakes.Num() < 1)
     {
@@ -50,12 +54,12 @@ void UControlShakeManager::UpdateShakes(float DeltaTime)
             continue;
         }
 
-        FRotator CurrentDelta;
-        if (!Shake->UpdateShake(DeltaTime, CurrentDelta))
+        FRotator ShakeValue;
+        if (!Shake->UpdateShake(DeltaTime, ShakeValue))
         {
             ExpiredShakeIndices.Add(i);
         }
-        TotalShake += CurrentDelta;
+        ShakeSum += ShakeValue;
     }
 
     for (int32 i = ExpiredShakeIndices.Num() - 1; i >= 0; i--)
@@ -67,11 +71,17 @@ void UControlShakeManager::UpdateShakes(float DeltaTime)
         }
         ActiveShakes.RemoveAt(ExpiredShakeIndices[i]);
     }
+}
+
+void UControlShakeManager::ApplyShake(float DeltaTime)
+{
+    DeltaShake = ShakeSum - ShakeSumPrev;
+    ShakeSumPrev = ShakeSum;
 
     if (OwningCharacter)
     {
-        OwningCharacter->AddControllerPitchInput(TotalShake.Pitch);
-        OwningCharacter->AddControllerYawInput(TotalShake.Yaw);
+        OwningCharacter->AddControllerPitchInput(DeltaShake.Pitch);
+        OwningCharacter->AddControllerYawInput(DeltaShake.Yaw);
     }
 }
 

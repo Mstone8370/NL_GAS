@@ -40,10 +40,10 @@ public:
 	FRotator ShakeMagnitude;
 
 	/**
-	* Update time with given DeltaTime and return delta rotation value.
+	* Update time with given DeltaTime and return shake value.
 	* @return Whether this Control Shake Object is still active after update.
 	*/
-	bool UpdateShake(float DeltaTime, FRotator& OutDeltaRotation);
+	bool UpdateShake(float DeltaTime, FRotator& OutShake);
 
 	void Activate(float InDuration, UCurveVector* InCurve, FRotator InShakeMagnitude);
 
@@ -55,6 +55,4 @@ protected:
 	bool bIsActive;
 
 	float TimeElapsed;
-
-	FVector CurveValue_Prev;
 };
