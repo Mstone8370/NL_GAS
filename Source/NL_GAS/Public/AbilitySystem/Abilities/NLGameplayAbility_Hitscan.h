@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AbilitySystem/Abilities/NLGameplayAbility_Damage.h"
+#include "AbilitySystem/Abilities/NLGameplayAbility_WeaponPrimary.h"
 #include "NLGameplayAbility_Hitscan.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class NL_GAS_API UNLGameplayAbility_Hitscan : public UNLGameplayAbility_Damage
+class NL_GAS_API UNLGameplayAbility_Hitscan : public UNLGameplayAbility_WeaponPrimary
 {
 	GENERATED_BODY()
 	

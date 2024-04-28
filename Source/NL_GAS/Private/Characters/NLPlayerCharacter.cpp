@@ -211,9 +211,19 @@ float ANLPlayerCharacter::PlayCurrentWeaponMontage_Implementation(const FGamepla
     return NLCharacterComponent->PlayCurrentWeaponMontage(MontageTag);
 }
 
-void ANLPlayerCharacter::WeaponFired_Implementation()
+void ANLPlayerCharacter::WeaponFired_Implementation(TSubclassOf<UCameraShakeBase> CameraShakeBaseClass)
 {
+    // Add recoil
     ControlShakeManager->WeaponFired(NLCharacterComponent->GetCurrentWeaponTag());
+
+    // Add CamearShake
+    if (CameraShakeBaseClass)
+    {
+        if (APlayerController* PC = GetLocalViewingPlayerController())
+        {
+            PC->ClientStartCameraShake(CameraShakeBaseClass);
+        }
+    }
 }
 
 bool ANLPlayerCharacter::StartReload_Implementation()

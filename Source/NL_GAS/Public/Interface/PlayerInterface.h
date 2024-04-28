@@ -36,7 +36,7 @@ public:
 	float PlayCurrentWeaponMontage(const FGameplayTag& MontageTag);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	void WeaponFired();
+	void WeaponFired(TSubclassOf<UCameraShakeBase> CameraShakeBaseClass);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	bool StartReload();
