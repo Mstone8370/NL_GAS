@@ -104,6 +104,7 @@ void ANLPlayerCharacter::BeginPlay()
     }
 
     // FOV setup
+    BaseCameraFOV = CameraComponent->FieldOfView;
     if (GetLocalRole() != ROLE_SimulatedProxy && GEngine)
     {
         if (UGameViewportClient* ViewportClient = GEngine->GameViewport)
@@ -513,7 +514,28 @@ void ANLPlayerCharacter::OnGameplayTagCountChanged(const FGameplayTag Tag, int32
 {
     if (Tag.MatchesTagExact(Ability_Weapon_Secondary))
     {
-        bIsADS = TagCount > 0;
+        OnADS(TagCount > 0);
+    }
+}
+
+void ANLPlayerCharacter::OnADS(bool bInIsADS)
+{
+    if (bInIsADS == bIsADS)
+    {
+        return;
+    }
+
+    bIsADS = bInIsADS;
+
+    // TEMP hardcoded value
+    // TODO: Interp FOV, load FOV value from data
+    if (bIsADS)
+    {
+        CameraComponent->FieldOfView = BaseCameraFOV / 1.25f;
+    }
+    else
+    {
+        CameraComponent->FieldOfView = BaseCameraFOV;
     }
 }
 

@@ -115,6 +115,9 @@ protected:
 
 	TObjectPtr<ANLPlayerController> NLPlayerController;
 
+	double BaseCameraFOV;
+
+	// ViewModels' current vertical FOV
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	double CurrentVerticalFOV;
 
@@ -173,9 +176,11 @@ protected:
 	virtual void InterpolateCrouch(float DeltaSeconds);
 	//~End Crouch Interpolation
 
+	void OnGameplayTagCountChanged(const FGameplayTag Tag, int32 TagCount);
+
 	bool bIsADS = false;
 
-	void OnGameplayTagCountChanged(const FGameplayTag Tag, int32 TagCount);
+	void OnADS(bool bInIsADS);
 
 public:
 	void GetCrouchedHalfHeightAdjust(float& OutHalfHeightAdjust, float& OutScaledHalfHeightAdjust) const;
