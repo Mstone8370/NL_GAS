@@ -9,7 +9,7 @@
 #include "NLPlayerCharacter.generated.h"
 
 class USpringArmComponent;
-class UCameraComponent;
+class UNLPlayerCameraComponent;
 class UNLCharacterMovementComponent;
 class ANLPlayerController;
 class UAnimMontage;
@@ -97,7 +97,7 @@ public:
 	TObjectPtr<USkeletalMeshComponent> ViewWeaponMesh;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<UCameraComponent> CameraComponent;
+	TObjectPtr<UNLPlayerCameraComponent> CameraComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UControlShakeManager> ControlShakeManager;
@@ -114,8 +114,6 @@ protected:
 	TObjectPtr<UNLCharacterMovementComponent> NLCharacterMovementComponent;
 
 	TObjectPtr<ANLPlayerController> NLPlayerController;
-
-	double BaseCameraFOV;
 
 	// ViewModels' current vertical FOV
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

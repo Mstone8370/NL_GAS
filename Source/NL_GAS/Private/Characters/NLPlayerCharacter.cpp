@@ -3,7 +3,7 @@
 
 #include "Characters/NLPlayerCharacter.h"
 
-#include "Camera/CameraComponent.h"
+#include "Components/NLPlayerCameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Characters/NLCharacterMovementComponent.h"
@@ -58,7 +58,7 @@ ANLPlayerCharacter::ANLPlayerCharacter()
     ViewWeaponMesh->CastShadow = 0;
     ViewWeaponMesh->SetupAttachment(ArmMesh, FName("weapon"));
 
-    CameraComponent = CreateDefaultSubobject<UCameraComponent>(FName("Camera"));
+    CameraComponent = CreateDefaultSubobject<UNLPlayerCameraComponent>(FName("Camera"));
     CameraComponent->SetupAttachment(ArmMesh, FName("camera"));
     CameraComponent->FieldOfView = 110.f;
 
@@ -104,7 +104,7 @@ void ANLPlayerCharacter::BeginPlay()
     }
 
     // FOV setup
-    BaseCameraFOV = CameraComponent->FieldOfView;
+    CameraComponent->SetBaseFOV(CameraComponent->FieldOfView);
     if (GetLocalRole() != ROLE_SimulatedProxy && GEngine)
     {
         if (UGameViewportClient* ViewportClient = GEngine->GameViewport)
@@ -528,14 +528,23 @@ void ANLPlayerCharacter::OnADS(bool bInIsADS)
     bIsADS = bInIsADS;
 
     // TEMP hardcoded value
-    // TODO: Interp FOV, load FOV value from data
+    /**
+    * ADS를 하면 배율에 맞게 카메라의 FOV를 조정
+    *   e.g.
+    *     아이언사이트 = 0.9 or 1.0
+    *     1.25x = 0.7
+    *     2x = 0.5
+    *     3x = 0.3333
+    * 
+    * 뷰모델은 배율에 맞게 정해진 값으로 설정. 카메라의 FOV값에 영향 받지 않음.
+    */
     if (bIsADS)
     {
-        CameraComponent->FieldOfView = BaseCameraFOV / 1.25f;
+        CameraComponent->SetTargetFOV(CameraComponent->GetBaseFOV() * 0.9f);
     }
     else
     {
-        CameraComponent->FieldOfView = BaseCameraFOV;
+        CameraComponent->SetTargetFOV(CameraComponent->GetBaseFOV());
     }
 }
 
