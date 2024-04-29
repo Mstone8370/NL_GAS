@@ -602,15 +602,19 @@ float UNLCharacterComponent::GetCurrentWeaponSpreadValue(bool bADS, bool bFallin
             {
                 return SpreadInfo->Fall;
             }
+
+            float Val = 0.f;
             if (bCrouched)
             {
-                return SpreadInfo->Crouch;
+                Val = SpreadInfo->Crouch;
             }
-
-            float Val = SpreadInfo->Hip;
-            if (CharacterSpeedSquared >= 100.f)
+            else
             {
-                Val += SpreadInfo->Additive_Walk;
+                Val = SpreadInfo->Hip;
+                if (CharacterSpeedSquared >= 100.f)
+                {
+                    Val += SpreadInfo->Additive_Walk;
+                }
             }
             Val += FMath::Min(RecoilOffset, SpreadInfo->RecoilOffsetMax) * SpreadInfo->Additive_Recoil;
 

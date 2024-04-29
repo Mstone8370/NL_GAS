@@ -104,17 +104,20 @@ void ANLPlayerCharacter::BeginPlay()
     }
 
     // FOV setup
-    if (GetNetMode() == ENetMode::NM_Client && GetLocalRole() != ROLE_SimulatedProxy)
+    if (GetLocalRole() != ROLE_SimulatedProxy && GEngine)
     {
-        // Calculate ViewModel's vertical FOV by ViewModelTargetHorizontalFOV value.
-        ViewModelVerticalFOV = CalcVerticalFOVByAspectRatio(ViewModelTargetHorizontalFOV, 9 / 16.f);
+        if (UGameViewportClient* ViewportClient = GEngine->GameViewport)
+        {
+            // Calculate ViewModel's vertical FOV by ViewModelTargetHorizontalFOV value.
+            ViewModelVerticalFOV = CalcVerticalFOVByAspectRatio(ViewModelTargetHorizontalFOV, 9 / 16.f);
 
-        // Set ViewModel's horizontal FOV that matches the current aspect ratio based on the calculated ViewModelVerticalFOV.
-        FVector2D ViewportSize;
-        GEngine->GameViewport->GetViewportSize(ViewportSize);
-        SetVerticalFOV(ViewportSize);
+            // Set ViewModel's horizontal FOV that matches the current aspect ratio based on the calculated ViewModelVerticalFOV.
+            FVector2D ViewportSize;
+            ViewportClient->GetViewportSize(ViewportSize);
+            SetVerticalFOV(ViewportSize);
 
-        FViewport::ViewportResizedEvent.AddUObject(this, &ANLPlayerCharacter::OnViewportResized);
+            FViewport::ViewportResizedEvent.AddUObject(this, &ANLPlayerCharacter::OnViewportResized);
+        }
     }
 }
 

@@ -21,7 +21,7 @@ class NL_GAS_API UNLGameplayAbility_WeaponPrimary : public UNLGameplayAbility_Da
 
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
-	int32 FirePerSecond = 10;
+	float FirePerSecond = 10;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	TEnumAsByte<EFireType> FireType;
@@ -30,5 +30,5 @@ public:
 	int32 BurstFireNum = 2;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Burst", meta = (EditCondition = "FireType == EFireType::Burst"))
-	int32 BurstFirePerSecond = 10;
+	float BurstFirePerSecond = 10;
 };
