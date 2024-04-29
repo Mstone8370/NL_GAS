@@ -628,10 +628,6 @@ float ANLPlayerCharacter::PlayArmsAnimMontage(UAnimMontage* AnimMontage, float I
             {
                 AnimInstance->Montage_JumpToSection(StartSectionName, AnimMontage);
             }
-
-            // TODO
-            AnimInstance->Montage_GetEndedDelegate(AnimMontage);
-
             return Duration;
         }
     }

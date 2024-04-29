@@ -515,16 +515,17 @@ float UNLCharacterComponent::PlayCurrentWeaponMontageAndSetCallback(const FGamep
 {
     OutTimerHandle = FTimerHandle();
 
-    float MontagePlayLength = PlayCurrentWeaponMontage(MontageTag, StartSectionName);
+    const float MontagePlayLength = PlayCurrentWeaponMontage(MontageTag, StartSectionName);
+    const float BlendOutTime = GetOwningPlayer()->GetCurrentArmsMontage()->GetDefaultBlendOutTime();
+    const float TimerTime = bOnBlendOut ? MontagePlayLength - BlendOutTime : MontagePlayLength;
 
     // On Server and Client
-    if (MontagePlayLength > 0.f)
+    if (!FMath::IsNearlyZero(TimerTime) && TimerTime > 0.f)
     {
-        const float BlendOutTime = GetOwningPlayer()->GetCurrentArmsMontage()->GetDefaultBlendOutTime();
         GetWorld()->GetTimerManager().SetTimer(
             OutTimerHandle,
             TimerDelegate,
-            bOnBlendOut ? MontagePlayLength - BlendOutTime : MontagePlayLength,
+            TimerTime,
             false
         );
     }
@@ -533,7 +534,7 @@ float UNLCharacterComponent::PlayCurrentWeaponMontageAndSetCallback(const FGamep
         TimerDelegate.ExecuteIfBound();
     }
 
-    return MontagePlayLength;
+    return TimerTime;
 }
 
 bool UNLCharacterComponent::IsCurrentWeaponMagEmpty() const
