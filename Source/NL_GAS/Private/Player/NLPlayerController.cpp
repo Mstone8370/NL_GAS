@@ -21,6 +21,9 @@ void ANLPlayerController::SetupInputComponent()
         bIsListenServerController = true;
     }
 
+    // Setup LookSensitivity
+    CurrentLookSensitivity = LookSensitivity;
+
     // Add IMCs
     if (ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(Player))
     {
@@ -81,8 +84,8 @@ void ANLPlayerController::Move(const FInputActionValue& Value)
 void ANLPlayerController::Look(const FInputActionValue& Value)
 {
     FVector2D VectorValue = Value.Get<FVector2D>();
-    AddYawInput(VectorValue.X * LookSensitivity);
-    AddPitchInput(-VectorValue.Y * LookSensitivity);
+    AddYawInput(VectorValue.X * CurrentLookSensitivity);
+    AddPitchInput(-VectorValue.Y * CurrentLookSensitivity);
 }
 
 void ANLPlayerController::Jump()
@@ -146,4 +149,9 @@ ANLPlayerState* ANLPlayerController::GetNLPlayerState()
         NLPlayerState = Cast<ANLPlayerState>(GetPlayerState<ANLPlayerState>());
     }
     return NLPlayerState;
+}
+
+void ANLPlayerController::SetLookSensitivity(float InLookSensitivity)
+{
+    CurrentLookSensitivity = InLookSensitivity;
 }

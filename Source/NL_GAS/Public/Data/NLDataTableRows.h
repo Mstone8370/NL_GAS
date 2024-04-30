@@ -17,4 +17,7 @@ public:
 
     UPROPERTY(EditAnywhere)
     float ViewModelHorizontalFOV;
+
+    UPROPERTY(EditAnywhere)
+    float LookSensitivityMultiplier;
 };

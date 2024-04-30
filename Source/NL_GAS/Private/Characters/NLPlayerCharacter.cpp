@@ -490,20 +490,26 @@ void ANLPlayerCharacter::OnADS(bool bInIsADS)
     */
     float CameraTargetFOV = CameraComponent->GetBaseFOV();
     float ViewMeshTargetFOV = ArmMesh->DefaultHFOV;
+    float LookSensitivityMultiplier = 1.f;
     if (bIsADS && FOV_Data)
     {
         FName FOVRowName = FName("ADS.1x");
-        // TODO: 배율에 따라 마우스 감도 값 변경.
         if (FFOVModifyValue* DataRow = FOV_Data->FindRow<FFOVModifyValue>(FOVRowName, FString()))
         {
             CameraTargetFOV = CameraComponent->GetBaseFOV() * DataRow->CameraFOVMultiplier;
             ViewMeshTargetFOV = DataRow->ViewModelHorizontalFOV;
+            LookSensitivityMultiplier = DataRow->LookSensitivityMultiplier;
         }
     }
 
     CameraComponent->SetTargetFOV(CameraTargetFOV);
     ArmMesh->SetTargetHFOV(ViewMeshTargetFOV);
     ViewWeaponMesh->SetTargetHFOV(ViewMeshTargetFOV);
+
+    if (GetNLPC())
+    {
+        GetNLPC()->SetLookSensitivity(GetNLPC()->GetBaseLookSensitivity() * LookSensitivityMultiplier);
+    }
 }
 
 void ANLPlayerCharacter::GetCrouchedHalfHeightAdjust(float& OutHalfHeightAdjust, float& OutScaledHalfHeightAdjust) const

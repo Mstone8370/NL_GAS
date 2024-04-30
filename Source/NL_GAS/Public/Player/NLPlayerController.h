@@ -47,12 +47,19 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TSoftObjectPtr<UInputConfig> InputConfig;
 
+protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	float LookSensitivity = 1.f;
 
-protected:
 	TObjectPtr<UNLAbilitySystemComponent> LNAbilitySystemComponent;
 	TObjectPtr<ANLPlayerState> NLPlayerState;
 
 	bool bIsListenServerController = false;
+
+	float CurrentLookSensitivity;
+
+public:
+	float GetBaseLookSensitivity() const { return LookSensitivity; }
+
+	void SetLookSensitivity(float InLookSensitivity);
 };
