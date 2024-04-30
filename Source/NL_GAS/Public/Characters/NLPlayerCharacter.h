@@ -15,26 +15,7 @@ class ANLPlayerController;
 class UAnimMontage;
 class UControlShakeManager;
 class UMaterialInstanceDynamic;
-
-USTRUCT()
-struct FWeaponMaterialInstanceDynamic
-{
-	GENERATED_BODY()
-
-	UPROPERTY()
-	TArray<UMaterialInstanceDynamic*> MIDs;
-
-	FWeaponMaterialInstanceDynamic() { Clear(); }
-
-	~FWeaponMaterialInstanceDynamic() { Clear(); }
-
-	void Add(UMaterialInstanceDynamic* InMID) { MIDs.Add(InMID); }
-
-	void Clear() { MIDs.Empty(); }
-
-	int32 Num() { return MIDs.Num(); }
-};
-
+class UNLViewSkeletalMeshComponent;
 
 UCLASS()
 class NL_GAS_API ANLPlayerCharacter : public ANLCharacterBase, public IPlayerInterface
@@ -45,6 +26,8 @@ public:
 	ANLPlayerCharacter();
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	virtual void PostInitializeComponents();
 
 protected:
 	virtual void BeginPlay() override;
@@ -91,10 +74,10 @@ public:
 	TObjectPtr<USpringArmComponent> SpringArmComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<USkeletalMeshComponent> ArmMesh;
+	TObjectPtr<UNLViewSkeletalMeshComponent> ArmMesh;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<USkeletalMeshComponent> ViewWeaponMesh;
+	TObjectPtr<UNLViewSkeletalMeshComponent> ViewWeaponMesh;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UNLPlayerCameraComponent> CameraComponent;
@@ -102,32 +85,12 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UControlShakeManager> ControlShakeManager;
 
-	// Only affects during BeginPlay
-	// Target Horizontal FOV when Viewport's aspect ratio is 16:9
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	double ViewModelTargetHorizontalFOV;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	double ViewModelVerticalFOV;
-
 protected:
 	TObjectPtr<UNLCharacterMovementComponent> NLCharacterMovementComponent;
 
 	TObjectPtr<ANLPlayerController> NLPlayerController;
 
-	// ViewModels' current vertical FOV
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	double CurrentVerticalFOV;
-
 	void OnViewportResized(FViewport* InViewport, uint32 arg);
-
-	void SetVerticalFOV(FVector2D ViewportSize);
-	void SetVerticalFOV(FIntPoint ViewportSize);
-
-	double CalcVerticalFOVByAspectRatio(double BaseFOV, double AspectRatio);
-
-	UPROPERTY()
-	TMap<FGameplayTag, FWeaponMaterialInstanceDynamic> WeaponMaterialMap;
 
 	UPROPERTY(EditDefaultsOnly)
 	float LookPitchRepTime;

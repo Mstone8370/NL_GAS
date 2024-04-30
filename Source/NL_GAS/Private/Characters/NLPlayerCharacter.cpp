@@ -14,7 +14,6 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystem/NLAbilitySystemComponent.h"
 #include "Net/UnrealNetwork.h"
-#include "Materials/MaterialInstanceDynamic.h"
 #include "NLFunctionLibrary.h"
 #include "Data/WeaponInfo.h"
 #include "NLGameplayTags.h"
@@ -22,11 +21,10 @@
 #include "Components/ControlShakeManager.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "UnrealClient.h"
-#include "Engine/SkinnedAssetCommon.h"
+#include "Components/NLViewSkeletalMeshComponent.h"
 
 ANLPlayerCharacter::ANLPlayerCharacter()
-    : ViewModelTargetHorizontalFOV(80.f)
-    , LookPitchRepTime(0.02f)
+    : LookPitchRepTime(0.02f)
     , LookPitch(0.f)
     , CrouchInterpSpeed(10.f)
     , CrouchInterpErrorTolerance(0.1f)
@@ -48,12 +46,12 @@ ANLPlayerCharacter::ANLPlayerCharacter()
     SpringArmComponent->bDoCollisionTest = false;
     SpringArmComponent->SetupAttachment(GetRootComponent());
 
-    ArmMesh = CreateDefaultSubobject<USkeletalMeshComponent>(FName("ArmMesh"));
+    ArmMesh = CreateDefaultSubobject<UNLViewSkeletalMeshComponent>(FName("ArmMesh"));
     ArmMesh->bOnlyOwnerSee = true;
     ArmMesh->CastShadow = 0;
     ArmMesh->SetupAttachment(SpringArmComponent);
 
-    ViewWeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(FName("ViewWeaponMesh"));
+    ViewWeaponMesh = CreateDefaultSubobject<UNLViewSkeletalMeshComponent>(FName("ViewWeaponMesh"));
     ViewWeaponMesh->bOnlyOwnerSee = true;
     ViewWeaponMesh->CastShadow = 0;
     ViewWeaponMesh->SetupAttachment(ArmMesh, FName("weapon"));
@@ -71,6 +69,14 @@ void ANLPlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 
     DOREPLIFETIME_CONDITION(ANLPlayerCharacter, bIsCapsuleShrinked, COND_SimulatedOnly);
     DOREPLIFETIME_CONDITION_NOTIFY(ANLPlayerCharacter, LookPitch, COND_SimulatedOnly, REPNOTIFY_OnChanged);
+}
+
+void ANLPlayerCharacter::PostInitializeComponents()
+{
+    Super::PostInitializeComponents();
+
+    ArmMesh->Initialize();
+    ViewWeaponMesh->Initialize();
 }
 
 void ANLPlayerCharacter::BeginPlay()
@@ -96,29 +102,11 @@ void ANLPlayerCharacter::BeginPlay()
         GetWorldTimerManager().SetTimer(LookPitchRepTimerHandle, this, &ANLPlayerCharacter::Server_InvokeLookPitchReplication, LookPitchRepTime, true);
     }
 
-    // Arm Material Instance Dynamic
-    for (uint8 i = 0; i < ArmMesh->GetNumMaterials(); i++)
-    {
-        UMaterialInstanceDynamic* MatInstDynamic = ArmMesh->CreateAndSetMaterialInstanceDynamic(i);
-        MatInstDynamic->SetScalarParameterValue(FName("FOV"), 80.f);
-    }
-
     // FOV setup
     CameraComponent->SetBaseFOV(CameraComponent->FieldOfView);
-    if (GetLocalRole() != ROLE_SimulatedProxy && GEngine)
+    if (GetLocalRole() != ROLE_SimulatedProxy)
     {
-        if (UGameViewportClient* ViewportClient = GEngine->GameViewport)
-        {
-            // Calculate ViewModel's vertical FOV by ViewModelTargetHorizontalFOV value.
-            ViewModelVerticalFOV = CalcVerticalFOVByAspectRatio(ViewModelTargetHorizontalFOV, 9 / 16.f);
-
-            // Set ViewModel's horizontal FOV that matches the current aspect ratio based on the calculated ViewModelVerticalFOV.
-            FVector2D ViewportSize;
-            ViewportClient->GetViewportSize(ViewportSize);
-            SetVerticalFOV(ViewportSize);
-
-            FViewport::ViewportResizedEvent.AddUObject(this, &ANLPlayerCharacter::OnViewportResized);
-        }
+        FViewport::ViewportResizedEvent.AddUObject(this, &ANLPlayerCharacter::OnViewportResized);
     }
 }
 
@@ -382,43 +370,11 @@ void ANLPlayerCharacter::OnViewportResized(FViewport* InViewport, uint32 arg)
             FViewport* Viewport = ViewportClient->Viewport;
             if (Viewport && Viewport == InViewport)
             {
-                FIntPoint ViewportSize = InViewport->GetSizeXY();
-                SetVerticalFOV(ViewportSize);
+                ArmMesh->UpdateFOV();
+                ViewWeaponMesh->UpdateFOV();
             }
         }
     }
-}
-
-void ANLPlayerCharacter::SetVerticalFOV(FVector2D ViewportSize)
-{
-    const double AspectRatio = UKismetMathLibrary::SafeDivide(ViewportSize.X, ViewportSize.Y);
-    CurrentVerticalFOV = CalcVerticalFOVByAspectRatio(ViewModelVerticalFOV, AspectRatio);
-
-    for (UMaterialInterface* MaterialInstance : ArmMesh->GetMaterials())
-    {
-        if (UMaterialInstanceDynamic* MID = Cast<UMaterialInstanceDynamic>(MaterialInstance))
-        {
-            MID->SetScalarParameterValue(FName("FOV"), CurrentVerticalFOV);
-        }
-    }
-    for (UMaterialInterface* MaterialInstance : ViewWeaponMesh->GetMaterials())
-    {
-        if (UMaterialInstanceDynamic* MID = Cast<UMaterialInstanceDynamic>(MaterialInstance))
-        {
-            MID->SetScalarParameterValue(FName("FOV"), CurrentVerticalFOV);
-        }
-    }
-}
-
-void ANLPlayerCharacter::SetVerticalFOV(FIntPoint ViewportSize)
-{
-    SetVerticalFOV(FVector2D(ViewportSize.X, ViewportSize.Y));
-}
-
-double ANLPlayerCharacter::CalcVerticalFOVByAspectRatio(double BaseFOV, double AspectRatio)
-{
-    const double tan = UKismetMathLibrary::DegTan(BaseFOV / 2);
-    return UKismetMathLibrary::DegAtan(tan * AspectRatio) * 2;
 }
 
 void ANLPlayerCharacter::Server_InvokeLookPitchReplication()
@@ -541,10 +497,14 @@ void ANLPlayerCharacter::OnADS(bool bInIsADS)
     if (bIsADS)
     {
         CameraComponent->SetTargetFOV(CameraComponent->GetBaseFOV() * 0.9f);
+        ArmMesh->SetTargetHFOV(50.f);
+        ViewWeaponMesh->SetTargetHFOV(50.f);
     }
     else
     {
         CameraComponent->SetTargetFOV(CameraComponent->GetBaseFOV());
+        ArmMesh->SetTargetHFOV(ArmMesh->DefaultHFOV);
+        ViewWeaponMesh->SetTargetHFOV(ViewWeaponMesh->DefaultHFOV);
     }
 }
 
@@ -579,57 +539,8 @@ void ANLPlayerCharacter::UpdateViewWeaponAndAnimLayer(USkeletalMesh* NewWeaponMe
 {
     if (NewWeaponMesh)
     {
-        ViewWeaponMesh->SetSkeletalMesh(NewWeaponMesh);
-
-        /**
-        * 메시만 변경하면 이전에 만든 다른 무기의 다이나믹 머티리얼이 존재해서
-        * 그걸 그대로 사용하므로 무기를 변경할때마다 머티리얼을 새로 지정해줌.
-        * 머티리얼 인스턴스를 저장해둬서 무기를 변경할때마다 새로 생성하지 않고 이전에 쓰던걸 다시 사용함.
-        */
         const FGameplayTag WeaponTag = NLCharacterComponent->GetCurrentWeaponTag();
-        if (WeaponMaterialMap.Contains(WeaponTag))
-        {
-            FWeaponMaterialInstanceDynamic& WMID = WeaponMaterialMap[WeaponTag];
-            for (uint8 i = 0; i < ViewWeaponMesh->GetNumMaterials(); i++)
-            {
-                UMaterialInstanceDynamic* MID = WMID.MIDs[i];
-                if (MID)
-                {
-                    MID->SetScalarParameterValue(FName("FOV"), CurrentVerticalFOV);
-                }
-                else
-                {
-                    // Could happen?
-                    UE_LOG(LogTemp, Error, TEXT("Material Instance Dynamic [%d] of weapon [%s] is not valid."), i, *WeaponTag.GetTagName().ToString());
-                    
-                    // Create again
-                    FSkeletalMaterial& Mat = NewWeaponMesh->GetMaterials()[i];
-                    ViewWeaponMesh->SetMaterial(i, Mat.MaterialInterface);
-
-                    MID = ViewWeaponMesh->CreateAndSetMaterialInstanceDynamic(i);
-                    MID->SetScalarParameterValue(FName("FOV"), CurrentVerticalFOV);
-                }
-
-                ViewWeaponMesh->SetMaterial(i, MID);
-            }
-        }
-        else
-        {
-            FWeaponMaterialInstanceDynamic WMID;
-            for (uint8 i = 0; i < ViewWeaponMesh->GetNumMaterials(); i++)
-            {
-                // Set WeaponMesh's material
-                FSkeletalMaterial& Mat = NewWeaponMesh->GetMaterials()[i];
-                ViewWeaponMesh->SetMaterial(i, Mat.MaterialInterface);
-
-                // Create Weapon Material Instance Dynamic
-                UMaterialInstanceDynamic* MatInstDynamic = ViewWeaponMesh->CreateAndSetMaterialInstanceDynamic(i);
-                MatInstDynamic->SetScalarParameterValue(FName("FOV"), CurrentVerticalFOV);
-                ViewWeaponMesh->SetMaterial(i, MatInstDynamic);
-                WMID.Add(MatInstDynamic);
-            }
-            WeaponMaterialMap.Add(WeaponTag, WMID);
-        }
+        ViewWeaponMesh->SetSkeletalMesh(NewWeaponMesh, WeaponTag);
 
         // temp
         ViewWeaponMesh->HideBoneByName(FName("gun_sight_attach"), EPhysBodyOp::PBO_None);
