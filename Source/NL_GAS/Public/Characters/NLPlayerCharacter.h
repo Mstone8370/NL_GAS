@@ -85,6 +85,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UControlShakeManager> ControlShakeManager;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TObjectPtr<UDataTable> FOV_Data;
+
 protected:
 	TObjectPtr<UNLCharacterMovementComponent> NLCharacterMovementComponent;
 

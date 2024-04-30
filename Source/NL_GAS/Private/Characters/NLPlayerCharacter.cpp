@@ -22,6 +22,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "UnrealClient.h"
 #include "Components/NLViewSkeletalMeshComponent.h"
+#include "Data/NLDataTableRows.h"
 
 ANLPlayerCharacter::ANLPlayerCharacter()
     : LookPitchRepTime(0.02f)
@@ -483,29 +484,26 @@ void ANLPlayerCharacter::OnADS(bool bInIsADS)
 
     bIsADS = bInIsADS;
 
-    // TEMP hardcoded value
     /**
     * ADS를 하면 배율에 맞게 카메라의 FOV를 조정
-    *   e.g.
-    *     아이언사이트 = 0.9 or 1.0
-    *     1.25x = 0.7
-    *     2x = 0.5
-    *     3x = 0.3333
-    * 
     * 뷰모델은 배율에 맞게 정해진 값으로 설정. 카메라의 FOV값에 영향 받지 않음.
     */
-    if (bIsADS)
+    float CameraTargetFOV = CameraComponent->GetBaseFOV();
+    float ViewMeshTargetFOV = ArmMesh->DefaultHFOV;
+    if (bIsADS && FOV_Data)
     {
-        CameraComponent->SetTargetFOV(CameraComponent->GetBaseFOV() * 0.9f);
-        ArmMesh->SetTargetHFOV(50.f);
-        ViewWeaponMesh->SetTargetHFOV(50.f);
+        FName FOVRowName = FName("ADS.1x");
+        // TODO: 배율에 따라 마우스 감도 값 변경.
+        if (FFOVModifyValue* DataRow = FOV_Data->FindRow<FFOVModifyValue>(FOVRowName, FString()))
+        {
+            CameraTargetFOV = CameraComponent->GetBaseFOV() * DataRow->CameraFOVMultiplier;
+            ViewMeshTargetFOV = DataRow->ViewModelHorizontalFOV;
+        }
     }
-    else
-    {
-        CameraComponent->SetTargetFOV(CameraComponent->GetBaseFOV());
-        ArmMesh->SetTargetHFOV(ArmMesh->DefaultHFOV);
-        ViewWeaponMesh->SetTargetHFOV(ViewWeaponMesh->DefaultHFOV);
-    }
+
+    CameraComponent->SetTargetFOV(CameraTargetFOV);
+    ArmMesh->SetTargetHFOV(ViewMeshTargetFOV);
+    ViewWeaponMesh->SetTargetHFOV(ViewMeshTargetFOV);
 }
 
 void ANLPlayerCharacter::GetCrouchedHalfHeightAdjust(float& OutHalfHeightAdjust, float& OutScaledHalfHeightAdjust) const

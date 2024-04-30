@@ -110,6 +110,7 @@ void UNLCharacterComponent::UpdateOwningCharacterMesh(AWeaponActor* OldWeaponAct
     if (IsValid(OldWeaponActor))
     {
         OldWeaponActor->SetActorHiddenInGame(true);
+        OldWeaponActor->WeaponMeshComponent->CastShadow = 0;
     }
 
     // Show Current Weapon
@@ -117,6 +118,7 @@ void UNLCharacterComponent::UpdateOwningCharacterMesh(AWeaponActor* OldWeaponAct
     if (IsValid(CurrentWeapon))
     {
         CurrentWeapon->SetActorHiddenInGame(false);
+        CurrentWeapon->WeaponMeshComponent->CastShadow = 1;
     }
 
     // Change Character Mesh AnimBP
@@ -154,9 +156,10 @@ void UNLCharacterComponent::OnWeaponHolstered()
 {
     bIsSwappingWeapon = false;
 
-    if (const AWeaponActor* PrevWeapon = GetCurrentWeaponActor())  // Could be nullptr
+    if (AWeaponActor* PrevWeapon = GetCurrentWeaponActor())  // Could be nullptr
     {
         GetNLASC()->WeaponHolstered(PrevWeapon);
+        PrevWeapon->Holstered();
     }
     const AWeaponActor* ChangedWeapon = GetWeaponActorAtSlot(WeaponSwapPendingSlot);
 
