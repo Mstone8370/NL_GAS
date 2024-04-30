@@ -90,6 +90,8 @@ protected:
 
 	void SetBulletNum_Internal(int32 NewBulletNum);
 
+	FGameplayTag IronsightADSFOVTag;
+
 public:
 	void InitalizeWeapon(const FGameplayTag& InWeaponTag);
 
@@ -106,6 +108,8 @@ public:
 	FORCEINLINE TSubclassOf<UAnimInstance> GetArmsAnimLayerClass() const { return ArmsAnimLayerClass; }
 
 	FORCEINLINE const FGameplayTag& GetWeaponTag() const { return WeaponTag; }
+
+	const FGameplayTag& GetADSFOVTag() const;
 
 	FORCEINLINE int32 GetCurrentBulletNum() const { return CurrentBulletNum; }
 

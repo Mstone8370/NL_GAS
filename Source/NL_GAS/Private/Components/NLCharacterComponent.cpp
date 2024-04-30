@@ -627,3 +627,12 @@ float UNLCharacterComponent::GetCurrentWeaponSpreadValue(bool bADS, bool bFallin
     }
     return 0.f;
 }
+
+const FGameplayTag UNLCharacterComponent::GetCurrentWeaponADSFOVTag() const
+{
+    if (const AWeaponActor* Weapon = GetCurrentWeaponActor())
+    {
+        return Weapon->GetADSFOVTag();
+    }
+    return FGameplayTag();
+}

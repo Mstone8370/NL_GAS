@@ -111,6 +111,8 @@ void AWeaponActor::InitalizeWeapon(const FGameplayTag& InWeaponTag)
 
 	SpreadInfo = Info->SpreadInfo;
 
+	IronsightADSFOVTag = Info->IronsightADSFOVTag;
+
 	// Initialize finished
 	bIsInitialized = true;
 
@@ -145,6 +147,12 @@ void AWeaponActor::SetWeaponState(bool bInIsEuipped)
 		WeaponMeshComponent->CastShadow = 1;
 		SetActorHiddenInGame(false);
 	}
+}
+
+const FGameplayTag& AWeaponActor::GetADSFOVTag() const
+{
+	// TODO:
+	return IronsightADSFOVTag;
 }
 
 bool AWeaponActor::CanAttack() const

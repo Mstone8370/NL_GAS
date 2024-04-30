@@ -83,6 +83,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float RecoilOffsetResetTime = .2f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FGameplayTag IronsightADSFOVTag;
 };
 
 UCLASS()

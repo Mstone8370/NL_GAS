@@ -493,12 +493,16 @@ void ANLPlayerCharacter::OnADS(bool bInIsADS)
     float LookSensitivityMultiplier = 1.f;
     if (bIsADS && FOV_Data)
     {
-        FName FOVRowName = FName("ADS.1x");
-        if (FFOVModifyValue* DataRow = FOV_Data->FindRow<FFOVModifyValue>(FOVRowName, FString()))
+        FGameplayTag FOVTag = NLCharacterComponent->GetCurrentWeaponADSFOVTag();
+        if (FOVTag.IsValid())
         {
-            CameraTargetFOV = CameraComponent->GetBaseFOV() * DataRow->CameraFOVMultiplier;
-            ViewMeshTargetFOV = DataRow->ViewModelHorizontalFOV;
-            LookSensitivityMultiplier = DataRow->LookSensitivityMultiplier;
+            FName FOVRowName = FOVTag.GetTagName();
+            if (FFOVModifyValue* DataRow = FOV_Data->FindRow<FFOVModifyValue>(FOVRowName, FString()))
+            {
+                CameraTargetFOV = CameraComponent->GetBaseFOV() * DataRow->CameraFOVMultiplier;
+                ViewMeshTargetFOV = DataRow->ViewModelHorizontalFOV;
+                LookSensitivityMultiplier = DataRow->LookSensitivityMultiplier;
+            }
         }
     }
 
