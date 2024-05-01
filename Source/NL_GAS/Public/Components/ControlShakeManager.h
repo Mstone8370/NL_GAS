@@ -36,13 +36,16 @@ protected:
 	FRotator DeltaShake;
 
 public:
-	void AddShake(float InDuration, UCurveVector* InCurve, FRotator InShakeMagnitude);
+	void AddShake(float InDuration, UCurveVector* InCurve, FRotator InShakeMagnitude, bool bInLoop = false);
 
 	UFUNCTION(BlueprintCallable)
 	void AddShake(FControlShakeParams Params);
 
 	UFUNCTION(BlueprintCallable)
 	void WeaponFired(const FGameplayTag& WeaponTag);
+
+	UFUNCTION(BlueprintCallable)
+	void ClearLoopingShake();
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
@@ -56,6 +59,9 @@ protected:
 
 	UPROPERTY()
 	TArray<TObjectPtr<UControlShake>> ExpiredPool;
+
+	UPROPERTY()
+	TObjectPtr<UControlShake> LoopingShake;
 
 	UControlShake* ReclaimShakeFromExpiredPool();
 

@@ -6,6 +6,8 @@
 #include "Engine/DataTable.h"
 #include "NLDataTableRows.generated.h"
 
+class UCurveVector;
+
 USTRUCT(BlueprintType)
 struct FFOVModifyValue : public FTableRowBase
 {
@@ -20,4 +22,7 @@ public:
 
     UPROPERTY(EditAnywhere)
     float LookSensitivityMultiplier;
+
+    UPROPERTY(EditAnywhere)
+    TObjectPtr<UCurveVector> LoopingControlShakeCurve;
 };

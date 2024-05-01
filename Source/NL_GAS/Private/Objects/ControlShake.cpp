@@ -7,10 +7,7 @@
 #include "Kismet/KismetMathLibrary.h"
 
 UControlShake::UControlShake()
-    : Duration(1.f)
-    , Curve(nullptr)
-    , ShakeMagnitude(1.f, 1.f, 1.f)
-    , bIsActive(true)
+    : bIsActive(true)
     , TimeElapsed(0.f)
 {}
 
@@ -18,38 +15,64 @@ bool UControlShake::UpdateShake(float DeltaTime, FRotator& OutShake)
 {
     OutShake = FRotator::ZeroRotator;
 
-    if (!bIsActive || !Curve)
+    if (!bIsActive || !ControlShakeParams.Curve)
     {
         return false;
     }
 
     TimeElapsed += DeltaTime;
     
-    const float CurveTime = UKismetMathLibrary::SafeDivide(TimeElapsed, Duration);
-    bIsActive = (CurveTime < 1.f);
+    float CurveTime = TimeElapsed;
+    if (ControlShakeParams.bLoop)
+    {
+        float CurveStart;
+        float CurveEnd;
+        ControlShakeParams.Curve->GetTimeRange(CurveStart, CurveEnd);
+        const float CurveLength = CurveEnd - CurveStart;
+        TimeElapsed = CurveStart + FMath::Fmod(TimeElapsed, CurveLength);  // TimeElapsed 값을 루프되게 함.
+        CurveTime = TimeElapsed;
+    }
+    else
+    {
+        CurveTime = UKismetMathLibrary::SafeDivide(TimeElapsed, ControlShakeParams.Duration);
+        bIsActive = (CurveTime < 1.f);
+    }
 
-    const FVector CurveValue = bIsActive ? Curve->GetVectorValue(CurveTime) : FVector::ZeroVector;
+    const FVector CurveValue = bIsActive ? ControlShakeParams.Curve->GetVectorValue(CurveTime) : FVector::ZeroVector;
     
     OutShake = FRotator(
-        ShakeMagnitude.Pitch * CurveValue.X,
-        ShakeMagnitude.Yaw * CurveValue.Y,
-        ShakeMagnitude.Roll * CurveValue.Z  // Roll only affects weapon mesh.
+        ControlShakeParams.ShakeMagnitude.Pitch * CurveValue.X,
+        ControlShakeParams.ShakeMagnitude.Yaw * CurveValue.Y,
+        ControlShakeParams.ShakeMagnitude.Roll * CurveValue.Z  // Roll only affects weapon mesh.
     );
+
+    if (!bIsActive)
+    {
+        Clear();
+    }
 
     return bIsActive;
 }
 
-void UControlShake::Activate(float InDuration, UCurveVector* InCurve, FRotator InShakeMagnitude)
+void UControlShake::Activate(float InDuration, UCurveVector* InCurve, FRotator InShakeMagnitude, bool bInLoop)
 {
     bIsActive = true;
     TimeElapsed = 0.f;
 
-    Duration = InDuration;
-    Curve = InCurve;
-    ShakeMagnitude = InShakeMagnitude;
+    ControlShakeParams.Duration = InDuration;
+    ControlShakeParams.Curve = InCurve;
+    ControlShakeParams.ShakeMagnitude = InShakeMagnitude;
+    ControlShakeParams.bLoop = bInLoop;
 }
 
-void UControlShake::Activate(FControlShakeParams Params)
+void UControlShake::Activate(FControlShakeParams InParams)
 {
-    Activate(Params.Duration, Params.Curve, Params.ShakeMagnitude);
+    Activate(InParams.Duration, InParams.Curve, InParams.ShakeMagnitude, InParams.bLoop);
+}
+
+void UControlShake::Clear()
+{
+    bIsActive = false;
+    TimeElapsed = 0.f;
+    ControlShakeParams.Clear();
 }

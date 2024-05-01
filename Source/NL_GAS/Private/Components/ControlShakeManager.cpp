@@ -37,6 +37,13 @@ void UControlShakeManager::UpdateShakes(float DeltaTime)
 {
     ShakeSum = FRotator::ZeroRotator;
 
+    if (LoopingShake)
+    {
+        FRotator ShakeValue;
+        LoopingShake->UpdateShake(DeltaTime, ShakeValue);
+        ShakeSum += ShakeValue;
+    }
+
     if (ActiveShakes.Num() < 1)
     {
         return;
@@ -85,20 +92,28 @@ void UControlShakeManager::ApplyShake(float DeltaTime)
     }
 }
 
-void UControlShakeManager::AddShake(float InDuration, UCurveVector* InCurve, FRotator InShakeMagnitude)
+void UControlShakeManager::AddShake(float InDuration, UCurveVector* InCurve, FRotator InShakeMagnitude, bool bInLoop)
 {
     UControlShake* Shake = ReclaimShakeFromExpiredPool();
     if (!Shake)
     {
         Shake = NewObject<UControlShake>(this);
     }
-    Shake->Activate(InDuration, InCurve, InShakeMagnitude);
-    ActiveShakes.Add(Shake);
+    Shake->Activate(InDuration, InCurve, InShakeMagnitude, bInLoop);
+    if (bInLoop)
+    {
+        ClearLoopingShake();
+        LoopingShake = Shake;
+    }
+    else
+    {
+        ActiveShakes.Add(Shake);
+    }
 }
 
 void UControlShakeManager::AddShake(FControlShakeParams Params)
 {
-    AddShake(Params.Duration, Params.Curve, Params.ShakeMagnitude);
+    AddShake(Params.Duration, Params.Curve, Params.ShakeMagnitude, Params.bLoop);
 }
 
 void UControlShakeManager::WeaponFired(const FGameplayTag& WeaponTag)
@@ -141,6 +156,15 @@ void UControlShakeManager::WeaponFired(const FGameplayTag& WeaponTag)
         ResetTime,
         false
     );
+}
+
+void UControlShakeManager::ClearLoopingShake()
+{
+    if (LoopingShake)
+    {
+        LoopingShake->Clear();
+        LoopingShake = nullptr;
+    }
 }
 
 UControlShake* UControlShakeManager::ReclaimShakeFromExpiredPool()

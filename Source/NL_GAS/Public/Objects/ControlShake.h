@@ -21,7 +21,18 @@ public:
 	TObjectPtr<UCurveVector> Curve;
 
 	UPROPERTY(BlueprintReadWrite)
-	FRotator ShakeMagnitude = FRotator(1.f, 1.f, 0.f);
+	FRotator ShakeMagnitude = FRotator(1.f, 1.f, 1.f);
+
+	UPROPERTY(BlueprintReadWrite)
+	bool bLoop = false;
+
+	void Clear()
+	{
+		Duration = 1.f;
+		Curve = nullptr;
+		ShakeMagnitude = FRotator(1.f, 1.f, 1.f);
+		bLoop = false;
+	}
 };
 
 UCLASS()
@@ -32,12 +43,7 @@ class NL_GAS_API UControlShake : public UObject
 public:
 	UControlShake();
 
-	float Duration;
-
-	UPROPERTY()
-	TObjectPtr<UCurveVector> Curve;
-
-	FRotator ShakeMagnitude;
+	FControlShakeParams ControlShakeParams;
 
 	/**
 	* Update time with given DeltaTime and return shake value.
@@ -45,11 +51,13 @@ public:
 	*/
 	bool UpdateShake(float DeltaTime, FRotator& OutShake);
 
-	void Activate(float InDuration, UCurveVector* InCurve, FRotator InShakeMagnitude);
+	void Activate(float InDuration, UCurveVector* InCurve, FRotator InShakeMagnitude, bool bInLoop = false);
 
-	void Activate(FControlShakeParams Params);
+	void Activate(FControlShakeParams InParams);
 
 	FORCEINLINE bool IsActive() const { return bIsActive; }
+
+	void Clear();
 
 protected:
 	bool bIsActive;

@@ -491,6 +491,7 @@ void ANLPlayerCharacter::OnADS(bool bInIsADS)
     float CameraTargetFOV = CameraComponent->GetBaseFOV();
     float ViewMeshTargetFOV = ArmMesh->DefaultHFOV;
     float LookSensitivityMultiplier = 1.f;
+    UCurveVector* LoopingControlShakeCurve = nullptr;
 
     if (bIsADS && FOV_Data)
     {
@@ -507,6 +508,7 @@ void ANLPlayerCharacter::OnADS(bool bInIsADS)
             CameraTargetFOV = CameraComponent->GetBaseFOV() * DataRow->CameraFOVMultiplier;
             ViewMeshTargetFOV = DataRow->ViewModelHorizontalFOV;
             LookSensitivityMultiplier = DataRow->LookSensitivityMultiplier;
+            LoopingControlShakeCurve = DataRow->LoopingControlShakeCurve;
         }
     }
 
@@ -517,6 +519,15 @@ void ANLPlayerCharacter::OnADS(bool bInIsADS)
     if (GetNLPC())
     {
         GetNLPC()->SetLookSensitivity(GetNLPC()->GetBaseLookSensitivity() * LookSensitivityMultiplier);
+    }
+
+    if (LoopingControlShakeCurve)
+    {
+        ControlShakeManager->AddShake(1, LoopingControlShakeCurve, FRotator(1.f, 1.f, 1.f), true);
+    }
+    else
+    {
+        ControlShakeManager->ClearLoopingShake();
     }
 }
 
