@@ -31,11 +31,6 @@ AWeaponActor::AWeaponActor()
 	WeaponMeshComponent->SetMassOverrideInKg(NAME_None, 2.f, true);
 	WeaponMeshComponent->bOwnerNoSee = true;
 	SetRootComponent(WeaponMeshComponent);
-
-	if (WeaponTag.IsValid())
-	{
-		InitalizeWeapon(WeaponTag);
-	}
 }
 
 void AWeaponActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -50,7 +45,7 @@ void AWeaponActor::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	InitalizeWeapon(WeaponTag);
+	InitializeWeapon(WeaponTag);
 }
 
 void AWeaponActor::OnRep_CurrentBulletNum(int32 OldNum)
@@ -59,7 +54,7 @@ void AWeaponActor::OnRep_CurrentBulletNum(int32 OldNum)
 	BulletNumChanged.Broadcast(this, CurrentBulletNum);
 }
 
-void AWeaponActor::InitalizeWeapon(const FGameplayTag& InWeaponTag)
+void AWeaponActor::InitializeWeapon(const FGameplayTag& InWeaponTag)
 {
 	if (bIsInitialized)
 	{

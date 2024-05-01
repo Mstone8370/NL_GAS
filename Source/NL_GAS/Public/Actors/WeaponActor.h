@@ -93,7 +93,8 @@ protected:
 	FGameplayTag IronsightADSFOVTag;
 
 public:
-	void InitalizeWeapon(const FGameplayTag& InWeaponTag);
+	UFUNCTION(BlueprintCallable)
+	void InitializeWeapon(const FGameplayTag& InWeaponTag);
 
 	FORCEINLINE bool IsEquipped() const { return bIsEquipped; }
 

@@ -9,6 +9,7 @@
 #include "NLGameInstance.h"
 #include "Data/WeaponInfo.h"
 #include "HUD/NLHUD.h"
+#include "EditorAssetLibrary.h"
 
 const FWeaponInfo* UNLFunctionLibrary::GetWeaponInfoByTag(const UObject* WorldContextObject, const FGameplayTag& WeaponTag)
 {
@@ -21,6 +22,18 @@ const FWeaponInfo* UNLFunctionLibrary::GetWeaponInfoByTag(const UObject* WorldCo
                 return InfoList->FindTaggedWeaponInfoByTag(WeaponTag);
             }
         }
+#if WITH_EDITOR
+        else
+        {
+            if (UObject* Asset = UEditorAssetLibrary::LoadAsset(FString("/Script/NL_GAS.TaggedWeaponInfoList'/Game/Blueprints/Data/DA_TaggedWeaponInfoList.DA_TaggedWeaponInfoList'")))
+            {
+                if (UTaggedWeaponInfoList* InfoList = Cast<UTaggedWeaponInfoList>(Asset))
+                {
+                    return InfoList->FindTaggedWeaponInfoByTag(WeaponTag);
+                }
+            }
+        }
+#endif
     }
     return nullptr;
 }

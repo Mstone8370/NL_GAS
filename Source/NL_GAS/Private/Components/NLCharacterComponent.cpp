@@ -70,7 +70,7 @@ void UNLCharacterComponent::AddStartupWeapons()
             ESpawnActorCollisionHandlingMethod::AlwaysSpawn
         );
 
-        Weapon->InitalizeWeapon(WeaponTag);
+        Weapon->InitializeWeapon(WeaponTag);
         FAttachmentTransformRules AttachRule = FAttachmentTransformRules::SnapToTargetNotIncludingScale;
         AttachRule.RotationRule = EAttachmentRule::KeepRelative;
         Weapon->AttachToComponent(GetOwningPlayer()->GetMesh(), AttachRule, FName("weapon_r"));
