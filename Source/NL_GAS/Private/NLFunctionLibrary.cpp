@@ -25,7 +25,8 @@ const FWeaponInfo* UNLFunctionLibrary::GetWeaponInfoByTag(const UObject* WorldCo
 #if WITH_EDITOR
         else
         {
-            if (UObject* Asset = UEditorAssetLibrary::LoadAsset(FString("/Script/NL_GAS.TaggedWeaponInfoList'/Game/Blueprints/Data/DA_TaggedWeaponInfoList.DA_TaggedWeaponInfoList'")))
+            FString AssetPath = "/Game/Blueprints/Data/DA_TaggedWeaponInfoList";
+            if (UObject* Asset = UEditorAssetLibrary::LoadAsset(AssetPath))
             {
                 if (UTaggedWeaponInfoList* InfoList = Cast<UTaggedWeaponInfoList>(Asset))
                 {

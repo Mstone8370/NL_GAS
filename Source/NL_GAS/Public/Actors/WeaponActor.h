@@ -94,7 +94,7 @@ protected:
 
 public:
 	UFUNCTION(BlueprintCallable)
-	void InitializeWeapon(const FGameplayTag& InWeaponTag);
+	void InitializeWeapon(const FGameplayTag& InWeaponTag, bool bForceInit = false);
 
 	FORCEINLINE bool IsEquipped() const { return bIsEquipped; }
 

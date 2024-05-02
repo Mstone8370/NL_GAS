@@ -54,16 +54,16 @@ void AWeaponActor::OnRep_CurrentBulletNum(int32 OldNum)
 	BulletNumChanged.Broadcast(this, CurrentBulletNum);
 }
 
-void AWeaponActor::InitializeWeapon(const FGameplayTag& InWeaponTag)
+void AWeaponActor::InitializeWeapon(const FGameplayTag& InWeaponTag, bool bForceInit)
 {
-	if (bIsInitialized)
-	{
-		return;
-	}
-
 	if (!InWeaponTag.IsValid())
 	{
 		UE_LOG(LogTemp, Error, TEXT("[%s] WeaponActor Initialize failed. WeaponTag is not valid"), *GetNameSafe(this));
+		return;
+	}
+
+	if (!bForceInit && bIsInitialized)
+	{
 		return;
 	}
 
