@@ -14,6 +14,7 @@ struct FControlShakeParams
 	GENERATED_BODY()
 
 public:
+	// To make it loop, set value to 0
 	UPROPERTY(BlueprintReadWrite)
 	float Duration = 1.f;
 
@@ -23,15 +24,11 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	FRotator ShakeMagnitude = FRotator(1.f, 1.f, 1.f);
 
-	UPROPERTY(BlueprintReadWrite)
-	bool bLoop = false;
-
 	void Clear()
 	{
 		Duration = 1.f;
 		Curve = nullptr;
 		ShakeMagnitude = FRotator(1.f, 1.f, 1.f);
-		bLoop = false;
 	}
 };
 
@@ -51,7 +48,7 @@ public:
 	*/
 	bool UpdateShake(float DeltaTime, FRotator& OutShake);
 
-	void Activate(float InDuration, UCurveVector* InCurve, FRotator InShakeMagnitude, bool bInLoop = false);
+	void Activate(float InDuration, UCurveVector* InCurve, FRotator InShakeMagnitude);
 
 	void Activate(FControlShakeParams InParams);
 

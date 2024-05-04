@@ -523,7 +523,7 @@ void ANLPlayerCharacter::OnADS(bool bInIsADS)
 
     if (LoopingControlShakeCurve)
     {
-        ControlShakeManager->AddShake(1, LoopingControlShakeCurve, FRotator(1.f, 1.f, 1.f), true);
+        ControlShakeManager->AddShake(-1.f, LoopingControlShakeCurve, FRotator(1.f, 1.f, 1.f), true);
     }
     else
     {

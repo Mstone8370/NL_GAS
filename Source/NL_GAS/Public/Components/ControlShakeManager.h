@@ -39,7 +39,7 @@ public:
 	void AddShake(float InDuration, UCurveVector* InCurve, FRotator InShakeMagnitude, bool bInLoop = false);
 
 	UFUNCTION(BlueprintCallable)
-	void AddShake(FControlShakeParams Params);
+	void AddShake(FControlShakeParams Params, bool bInLoop = false);
 
 	UFUNCTION(BlueprintCallable)
 	void WeaponFired(const FGameplayTag& WeaponTag);

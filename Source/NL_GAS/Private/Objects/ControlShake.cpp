@@ -23,11 +23,13 @@ bool UControlShake::UpdateShake(float DeltaTime, FRotator& OutShake)
     TimeElapsed += DeltaTime;
     
     float CurveTime = TimeElapsed;
-    if (ControlShakeParams.bLoop)
+    if (ControlShakeParams.Duration <= 0.f)
     {
+        // Looping Shake
         float CurveStart;
         float CurveEnd;
         ControlShakeParams.Curve->GetTimeRange(CurveStart, CurveEnd);
+
         const float CurveLength = CurveEnd - CurveStart;
         TimeElapsed = CurveStart + FMath::Fmod(TimeElapsed, CurveLength);  // TimeElapsed 값을 루프되게 함.
         CurveTime = TimeElapsed;
@@ -54,7 +56,7 @@ bool UControlShake::UpdateShake(float DeltaTime, FRotator& OutShake)
     return bIsActive;
 }
 
-void UControlShake::Activate(float InDuration, UCurveVector* InCurve, FRotator InShakeMagnitude, bool bInLoop)
+void UControlShake::Activate(float InDuration, UCurveVector* InCurve, FRotator InShakeMagnitude)
 {
     bIsActive = true;
     TimeElapsed = 0.f;
@@ -62,12 +64,11 @@ void UControlShake::Activate(float InDuration, UCurveVector* InCurve, FRotator I
     ControlShakeParams.Duration = InDuration;
     ControlShakeParams.Curve = InCurve;
     ControlShakeParams.ShakeMagnitude = InShakeMagnitude;
-    ControlShakeParams.bLoop = bInLoop;
 }
 
 void UControlShake::Activate(FControlShakeParams InParams)
 {
-    Activate(InParams.Duration, InParams.Curve, InParams.ShakeMagnitude, InParams.bLoop);
+    Activate(InParams.Duration, InParams.Curve, InParams.ShakeMagnitude);
 }
 
 void UControlShake::Clear()

@@ -99,21 +99,23 @@ void UControlShakeManager::AddShake(float InDuration, UCurveVector* InCurve, FRo
     {
         Shake = NewObject<UControlShake>(this);
     }
-    Shake->Activate(InDuration, InCurve, InShakeMagnitude, bInLoop);
+
     if (bInLoop)
     {
         ClearLoopingShake();
         LoopingShake = Shake;
+        InDuration = -1.f;
     }
     else
     {
         ActiveShakes.Add(Shake);
     }
+    Shake->Activate(InDuration, InCurve, InShakeMagnitude);
 }
 
-void UControlShakeManager::AddShake(FControlShakeParams Params)
+void UControlShakeManager::AddShake(FControlShakeParams Params, bool bInLoop)
 {
-    AddShake(Params.Duration, Params.Curve, Params.ShakeMagnitude, Params.bLoop);
+    AddShake(Params.Duration, Params.Curve, Params.ShakeMagnitude, bInLoop);
 }
 
 void UControlShakeManager::WeaponFired(const FGameplayTag& WeaponTag)
