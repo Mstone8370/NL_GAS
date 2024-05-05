@@ -82,9 +82,6 @@ public:
 	FWeaponSpreadInfo SpreadInfo;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	float RecoilOffsetResetTime = .2f;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FGameplayTag IronsightADSFOVTag;
 };
 

@@ -73,9 +73,6 @@ protected:
 	UPROPERTY()
 	TMap<FGameplayTag, FTimerHandle> RecoilOffsetResetTimersMap;
 
-	UPROPERTY()
-	TMap<FGameplayTag, float> RecoilOffsetResetTimes;
-
 	void ResetRecoilOffset(const FGameplayTag& WeaponTag);
 
 public:

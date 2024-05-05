@@ -23,6 +23,4 @@ public:
 	static const FWeaponInfo* GetWeaponInfoByTag(const UObject* WorldContextObject, const FGameplayTag& WeaponTag);
 
 	static const FTaggedAnimMontageInfo* GetAnimMontageByTag(const UObject* WorldContextObject, const FGameplayTag& WeaponTag, const FGameplayTag& MontageTag);
-
-	static const float GetRecoilResetTimeByTag(const UObject* WorldContextObject, const FGameplayTag& WeaponTag);
 };

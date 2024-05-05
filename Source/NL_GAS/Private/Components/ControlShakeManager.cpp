@@ -5,7 +5,6 @@
 
 #include "GameFramework/Character.h"
 #include "Data/WeaponRecoilPattern.h"
-#include "NLFunctionLibrary.h"
 
 UControlShakeManager::UControlShakeManager()
     : ShakeSum(FRotator::ZeroRotator)
@@ -85,10 +84,10 @@ void UControlShakeManager::ApplyShake(float DeltaTime)
     DeltaShake = ShakeSum - ShakeSumPrev;
     ShakeSumPrev = ShakeSum;
 
-    if (OwningCharacter)
+    if (ACharacter* Character = GetOwningCharacter())
     {
-        OwningCharacter->AddControllerPitchInput(DeltaShake.Pitch);
-        OwningCharacter->AddControllerYawInput(DeltaShake.Yaw);
+        Character->AddControllerPitchInput(DeltaShake.Pitch);
+        Character->AddControllerYawInput(DeltaShake.Yaw);
     }
 }
 
@@ -139,16 +138,7 @@ void UControlShakeManager::WeaponFired(const FGameplayTag& WeaponTag)
 
     WeaponRecoilOffset++;
 
-    float ResetTime = 0.2f; // Default Value
-    if (RecoilOffsetResetTimes.Contains(WeaponTag))
-    {
-        ResetTime = RecoilOffsetResetTimes[WeaponTag];
-    }
-    else
-    {
-        ResetTime = UNLFunctionLibrary::GetRecoilResetTimeByTag(GetOwner(), WeaponTag);
-        RecoilOffsetResetTimes.Add(WeaponTag, ResetTime);
-    }
+    float ResetTime = Info.RecoilOffsetResetTime;
     GetWorld()->GetTimerManager().SetTimer(
         WeaponRecoilOffsetResetTimer,
         [this, WeaponTag]()

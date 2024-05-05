@@ -25,6 +25,9 @@ public:
 	int32 LoopEndOffset;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float RecoilOffsetResetTime = 0.5f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TObjectPtr<UCurveVector> SingleRecoilCurve;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
