@@ -109,6 +109,11 @@ void ANLPlayerCharacter::BeginPlay()
     {
         FViewport::ViewportResizedEvent.AddUObject(this, &ANLPlayerCharacter::OnViewportResized);
     }
+
+    if (ControlShakeManager && LoopingShakeCurve_Idle)
+    {
+        ControlShakeManager->AddShake(-1.f, LoopingShakeCurve_Idle, FRotator(1.f, 1.f, 0.f), true);
+    }
 }
 
 bool ANLPlayerCharacter::CanJumpInternal_Implementation() const
@@ -491,7 +496,7 @@ void ANLPlayerCharacter::OnADS(bool bInIsADS)
     float CameraTargetFOV = CameraComponent->GetBaseFOV();
     float ViewMeshTargetFOV = ArmMesh->DefaultHFOV;
     float LookSensitivityMultiplier = 1.f;
-    UCurveVector* LoopingControlShakeCurve = nullptr;
+    UCurveVector* LoopingControlShakeCurve = LoopingShakeCurve_Idle;
 
     if (bIsADS && FOV_Data)
     {

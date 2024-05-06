@@ -99,8 +99,13 @@ void UControlShakeManager::AddShake(float InDuration, UCurveVector* InCurve, FRo
         Shake = NewObject<UControlShake>(this);
     }
 
-    if (bInLoop)
+    if (bInLoop || InDuration <= 0)
     {
+        if (LoopingShake && InCurve == LoopingShake->ControlShakeParams.Curve)
+        {
+            return;
+        }
+
         ClearLoopingShake();
         LoopingShake = Shake;
         InDuration = -1.f;

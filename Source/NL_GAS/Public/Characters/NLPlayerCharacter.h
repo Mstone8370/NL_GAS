@@ -146,6 +146,9 @@ protected:
 
 	void OnADS(bool bInIsADS);
 
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<UCurveVector> LoopingShakeCurve_Idle;
+
 public:
 	void GetCrouchedHalfHeightAdjust(float& OutHalfHeightAdjust, float& OutScaledHalfHeightAdjust) const;
 
