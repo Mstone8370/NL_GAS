@@ -10,6 +10,7 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWeaponSlotUpdatedSignature, const TArray<FGameplayTag>&, WeaponSlot);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FCurrentWeaponUpdatedSignature, const FGameplayTag&, WeaponTag, const int32, SlotNum);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FBulletNumUpdatedSignature, const int32, BulletNum);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAttributeUpdatedSignature, float, Value);
 
 /**
  * 
@@ -32,6 +33,12 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FBulletNumUpdatedSignature BulletNumUpdated;
+
+	UPROPERTY(BlueprintAssignable)
+	FAttributeUpdatedSignature HealthUpdated;
+
+	UPROPERTY(BlueprintAssignable)
+	FAttributeUpdatedSignature MaxHealthUpdated;
 
 protected:
 	UFUNCTION()

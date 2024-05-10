@@ -13,6 +13,7 @@ class UAbilitySystemComponent;
 class UAttributeSet;
 class UGameplayAbility;
 class UNLCharacterComponent;
+class UGameplayEffect;
 
 UCLASS(Abstract)
 class NL_GAS_API ANLCharacterBase : public ACharacter, public IAbilitySystemInterface, public ICombatInterface
@@ -49,6 +50,11 @@ protected:
 	virtual void InitAbilityActorInfo();
 
 	void AddStartupAbilities();
+
+	void InitDefaultAttribute();
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TSubclassOf<UGameplayEffect> DefaultAttribute;
 
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Ability")

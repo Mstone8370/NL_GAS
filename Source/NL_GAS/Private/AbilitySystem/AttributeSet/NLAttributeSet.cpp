@@ -12,6 +12,7 @@ void UNLAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
     /**
     * Default Attribute
     */
+    DOREPLIFETIME_CONDITION_NOTIFY(UNLAttributeSet, MaxHealth, COND_None, REPNOTIFY_Always);
     DOREPLIFETIME_CONDITION_NOTIFY(UNLAttributeSet, Health, COND_None, REPNOTIFY_Always);
 }
 
@@ -25,6 +26,11 @@ void UNLAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute, f
 
 void UNLAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
 {
+}
+
+void UNLAttributeSet::OnRep_MaxHealth(const FGameplayAttributeData& OldHealth) const
+{
+    GAMEPLAYATTRIBUTE_REPNOTIFY(UNLAttributeSet, MaxHealth, OldHealth);
 }
 
 void UNLAttributeSet::OnRep_Health(const FGameplayAttributeData& OldHealth) const

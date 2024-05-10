@@ -43,3 +43,19 @@ void ANLCharacterBase::AddStartupAbilities()
         NLASC->AddAbilities(StartupAbilities);
     }
 }
+
+void ANLCharacterBase::InitDefaultAttribute()
+{
+    check(AbilitySystemComponent);
+
+    if (DefaultAttribute)
+    {
+        FGameplayEffectContextHandle ContextHandle = AbilitySystemComponent->MakeEffectContext();
+        ContextHandle.AddInstigator(this, this);
+        ContextHandle.AddSourceObject(this);
+
+        const FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(DefaultAttribute, 1.f, ContextHandle);
+
+        AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+    }
+}

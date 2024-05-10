@@ -34,11 +34,6 @@ void ANLPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 
 }
 
-void ANLPlayerState::BeginPlay()
-{
-    Super::BeginPlay();
-}
-
 UAbilitySystemComponent* ANLPlayerState::GetAbilitySystemComponent() const
 {
     return AbilitySystemComponent;

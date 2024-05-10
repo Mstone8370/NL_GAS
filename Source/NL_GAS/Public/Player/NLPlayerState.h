@@ -28,8 +28,6 @@ public:
 	TArray<FGameplayTag> StartupWeapons;
 
 protected:
-	virtual void BeginPlay() override;
-
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 	

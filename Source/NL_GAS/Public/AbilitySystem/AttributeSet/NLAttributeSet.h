@@ -30,6 +30,14 @@ public:
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
 
 	// Default Attributes
+	UPROPERTY(BlueprintReadOnly, Category = "Default Attributes", ReplicatedUsing = OnRep_MaxHealth);
+	FGameplayAttributeData MaxHealth;
+
+	ATTRIBUTE_ACCESSORS(UNLAttributeSet, MaxHealth);
+
+	UFUNCTION()
+	void OnRep_MaxHealth(const FGameplayAttributeData& OldHealth) const;
+
 	UPROPERTY(BlueprintReadOnly, Category = "Default Attributes", ReplicatedUsing = OnRep_Health);
 	FGameplayAttributeData Health;
 

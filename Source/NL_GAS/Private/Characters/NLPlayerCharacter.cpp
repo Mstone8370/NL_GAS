@@ -131,7 +131,10 @@ void ANLPlayerCharacter::InitAbilityActorInfo()
     AbilitySystemComponent->InitAbilityActorInfo(PS, this);
 
     AttributeSet = PS->GetAttributeSet();
-    // TODO: Init Default Attributes
+    if (HasAuthority())
+    {
+        InitDefaultAttribute();
+    }
 
     AbilitySystemComponent->RegisterGameplayTagEvent(Ability_Weapon_Secondary, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ANLPlayerCharacter::OnGameplayTagCountChanged);
 
