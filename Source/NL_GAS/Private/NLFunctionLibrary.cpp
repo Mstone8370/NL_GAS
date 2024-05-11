@@ -53,3 +53,7 @@ const FTaggedAnimMontageInfo* UNLFunctionLibrary::GetAnimMontageByTag(const UObj
     }
     return nullptr;
 }
+
+void UNLFunctionLibrary::ApplyDamageEffect(const FDamageEffectParams& Params)
+{
+}

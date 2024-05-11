@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "GameplayTagContainer.h"
+#include "AbilitySystem/NLAbilitySystemTypes.h"
 #include "NLFunctionLibrary.generated.h"
 
 struct FWeaponInfo;
@@ -23,4 +24,7 @@ public:
 	static const FWeaponInfo* GetWeaponInfoByTag(const UObject* WorldContextObject, const FGameplayTag& WeaponTag);
 
 	static const FTaggedAnimMontageInfo* GetAnimMontageByTag(const UObject* WorldContextObject, const FGameplayTag& WeaponTag, const FGameplayTag& MontageTag);
+
+	UFUNCTION(BlueprintCallable, Category = "NLFunctionLibrary")
+	static void ApplyDamageEffect(const FDamageEffectParams& Params);
 };
