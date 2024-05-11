@@ -36,7 +36,19 @@ struct FNLGameplayEffectContext : public FGameplayEffectContext
 
 	virtual bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess);
 
+	UPROPERTY()
+	bool bIsCriticalHit = false;
 
+	UPROPERTY()
+	bool bIsRadialDamage = false;
+
+	TSharedPtr<FGameplayTag> DamageType;
+
+	UPROPERTY()
+	float KnockbackMagnitude = 0.f;
+
+	UPROPERTY()
+	float AimPunch = 0.f;
 };
 
 template<>
@@ -58,8 +70,37 @@ struct FDamageEffectParams
 {
 	GENERATED_BODY()
 
-	FDamageEffectParams() 
+	FDamageEffectParams()
+		: DamageGameplayEffectClass(nullptr)
+		, SourceASC(nullptr)
+		, TargetASC(nullptr)
+		, BaseDamage(0.f)
+		, DamageType(FGameplayTag())
+		, KnockbackMagnitude(0.f)
+		, bIsRadialDamage(false)
 	{}
 
+	UPROPERTY(BlueprintReadWrite)
+	TSubclassOf<UGameplayEffect> DamageGameplayEffectClass;
 
+	UPROPERTY(BlueprintReadWrite)
+	TObjectPtr<UAbilitySystemComponent> SourceASC;
+
+	UPROPERTY(BlueprintReadWrite)
+	TObjectPtr<UAbilitySystemComponent> TargetASC;
+
+	UPROPERTY(BlueprintReadWrite)
+	FHitResult HitResult;
+
+	UPROPERTY(BlueprintReadWrite)
+	float BaseDamage;
+
+	UPROPERTY(BlueprintReadWrite)
+	FGameplayTag DamageType;
+
+	UPROPERTY(BlueprintReadWrite)
+	float KnockbackMagnitude;
+
+	UPROPERTY(BlueprintReadWrite)
+	bool bIsRadialDamage;
 };

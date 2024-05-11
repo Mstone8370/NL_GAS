@@ -10,6 +10,7 @@
 #include "Data/WeaponInfo.h"
 #include "HUD/NLHUD.h"
 #include "EditorAssetLibrary.h"
+#include "AbilitySystemComponent.h"
 
 const FWeaponInfo* UNLFunctionLibrary::GetWeaponInfoByTag(const UObject* WorldContextObject, const FGameplayTag& WeaponTag)
 {
@@ -56,4 +57,22 @@ const FTaggedAnimMontageInfo* UNLFunctionLibrary::GetAnimMontageByTag(const UObj
 
 void UNLFunctionLibrary::ApplyDamageEffect(const FDamageEffectParams& Params)
 {
+    if (!Params.SourceASC)
+    {
+        return;
+    }
+
+    FGameplayEffectContextHandle ContextHandle = Params.SourceASC->MakeEffectContext();
+    ContextHandle.AddSourceObject(Params.SourceASC->GetAvatarActor());
+    ContextHandle.AddHitResult(Params.HitResult);
+
+    if (FNLGameplayEffectContext* NLContext = static_cast<FNLGameplayEffectContext*>(ContextHandle.Get()))
+    {
+        // TODO: Set NLGameplayEffectContext
+    }
+
+    FGameplayEffectSpecHandle SpecHandle = Params.SourceASC->MakeOutgoingSpec(Params.DamageGameplayEffectClass, 1.f, ContextHandle);
+    // TODO: Set IncommingDamage attribute value (set by caller magnitude)
+
+    Params.SourceASC->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), Params.TargetASC);
 }
