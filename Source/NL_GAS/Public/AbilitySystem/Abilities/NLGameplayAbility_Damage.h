@@ -57,5 +57,5 @@ public:
 	* Context를 설정할 때 경우에 따라서 이 구조체에 없는 정보를 상황에 맞게 설정해야할 필요가 있음.
 	*/
 	UFUNCTION(BlueprintCallable, BlueprintPure)
-	FDamageEffectParams MakeDamageEffectParams(AActor* OtherActor = nullptr, FHitResult InHitResult = FHitResult());
+	FDamageEffectParams MakeDamageEffectParams(AActor* OtherActor = nullptr, FHitResult InHitResult = FHitResult()) const;
 };

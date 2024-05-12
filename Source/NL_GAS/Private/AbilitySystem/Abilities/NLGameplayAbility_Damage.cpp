@@ -17,7 +17,7 @@ void UNLGameplayAbility_Damage::CauseDamage(FHitResult InHitResult)
     FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(DamageEffectClass);
 
     const float DamageMagnitude = DamageScalableFloat.GetValueAtLevel(InHitResult.Distance);
-    // TODO: 데미지 설정.
+    // TODO: Set Damage.
     //UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, DamageType, DamageMagnitude);
 
     if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(InHitResult.GetActor()))
@@ -26,7 +26,7 @@ void UNLGameplayAbility_Damage::CauseDamage(FHitResult InHitResult)
     }
 }
 
-FDamageEffectParams UNLGameplayAbility_Damage::MakeDamageEffectParams(AActor* OtherActor, FHitResult InHitResult)
+FDamageEffectParams UNLGameplayAbility_Damage::MakeDamageEffectParams(AActor* OtherActor, FHitResult InHitResult) const
 {
     FDamageEffectParams Params;
 
