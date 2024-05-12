@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameplayEffectTypes.h"
 #include "GameplayTagContainer.h"
+#include "ScalableFloat.h"
 #include "NLAbilitySystemTypes.generated.h"
 
 class UGameplayEffect;
@@ -36,19 +37,28 @@ struct FNLGameplayEffectContext : public FGameplayEffectContext
 
 	virtual bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess);
 
+	TSharedPtr<FGameplayTag> DamageType;
+
 	UPROPERTY()
-	bool bIsCriticalHit = false;
+	bool bCanCriticalHit = false;
 
 	UPROPERTY()
 	bool bIsRadialDamage = false;
 
-	TSharedPtr<FGameplayTag> DamageType;
+	UPROPERTY()
+	FVector RadialDamageOrigin = FVector::ZeroVector;
+
+	UPROPERTY()
+	float RadialDamageInnerRadius = 0.f;
+
+	UPROPERTY()
+	float RadialDamageOuterRadius = 0.f;
 
 	UPROPERTY()
 	float KnockbackMagnitude = 0.f;
 
 	UPROPERTY()
-	float AimPunch = 0.f;
+	float AimPunchMagnitude = 0.f;
 };
 
 template<>
@@ -74,8 +84,11 @@ struct FDamageEffectParams
 		: DamageGameplayEffectClass(nullptr)
 		, SourceASC(nullptr)
 		, TargetASC(nullptr)
-		, BaseDamage(0.f)
+		, HitResult(FHitResult())
 		, DamageType(FGameplayTag())
+		, bCanCriticalHit(false)
+		, DamageScalableFloat(FScalableFloat())
+		, TravelDistance(0.f)
 		, KnockbackMagnitude(0.f)
 		, bIsRadialDamage(false)
 	{}
@@ -93,10 +106,16 @@ struct FDamageEffectParams
 	FHitResult HitResult;
 
 	UPROPERTY(BlueprintReadWrite)
-	float BaseDamage;
+	FGameplayTag DamageType;
 
 	UPROPERTY(BlueprintReadWrite)
-	FGameplayTag DamageType;
+	bool bCanCriticalHit;
+
+	UPROPERTY(BlueprintReadWrite)
+	FScalableFloat DamageScalableFloat;
+
+	UPROPERTY(BlueprintReadWrite)
+	float TravelDistance;
 
 	UPROPERTY(BlueprintReadWrite)
 	float KnockbackMagnitude;
