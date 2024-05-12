@@ -5,7 +5,7 @@
 
 bool FNLGameplayEffectContext::NetSerialize(FArchive& Ar, UPackageMap* Map, bool& bOutSuccess)
 {
-	uint8 RepBits = 0;
+	uint16 RepBits = 0;
 	if (Ar.IsSaving())
 	{
 		if (bReplicateInstigator && Instigator.IsValid())
@@ -36,9 +36,29 @@ bool FNLGameplayEffectContext::NetSerialize(FArchive& Ar, UPackageMap* Map, bool
 		{
 			RepBits |= 1 << 6;
 		}
+		if (DamageType.IsValid())
+		{
+			RepBits |= 1 << 7;
+		}
+		if (bCanCriticalHit)
+		{
+			RepBits |= 1 << 8;
+		}
+		if (bIsRadialDamage)
+		{
+			RepBits |= 1 << 9;
+		}
+		if (KnockbackMagnitude > 0.f)
+		{
+			RepBits |= 1 << 10;
+		}
+		if (AimPunchMagnitude)
+		{
+			RepBits |= 1 << 11;
+		}
 	}
 
-	Ar.SerializeBits(&RepBits, 7);
+	Ar.SerializeBits(&RepBits, 12);
 
 	if (RepBits & (1 << 0))
 	{
@@ -80,6 +100,37 @@ bool FNLGameplayEffectContext::NetSerialize(FArchive& Ar, UPackageMap* Map, bool
 	{
 		bHasWorldOrigin = false;
 	}
+	if (RepBits & (1 << 7))
+	{
+		if (Ar.IsLoading())
+		{
+			if (!DamageType.IsValid())
+			{
+				DamageType = TSharedPtr<FGameplayTag>(new FGameplayTag());
+			}
+		}
+		DamageType->NetSerialize(Ar, Map, bOutSuccess);
+	}
+	if (RepBits & (1 << 8))
+	{
+		bCanCriticalHit = true;
+	}
+	if (RepBits & (1 << 9))
+	{
+		bIsRadialDamage = true;
+		RadialDamageOrigin.NetSerialize(Ar, Map, bOutSuccess);
+		Ar << RadialDamageInnerRadius;
+		Ar << RadialDamageOuterRadius;
+	}
+	if (RepBits & (1 << 10))
+	{
+		Ar << KnockbackMagnitude;
+	}
+	if (RepBits & (1 << 11))
+	{
+		Ar << AimPunchMagnitude;
+	}
+
 
 	if (Ar.IsLoading())
 	{
