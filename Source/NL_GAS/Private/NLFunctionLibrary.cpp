@@ -11,6 +11,7 @@
 #include "HUD/NLHUD.h"
 #include "EditorAssetLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "NLGameplayTags.h"
 
 const FWeaponInfo* UNLFunctionLibrary::GetWeaponInfoByTag(const UObject* WorldContextObject, const FGameplayTag& WeaponTag)
 {
@@ -69,10 +70,22 @@ void UNLFunctionLibrary::ApplyDamageEffect(const FDamageEffectParams& Params)
     if (FNLGameplayEffectContext* NLContext = static_cast<FNLGameplayEffectContext*>(ContextHandle.Get()))
     {
         // TODO: Set NLGameplayEffectContext
+        NLContext->bCanCriticalHit = Params.bCanCriticalHit;
+        NLContext->bIsRadialDamage = Params.bIsRadialDamage;
+        if (NLContext->bIsRadialDamage)
+        {
+            NLContext->RadialDamageOrigin;
+            NLContext->RadialDamageInnerRadius;
+            NLContext->RadialDamageOuterRadius;
+        }
+        NLContext->KnockbackMagnitude = Params.KnockbackMagnitude;
+        NLContext->AimPunchMagnitude;
     }
 
     FGameplayEffectSpecHandle SpecHandle = Params.SourceASC->MakeOutgoingSpec(Params.DamageGameplayEffectClass, 1.f, ContextHandle);
-    // TODO: Set IncommingDamage attribute value (set by caller magnitude)
+    
+    float Damage = Params.DamageScalableFloat.GetValueAtLevel(Params.TravelDistance);
+    UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, Attribute_Meta_IncomingDamage, Damage);
 
     Params.SourceASC->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), Params.TargetASC);
 }

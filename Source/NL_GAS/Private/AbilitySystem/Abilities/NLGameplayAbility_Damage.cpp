@@ -6,6 +6,7 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystem/NLAbilitySystemTypes.h"
 #include "AbilitySystemComponent.h"
+#include "NLGameplayTags.h"
 
 void UNLGameplayAbility_Damage::CauseDamage(FHitResult InHitResult)
 {
@@ -17,9 +18,8 @@ void UNLGameplayAbility_Damage::CauseDamage(FHitResult InHitResult)
     FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(DamageEffectClass);
 
     const float DamageMagnitude = DamageScalableFloat.GetValueAtLevel(InHitResult.Distance);
-    // TODO: Set Damage.
-    //UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, DamageType, DamageMagnitude);
-
+    UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, Attribute_Meta_IncomingDamage, DamageMagnitude);
+        
     if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(InHitResult.GetActor()))
     {
         GetAbilitySystemComponentFromActorInfo()->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), TargetASC);

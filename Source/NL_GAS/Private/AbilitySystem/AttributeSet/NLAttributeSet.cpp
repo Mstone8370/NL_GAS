@@ -37,17 +37,13 @@ void UNLAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute, f
 
 void UNLAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
 {
-    if (Data.EvaluatedData.Attribute == GetHealthAttribute())
+    if (Data.EvaluatedData.Attribute == GetIncomingDamageAttribute())
     {
-        UE_LOG(LogTemp, Warning, TEXT("[PostGameplayEffectExecute] Health"));
-    }
-    if (FNLGameplayEffectContext* Context = static_cast<FNLGameplayEffectContext*>(Data.EffectSpec.GetContext().Get()))
-    {
-        UE_LOG(LogTemp, Warning, TEXT("NLGameplayEffectContext"));
-    }
-    else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("Default GameplayEffectContext"));
+        float LocalIncomingDamage = GetIncomingDamage();
+        SetIncomingDamage(0.f);
+
+        SetHealth(FMath::Max(GetHealth() - LocalIncomingDamage, 0.f));
+        UE_LOG(LogTemp, Warning, TEXT("Damage Recived: %f, Final Health: %f"), LocalIncomingDamage, GetHealth());
     }
 }
 

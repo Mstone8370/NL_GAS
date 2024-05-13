@@ -65,3 +65,12 @@ UE_DEFINE_GAMEPLAY_TAG(FOV_ADS_1x, "FOV.ADS.1x");
 UE_DEFINE_GAMEPLAY_TAG(FOV_ADS_2x, "FOV.ADS.2x");
 UE_DEFINE_GAMEPLAY_TAG(FOV_ADS_3x, "FOV.ADS.3x");
 UE_DEFINE_GAMEPLAY_TAG(FOV_ADS_4x, "FOV.ADS.4x");
+
+// Attribute Tag
+UE_DEFINE_GAMEPLAY_TAG(Attribute_Meta_IncomingDamage, "Attribute.Meta.IncomingDamage");
+
+// DamageType Tag
+UE_DEFINE_GAMEPLAY_TAG(DamageType_Environment, "DamageType.Environment");
+UE_DEFINE_GAMEPLAY_TAG(DamageType_Weapon_Rifle_ACR, "DamageType.Weapon.Rifle.ACR");
+UE_DEFINE_GAMEPLAY_TAG(DamageType_Weapon_Pistol_Glock, "DamageType.Weapon.Pistol.Glock");
+UE_DEFINE_GAMEPLAY_TAG(DamageType_Weapon_Sniper_TEMP, "DamageType.Weapon.Sniper.TEMP");
