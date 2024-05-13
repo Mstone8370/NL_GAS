@@ -151,7 +151,17 @@ ANLPlayerState* ANLPlayerController::GetNLPlayerState()
     return NLPlayerState;
 }
 
+void ANLPlayerController::Client_ShowDamageCauseIndicator_Implementation(float InDamage, bool bInIsCriticalHit, AActor* DamagedActor)
+{
+    UE_LOG(LogTemp, Warning, TEXT("Damage Caused: [%s], Damage: %f"), *GetNameSafe(DamagedActor), InDamage);
+}
+
 void ANLPlayerController::SetLookSensitivity(float InLookSensitivity)
 {
     CurrentLookSensitivity = InLookSensitivity;
+}
+
+void ANLPlayerController::OnCausedDamage(float InDamage, bool bInIsCriticalHit, AActor* DamagedActor)
+{
+    Client_ShowDamageCauseIndicator(InDamage, bInIsCriticalHit, DamagedActor);
 }

@@ -58,8 +58,13 @@ protected:
 
 	float CurrentLookSensitivity;
 
+	UFUNCTION(Client, Reliable)
+	void Client_ShowDamageCauseIndicator(float InDamage, bool bIsCriticalHit, AActor* DamagedActor);
+
 public:
 	float GetBaseLookSensitivity() const { return LookSensitivity; }
 
 	void SetLookSensitivity(float InLookSensitivity);
+
+	void OnCausedDamage(float InDamage, bool bInIsCriticalHit, AActor* DamagedActor);
 };

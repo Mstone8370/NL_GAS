@@ -6,6 +6,8 @@
 #include "Net/UnrealNetwork.h"
 #include "GameplayEffectExtension.h"
 #include "AbilitySystem/NLAbilitySystemTypes.h"
+#include "Player/NLPlayerController.h"
+#include "AbilitySystem/NLAbilitySystemTypes.h"
 
 void UNLAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -37,13 +39,53 @@ void UNLAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute, f
 
 void UNLAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
 {
+    FNLGameplayEffectContext* Context = static_cast<FNLGameplayEffectContext*>(Data.EffectSpec.GetContext().Get());
+    UAbilitySystemComponent* SourceASC = Data.EffectSpec.GetContext().GetOriginalInstigatorAbilitySystemComponent();
+    AActor* SourceAvatarActor = nullptr;
+    AController* SourceController = nullptr;
+    APlayerController* SourcePC = nullptr;
+    ANLPlayerController* SourceNLPC = nullptr;
+    if (SourceASC)
+    {
+        SourceAvatarActor = SourceASC->GetAvatarActor();
+        if (SourceAvatarActor)
+        {
+            if (APawn* SourcePawn = Cast<APawn>(SourceAvatarActor))
+            {
+                SourceController = SourcePawn->GetController();
+                if (SourceController)
+                {
+                    SourcePC = Cast<APlayerController>(SourceController);
+                    SourceNLPC = Cast<ANLPlayerController>(SourceController);
+                }
+            }
+        }
+    }
+
+    AActor* TargetAvatarActor = nullptr;
+    if (Data.Target.AbilityActorInfo)
+    {
+       TargetAvatarActor = Data.Target.AbilityActorInfo->AvatarActor.Get();
+    }
+
     if (Data.EvaluatedData.Attribute == GetIncomingDamageAttribute())
     {
         float LocalIncomingDamage = GetIncomingDamage();
         SetIncomingDamage(0.f);
 
+        // TODO: Check if it's critical hit.
+        bool bIsCriticalHit = false;
+        if (Context->bCanCriticalHit)
+        {
+            Context->GetHitResult()->GetComponent();
+        }
+
         SetHealth(FMath::Max(GetHealth() - LocalIncomingDamage, 0.f));
-        UE_LOG(LogTemp, Warning, TEXT("Damage Recived: %f, Final Health: %f"), LocalIncomingDamage, GetHealth());
+
+        if (SourceAvatarActor != TargetAvatarActor && SourceNLPC)
+        {
+            SourceNLPC->OnCausedDamage(LocalIncomingDamage, bIsCriticalHit, TargetAvatarActor);
+        }
     }
 }
 

@@ -122,4 +122,16 @@ struct FDamageEffectParams
 
 	UPROPERTY(BlueprintReadWrite)
 	bool bIsRadialDamage;
+
+	UPROPERTY(BlueprintReadWrite)
+	FVector RadialDamageOrigin;
+
+	UPROPERTY(BlueprintReadWrite)
+	float RadialDamageInnerRadius;
+
+	UPROPERTY(BlueprintReadWrite)
+	float RadialDamageOuterRadius;
+
+	UPROPERTY(BlueprintReadWrite)
+	float AimPunchMagnitude;
 };

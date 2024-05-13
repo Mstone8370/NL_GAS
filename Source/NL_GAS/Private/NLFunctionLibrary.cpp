@@ -69,17 +69,16 @@ void UNLFunctionLibrary::ApplyDamageEffect(const FDamageEffectParams& Params)
 
     if (FNLGameplayEffectContext* NLContext = static_cast<FNLGameplayEffectContext*>(ContextHandle.Get()))
     {
-        // TODO: Set NLGameplayEffectContext
         NLContext->bCanCriticalHit = Params.bCanCriticalHit;
         NLContext->bIsRadialDamage = Params.bIsRadialDamage;
         if (NLContext->bIsRadialDamage)
         {
-            NLContext->RadialDamageOrigin;
-            NLContext->RadialDamageInnerRadius;
-            NLContext->RadialDamageOuterRadius;
+            NLContext->RadialDamageOrigin = Params.RadialDamageOrigin;
+            NLContext->RadialDamageInnerRadius = Params.RadialDamageInnerRadius;
+            NLContext->RadialDamageOuterRadius = Params.RadialDamageOuterRadius;
         }
         NLContext->KnockbackMagnitude = Params.KnockbackMagnitude;
-        NLContext->AimPunchMagnitude;
+        NLContext->AimPunchMagnitude = Params.AimPunchMagnitude;
     }
 
     FGameplayEffectSpecHandle SpecHandle = Params.SourceASC->MakeOutgoingSpec(Params.DamageGameplayEffectClass, 1.f, ContextHandle);

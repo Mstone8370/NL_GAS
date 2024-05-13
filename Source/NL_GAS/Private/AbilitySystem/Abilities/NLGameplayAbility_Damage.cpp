@@ -40,6 +40,10 @@ FDamageEffectParams UNLGameplayAbility_Damage::MakeDamageEffectParams(AActor* Ot
     Params.TravelDistance = InHitResult.Distance;
     Params.KnockbackMagnitude = KnockbackForceMagnitude;
     Params.bIsRadialDamage = bIsRadialDamage;
+    Params.RadialDamageOrigin = InHitResult.Location;
+    Params.RadialDamageInnerRadius = RadialDamageInnerRadius;
+    Params.RadialDamageOuterRadius = RadialDamageOuterRadius;
+    Params.AimPunchMagnitude = AimPunchMagnitude;
 
     return Params;
 }
