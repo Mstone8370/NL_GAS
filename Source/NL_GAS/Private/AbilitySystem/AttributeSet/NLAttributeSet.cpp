@@ -72,6 +72,7 @@ void UNLAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
     {
         float LocalIncomingDamage = GetIncomingDamage();
         SetIncomingDamage(0.f);
+        LocalIncomingDamage = FMath::Floor(LocalIncomingDamage);
 
         // TODO: Check if it's critical hit.
         bool bIsCriticalHit = false;
