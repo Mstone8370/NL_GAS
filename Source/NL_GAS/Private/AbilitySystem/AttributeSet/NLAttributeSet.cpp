@@ -8,6 +8,7 @@
 #include "AbilitySystem/NLAbilitySystemTypes.h"
 #include "Player/NLPlayerController.h"
 #include "AbilitySystem/NLAbilitySystemTypes.h"
+#include "AbilitySystemBlueprintLibrary.h"
 
 void UNLAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -24,7 +25,6 @@ void UNLAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, fl
 {
     if (Attribute == GetHealthAttribute())
     {
-        UE_LOG(LogTemp, Warning, TEXT("[PreAttributeChange] Health"));
         NewValue = FMath::Clamp(NewValue, 0.f, GetMaxHealth());
     }
 }
@@ -33,40 +33,18 @@ void UNLAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute, f
 {
     if (Attribute == GetHealthAttribute())
     {
-        UE_LOG(LogTemp, Warning, TEXT("[PostAttributeChange] Health"));
+        
     }
 }
 
 void UNLAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
 {
-    FNLGameplayEffectContext* Context = static_cast<FNLGameplayEffectContext*>(Data.EffectSpec.GetContext().Get());
-    UAbilitySystemComponent* SourceASC = Data.EffectSpec.GetContext().GetOriginalInstigatorAbilitySystemComponent();
-    AActor* SourceAvatarActor = nullptr;
-    AController* SourceController = nullptr;
-    APlayerController* SourcePC = nullptr;
-    ANLPlayerController* SourceNLPC = nullptr;
-    if (SourceASC)
-    {
-        SourceAvatarActor = SourceASC->GetAvatarActor();
-        if (SourceAvatarActor)
-        {
-            if (APawn* SourcePawn = Cast<APawn>(SourceAvatarActor))
-            {
-                SourceController = SourcePawn->GetController();
-                if (SourceController)
-                {
-                    SourcePC = Cast<APlayerController>(SourceController);
-                    SourceNLPC = Cast<ANLPlayerController>(SourceController);
-                }
-            }
-        }
-    }
+    FEffectContextParams Params;
+    SetEffectContextParams(Data, Params);
 
-    AActor* TargetAvatarActor = nullptr;
-    if (Data.Target.AbilityActorInfo)
-    {
-       TargetAvatarActor = Data.Target.AbilityActorInfo->AvatarActor.Get();
-    }
+    FNLGameplayEffectContext* NLContext = static_cast<FNLGameplayEffectContext*>(Params.ContextHandle.Get());
+    ANLPlayerController* SourceNLPC = Cast<ANLPlayerController>(Params.SourceController);
+    ANLPlayerController* TargetNLPC = Cast<ANLPlayerController>(Params.TargetController);
 
     if (Data.EvaluatedData.Attribute == GetIncomingDamageAttribute())
     {
@@ -76,16 +54,21 @@ void UNLAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 
         // TODO: Check if it's critical hit.
         bool bIsCriticalHit = false;
-        if (Context->bCanCriticalHit)
+        if (NLContext->bCanCriticalHit)
         {
-            Context->GetHitResult()->GetComponent();
+            NLContext->GetHitResult()->GetComponent();
         }
 
         SetHealth(FMath::Max(GetHealth() - LocalIncomingDamage, 0.f));
 
-        if (SourceAvatarActor != TargetAvatarActor && SourceNLPC)
+        if (Params.SourceAvatarActor != Params.TargetAvatarActor && SourceNLPC)
         {
-            SourceNLPC->OnCausedDamage(LocalIncomingDamage, bIsCriticalHit, TargetAvatarActor);
+            SourceNLPC->OnCausedDamage(LocalIncomingDamage, bIsCriticalHit, Params.TargetAvatarActor);
+        }
+
+        if (TargetNLPC)
+        {
+            TargetNLPC->OnTakenDamage(NLContext->GetHitResult(), NLContext->AimPunchMagnitude);
         }
     }
 }
@@ -98,4 +81,42 @@ void UNLAttributeSet::OnRep_MaxHealth(const FGameplayAttributeData& OldHealth) c
 void UNLAttributeSet::OnRep_Health(const FGameplayAttributeData& OldHealth) const
 {
     GAMEPLAYATTRIBUTE_REPNOTIFY(UNLAttributeSet, Health, OldHealth);
+}
+
+void UNLAttributeSet::SetEffectContextParams(const FGameplayEffectModCallbackData& Data, FEffectContextParams& OutParams) const
+{
+    OutParams = FEffectContextParams();
+
+    OutParams.ContextHandle = Data.EffectSpec.GetContext();
+
+    OutParams.SourceASC = OutParams.ContextHandle.GetOriginalInstigatorAbilitySystemComponent();
+    if (OutParams.SourceASC)
+    {
+        OutParams.SourceAvatarActor = OutParams.SourceASC->GetAvatarActor();
+        if (OutParams.SourceAvatarActor)
+        {
+            if (APawn* SourcePawn = Cast<APawn>(OutParams.SourceAvatarActor))
+            {
+                OutParams.SourceController = SourcePawn->GetController();
+                if (OutParams.SourceController)
+                {
+                    OutParams.SourcePC = Cast<APlayerController>(OutParams.SourceController);
+                }
+            }
+        }
+    }
+
+    if (Data.Target.AbilityActorInfo.IsValid() && Data.Target.AbilityActorInfo->AvatarActor.IsValid())
+    {
+        OutParams.TargetAvatarActor = Data.Target.AbilityActorInfo->AvatarActor.Get();
+        OutParams.TargetASC = Data.Target.AbilityActorInfo->AbilitySystemComponent.Get();
+        if (APawn* TargetPawn = Cast<APawn>(OutParams.TargetAvatarActor))
+        {
+            OutParams.TargetController = TargetPawn->GetController();
+            if (OutParams.TargetController)
+            {
+                OutParams.TargetPC = Cast<APlayerController>(OutParams.TargetController);
+            }
+        }
+    }
 }

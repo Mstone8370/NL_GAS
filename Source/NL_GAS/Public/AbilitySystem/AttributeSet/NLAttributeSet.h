@@ -17,6 +17,40 @@
 	GAMEPLAYATTRIBUTE_VALUE_SETTER(PropertyName) \
 	GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
 
+USTRUCT()
+struct FEffectContextParams
+{
+	GENERATED_BODY()
+
+	FEffectContextParams() {}
+
+	FGameplayEffectContextHandle ContextHandle;
+
+	UPROPERTY()
+	UAbilitySystemComponent* SourceASC = nullptr;
+
+	UPROPERTY()
+	AActor* SourceAvatarActor = nullptr;
+
+	UPROPERTY()
+	AController* SourceController = nullptr;
+
+	UPROPERTY()
+	APlayerController* SourcePC = nullptr;
+
+	UPROPERTY()
+	UAbilitySystemComponent* TargetASC = nullptr;
+
+	UPROPERTY()
+	AActor* TargetAvatarActor = nullptr;
+
+	UPROPERTY()
+	AController* TargetController = nullptr;
+
+	UPROPERTY()
+	APlayerController* TargetPC = nullptr;
+};
+
 UCLASS()
 class NL_GAS_API UNLAttributeSet : public UAttributeSet
 {
@@ -51,4 +85,7 @@ public:
 	FGameplayAttributeData IncomingDamage;
 
 	ATTRIBUTE_ACCESSORS(UNLAttributeSet, IncomingDamage);
+
+protected:
+	void SetEffectContextParams(const FGameplayEffectModCallbackData& Data, FEffectContextParams& OutParams) const;
 };

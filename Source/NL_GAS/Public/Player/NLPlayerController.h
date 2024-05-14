@@ -61,10 +61,15 @@ protected:
 	UFUNCTION(Client, Reliable)
 	void Client_ShowDamageCauseIndicator(float InDamage, bool bIsCriticalHit, AActor* DamagedActor);
 
+	UFUNCTION(Client, Reliable)
+	void Client_TakenDamage(FVector HitDirection, float AimpunchMagnitude);
+
 public:
 	float GetBaseLookSensitivity() const { return LookSensitivity; }
 
 	void SetLookSensitivity(float InLookSensitivity);
 
 	void OnCausedDamage(float InDamage, bool bInIsCriticalHit, AActor* DamagedActor);
+
+	void OnTakenDamage(const FHitResult* InHitResult, float AimpunchMagnitude);
 };

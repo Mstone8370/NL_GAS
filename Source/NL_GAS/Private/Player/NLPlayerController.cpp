@@ -13,6 +13,7 @@
 #include "Player/NLPlayerState.h"
 #include "HUD/NLHUD.h"
 #include "Interface/CombatInterface.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 void ANLPlayerController::SetupInputComponent()
 {
@@ -155,7 +156,6 @@ ANLPlayerState* ANLPlayerController::GetNLPlayerState()
 
 void ANLPlayerController::Client_ShowDamageCauseIndicator_Implementation(float InDamage, bool bInIsCriticalHit, AActor* DamagedActor)
 {
-    UE_LOG(LogTemp, Warning, TEXT("Damage Caused: [%s], Damage: %f"), *GetNameSafe(DamagedActor), InDamage);
     if (ANLHUD* NLHUD = Cast<ANLHUD>(GetHUD()))
     {
         NLHUD->ShowDamageCauseIndicator(InDamage, bInIsCriticalHit, DamagedActor);
@@ -167,6 +167,21 @@ void ANLPlayerController::Client_ShowDamageCauseIndicator_Implementation(float I
     }
 }
 
+void ANLPlayerController::Client_TakenDamage_Implementation(FVector HitDirection, float AimpunchMagnitude)
+{
+    // TODO:
+    FVector PawnLocation = GetPawn()->GetActorLocation();
+    UKismetSystemLibrary::DrawDebugArrow(
+        this,
+        PawnLocation,
+        PawnLocation + HitDirection * 100.f,
+        5.f,
+        FColor::Red,
+        3.f,
+        2.f
+    );
+}
+
 void ANLPlayerController::SetLookSensitivity(float InLookSensitivity)
 {
     CurrentLookSensitivity = InLookSensitivity;
@@ -175,4 +190,14 @@ void ANLPlayerController::SetLookSensitivity(float InLookSensitivity)
 void ANLPlayerController::OnCausedDamage(float InDamage, bool bInIsCriticalHit, AActor* DamagedActor)
 {
     Client_ShowDamageCauseIndicator(InDamage, bInIsCriticalHit, DamagedActor);
+}
+
+void ANLPlayerController::OnTakenDamage(const FHitResult* InHitResult, float AimpunchMagnitude)
+{
+    FVector HitDirection = FVector::ZeroVector;
+    if (InHitResult)
+    {
+        HitDirection = (InHitResult->TraceEnd - InHitResult->TraceStart).GetSafeNormal();
+    }
+    Client_TakenDamage(HitDirection, AimpunchMagnitude);
 }

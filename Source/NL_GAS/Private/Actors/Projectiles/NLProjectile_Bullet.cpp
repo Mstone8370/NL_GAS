@@ -21,6 +21,7 @@ void ANLProjectile_Bullet::OnBeginOverlap(UPrimitiveComponent* OverlappedCompone
             DamageEffectParams.TargetASC = TargetASC;
             DamageEffectParams.TravelDistance = FVector::Dist(SweepResult.Location, StartLocation);
             DamageEffectParams.RadialDamageOrigin = GetActorLocation();
+            DamageEffectParams.HitResult = SweepResult;
 
             UNLFunctionLibrary::ApplyDamageEffect(DamageEffectParams);
         }
