@@ -22,6 +22,18 @@ void ANLHUD::Initialize(APlayerController* PC, APlayerState* PS, UAbilitySystemC
     OverlayWidget->AddToViewport();
 }
 
+void ANLHUD::GetPlayerAimPoint(FVector& OutLocation, FRotator& OutRotation) const
+{
+    OutLocation = FVector::ZeroVector;
+    OutRotation = FRotator::ZeroRotator;
+    if (APlayerController* PC = GetOwningPlayerController())
+    {
+        FRotator ViewRotator;
+        GetOwningPlayerController()->GetPlayerViewPoint(OutLocation, ViewRotator);
+        OutRotation = GetOwningPlayerController()->GetControlRotation();
+    }
+}
+
 UOverlayWidgetController* ANLHUD::GetOverlayWidgetController(APlayerController* PC, APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS, UNLCharacterComponent* NLC)
 {
     if (!OverlayWidgetController)

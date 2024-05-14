@@ -11,6 +11,7 @@
 #include "NLGameplayTags.h"
 #include "AbilitySystem/NLAbilitySystemComponent.h"
 #include "Player/NLPlayerState.h"
+#include "HUD/NLHUD.h"
 
 void ANLPlayerController::SetupInputComponent()
 {
@@ -154,6 +155,10 @@ ANLPlayerState* ANLPlayerController::GetNLPlayerState()
 void ANLPlayerController::Client_ShowDamageCauseIndicator_Implementation(float InDamage, bool bInIsCriticalHit, AActor* DamagedActor)
 {
     UE_LOG(LogTemp, Warning, TEXT("Damage Caused: [%s], Damage: %f"), *GetNameSafe(DamagedActor), InDamage);
+    if (ANLHUD* NLHUD = Cast<ANLHUD>(GetHUD()))
+    {
+        NLHUD->ShowDamageCauseIndicator(InDamage, bInIsCriticalHit, DamagedActor);
+    }
 }
 
 void ANLPlayerController::SetLookSensitivity(float InLookSensitivity)

@@ -34,6 +34,12 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	TObjectPtr<UOverlayWidgetController> OverlayWidgetController;
 
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	void GetPlayerAimPoint(FVector& OutLocation, FRotator& OutRotation) const;
+
 public:
 	UOverlayWidgetController* GetOverlayWidgetController(APlayerController* PC, APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS, UNLCharacterComponent* NLC);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void ShowDamageCauseIndicator(float Damage, bool bIsCriticalHit, AActor* DamagedActor);
 };
