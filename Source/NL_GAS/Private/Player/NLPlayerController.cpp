@@ -12,6 +12,7 @@
 #include "AbilitySystem/NLAbilitySystemComponent.h"
 #include "Player/NLPlayerState.h"
 #include "HUD/NLHUD.h"
+#include "Interface/CombatInterface.h"
 
 void ANLPlayerController::SetupInputComponent()
 {
@@ -158,6 +159,11 @@ void ANLPlayerController::Client_ShowDamageCauseIndicator_Implementation(float I
     if (ANLHUD* NLHUD = Cast<ANLHUD>(GetHUD()))
     {
         NLHUD->ShowDamageCauseIndicator(InDamage, bInIsCriticalHit, DamagedActor);
+    }
+
+    if (DamagedActor->Implements<UCombatInterface>())
+    {
+        ICombatInterface::Execute_ShowDamageText(DamagedActor, InDamage, bInIsCriticalHit);
     }
 }
 

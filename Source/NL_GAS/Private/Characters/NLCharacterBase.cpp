@@ -5,6 +5,7 @@
 
 #include "AbilitySystem/NLAbilitySystemComponent.h"
 #include "Components/NLCharacterComponent.h"
+#include "Components/DamageTextWidgetComponent.h"
 
 ANLCharacterBase::ANLCharacterBase()
 {
@@ -27,6 +28,23 @@ UAbilitySystemComponent* ANLCharacterBase::GetAbilitySystemComponent() const
 void ANLCharacterBase::OnWeaponAdded(AWeaponActor* Weapon)
 {
     NLCharacterComponent->WeaponAdded(Weapon);
+}
+
+void ANLCharacterBase::ShowDamageText_Implementation(float Value, bool bIsCriticalHit)
+{
+    if (!DamageTextWidgetComponentClass)
+    {
+        return;
+    }
+
+    if (!(LastDamageText && LastDamageText->IsWatingUpdate()))
+    {
+        LastDamageText = NewObject<UDamageTextWidgetComponent>(this, DamageTextWidgetComponentClass);
+        LastDamageText->RegisterComponent();
+        LastDamageText->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+        LastDamageText->DetachFromParent(true);
+    }
+    LastDamageText->UpdateValue(Value, bIsCriticalHit);
 }
 
 void ANLCharacterBase::InitAbilityActorInfo() {}

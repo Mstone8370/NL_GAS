@@ -14,6 +14,7 @@ class UAttributeSet;
 class UGameplayAbility;
 class UNLCharacterComponent;
 class UGameplayEffect;
+class UDamageTextWidgetComponent;
 
 UCLASS(Abstract)
 class NL_GAS_API ANLCharacterBase : public ACharacter, public IAbilitySystemInterface, public ICombatInterface
@@ -33,7 +34,17 @@ public:
 
 	//~Begin CombatInterface
 	virtual void OnWeaponAdded(AWeaponActor* Weapon) override;
+	virtual void ShowDamageText_Implementation(float Value, bool bIsCriticalHit) override;
 	//~End CombatInterface
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "DamageText")
+	TSubclassOf<UDamageTextWidgetComponent> DamageTextWidgetComponentClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "DamageText")
+	FVector DamageTextOffset;
+
+	UPROPERTY()
+	TObjectPtr<UDamageTextWidgetComponent> LastDamageText;
 
 	FORCEINLINE UAttributeSet* GetAttributeSet() const { return AttributeSet; }
 

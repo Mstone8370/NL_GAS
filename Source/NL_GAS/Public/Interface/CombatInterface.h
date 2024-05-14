@@ -28,4 +28,7 @@ public:
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	bool CanAttack();
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	void ShowDamageText(float Value, bool bIsCriticalHit);
 };
