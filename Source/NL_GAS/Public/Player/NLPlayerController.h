@@ -13,6 +13,8 @@ class UNLAbilitySystemComponent;
 class ANLPlayerState;
 struct FInputActionValue;
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnTakenDamageSignature, FVector);
+
 /**
  * 
  */
@@ -41,11 +43,16 @@ public:
 	ANLPlayerState* GetNLPlayerState();
 	FORCEINLINE bool IsListenServerController() const { return bIsListenServerController; }
 
+	FOnTakenDamageSignature OnTakenDamageDelegate;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TArray<TSoftObjectPtr<UInputMappingContext>> StartupIMC;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TSoftObjectPtr<UInputConfig> InputConfig;
+
+	// UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	// TODO: AimPunchControlShakeDataAsset with Map<DamageType, Curve and magnitude>
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
@@ -62,7 +69,7 @@ protected:
 	void Client_ShowDamageCauseIndicator(float InDamage, bool bIsCriticalHit, AActor* DamagedActor);
 
 	UFUNCTION(Client, Reliable)
-	void Client_TakenDamage(FVector HitDirection, float AimpunchMagnitude);
+	void Client_TakenDamage(FVector DamageOrigin, bool bIsCriticalHit, FGameplayTag DamageType);
 
 public:
 	float GetBaseLookSensitivity() const { return LookSensitivity; }
@@ -71,5 +78,5 @@ public:
 
 	void OnCausedDamage(float InDamage, bool bInIsCriticalHit, AActor* DamagedActor);
 
-	void OnTakenDamage(const FHitResult* InHitResult, float AimpunchMagnitude);
+	void OnTakenDamage(const FHitResult* InHitResult, FVector DamageOrigin, bool bIsCriticalHit, const FGameplayTag& DamageType);
 };

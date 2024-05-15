@@ -56,9 +56,6 @@ struct FNLGameplayEffectContext : public FGameplayEffectContext
 
 	UPROPERTY()
 	float KnockbackMagnitude = 0.f;
-
-	UPROPERTY()
-	float AimPunchMagnitude = 0.f;
 };
 
 template<>
@@ -80,58 +77,50 @@ struct FDamageEffectParams
 {
 	GENERATED_BODY()
 
-	FDamageEffectParams()
-		: DamageGameplayEffectClass(nullptr)
-		, SourceASC(nullptr)
-		, TargetASC(nullptr)
-		, HitResult(FHitResult())
-		, DamageType(FGameplayTag())
-		, bCanCriticalHit(false)
-		, DamageScalableFloat(FScalableFloat())
-		, TravelDistance(0.f)
-		, KnockbackMagnitude(0.f)
-		, bIsRadialDamage(false)
-	{}
+	FDamageEffectParams() {}
 
 	UPROPERTY(BlueprintReadWrite)
-	TSubclassOf<UGameplayEffect> DamageGameplayEffectClass;
+	TSubclassOf<UGameplayEffect> DamageGameplayEffectClass = nullptr;
 
 	UPROPERTY(BlueprintReadWrite)
-	TObjectPtr<UAbilitySystemComponent> SourceASC;
+	TObjectPtr<UAbilitySystemComponent> SourceASC = nullptr;
 
 	UPROPERTY(BlueprintReadWrite)
-	TObjectPtr<UAbilitySystemComponent> TargetASC;
+	TObjectPtr<UAbilitySystemComponent> TargetASC = nullptr;
 
 	UPROPERTY(BlueprintReadWrite)
-	FHitResult HitResult;
+	FHitResult HitResult = FHitResult();
 
 	UPROPERTY(BlueprintReadWrite)
-	FGameplayTag DamageType;
+	FGameplayTag DamageType = FGameplayTag();
 
 	UPROPERTY(BlueprintReadWrite)
-	bool bCanCriticalHit;
+	bool bCanCriticalHit = false;
 
 	UPROPERTY(BlueprintReadWrite)
-	FScalableFloat DamageScalableFloat;
+	FScalableFloat DamageScalableFloat = FScalableFloat();
 
 	UPROPERTY(BlueprintReadWrite)
-	float TravelDistance;
+	float TravelDistance = 0.f;
 
 	UPROPERTY(BlueprintReadWrite)
-	float KnockbackMagnitude;
+	float KnockbackMagnitude = 0.f;
 
 	UPROPERTY(BlueprintReadWrite)
-	bool bIsRadialDamage;
+	bool bIsRadialDamage = false;
 
 	UPROPERTY(BlueprintReadWrite)
-	FVector RadialDamageOrigin;
+	FVector RadialDamageOrigin = FVector::ZeroVector;
 
 	UPROPERTY(BlueprintReadWrite)
-	float RadialDamageInnerRadius;
+	float RadialDamageInnerRadius = 0.f;
 
 	UPROPERTY(BlueprintReadWrite)
-	float RadialDamageOuterRadius;
+	float RadialDamageOuterRadius = 0.f;
 
 	UPROPERTY(BlueprintReadWrite)
-	float AimPunchMagnitude;
+	bool bHasDamageOrigin = false;
+
+	UPROPERTY(BlueprintReadWrite)
+	FVector DamageOrigin = FVector::ZeroVector;
 };

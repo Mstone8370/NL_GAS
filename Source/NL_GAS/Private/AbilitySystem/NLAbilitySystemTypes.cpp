@@ -52,13 +52,9 @@ bool FNLGameplayEffectContext::NetSerialize(FArchive& Ar, UPackageMap* Map, bool
 		{
 			RepBits |= 1 << 10;
 		}
-		if (AimPunchMagnitude)
-		{
-			RepBits |= 1 << 11;
-		}
 	}
 
-	Ar.SerializeBits(&RepBits, 12);
+	Ar.SerializeBits(&RepBits, 11);
 
 	if (RepBits & (1 << 0))
 	{
@@ -125,10 +121,6 @@ bool FNLGameplayEffectContext::NetSerialize(FArchive& Ar, UPackageMap* Map, bool
 	if (RepBits & (1 << 10))
 	{
 		Ar << KnockbackMagnitude;
-	}
-	if (RepBits & (1 << 11))
-	{
-		Ar << AimPunchMagnitude;
 	}
 
 

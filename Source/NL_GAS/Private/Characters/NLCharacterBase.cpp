@@ -42,7 +42,7 @@ void ANLCharacterBase::ShowDamageText_Implementation(float Value, bool bIsCritic
         LastDamageText = NewObject<UDamageTextWidgetComponent>(this, DamageTextWidgetComponentClass);
         LastDamageText->RegisterComponent();
         LastDamageText->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
-        LastDamageText->DetachFromParent(true);
+        LastDamageText->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
     }
     LastDamageText->UpdateValue(Value, bIsCriticalHit);
 }

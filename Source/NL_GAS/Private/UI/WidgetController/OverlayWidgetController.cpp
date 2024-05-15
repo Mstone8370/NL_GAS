@@ -6,6 +6,7 @@
 #include "Components/NLCharacterComponent.h"
 #include "AbilitySystem/NLAbilitySystemComponent.h"
 #include "AbilitySystem/AttributeSet/NLAttributeSet.h"
+#include "Player/NLPlayerController.h"
 
 void UOverlayWidgetController::BindEvents()
 {
@@ -23,6 +24,13 @@ void UOverlayWidgetController::BindEvents()
         [this](const FOnAttributeChangeData& Data)
         {
             HealthUpdated.Broadcast(Data.NewValue);
+        }
+    );
+
+    GetNLPC()->OnTakenDamageDelegate.AddLambda(
+        [this](FVector HitDirection)
+        {
+            OnTakenDamage(HitDirection);
         }
     );
 }
@@ -51,4 +59,9 @@ void UOverlayWidgetController::OnWeaponSwapped(const FGameplayTag& FromWeaponTag
 void UOverlayWidgetController::OnCurrentWeaponBulletNumChanged(int32 NewBulletNum)
 {
     BulletNumUpdated.Broadcast(NewBulletNum);
+}
+
+void UOverlayWidgetController::OnTakenDamage(FVector DamageOrigin)
+{
+    DamageTaken.Broadcast(DamageOrigin);
 }

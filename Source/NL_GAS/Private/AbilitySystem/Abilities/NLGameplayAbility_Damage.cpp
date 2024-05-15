@@ -17,6 +17,8 @@ void UNLGameplayAbility_Damage::CauseDamage(FHitResult InHitResult)
 
     FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(DamageEffectClass);
 
+    // TODO: Fill EffectContext
+
     const float DamageMagnitude = DamageScalableFloat.GetValueAtLevel(InHitResult.Distance);
     UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, Attribute_Meta_IncomingDamage, DamageMagnitude);
         
@@ -43,7 +45,11 @@ FDamageEffectParams UNLGameplayAbility_Damage::MakeDamageEffectParams(AActor* Ot
     Params.RadialDamageOrigin = InHitResult.Location;
     Params.RadialDamageInnerRadius = RadialDamageInnerRadius;
     Params.RadialDamageOuterRadius = RadialDamageOuterRadius;
-    Params.AimPunchMagnitude = AimPunchMagnitude;
+    if (GetAvatarActorFromActorInfo())
+    {
+        Params.bHasDamageOrigin = true;
+        Params.DamageOrigin = GetAvatarActorFromActorInfo()->GetActorLocation();
+    }
 
     return Params;
 }

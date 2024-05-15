@@ -9,6 +9,7 @@
 #include "Player/NLPlayerController.h"
 #include "AbilitySystem/NLAbilitySystemTypes.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "NLGameplayTags.h"
 
 void UNLAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -52,6 +53,29 @@ void UNLAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
         SetIncomingDamage(0.f);
         LocalIncomingDamage = FMath::Floor(LocalIncomingDamage);
 
+        FGameplayTag DamageType = FGameplayTag();
+        if (NLContext->DamageType.Get())
+        {
+            DamageType = *NLContext->DamageType.Get();
+        }
+
+        FVector DamageOrigin = FVector::ZeroVector;
+        if (NLContext->HasOrigin())
+        {
+            DamageOrigin = NLContext->GetOrigin();
+        }
+        else
+        {
+            if (SourceNLPC)
+            {
+                DamageOrigin = SourceNLPC->GetPawn()->GetActorLocation();
+            }
+            else if (TargetNLPC)
+            {
+                DamageOrigin = TargetNLPC->GetPawn()->GetActorLocation();
+            }
+        }
+
         // TODO: Check if it's critical hit.
         bool bIsCriticalHit = false;
         if (NLContext->bCanCriticalHit)
@@ -68,7 +92,7 @@ void UNLAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 
         if (TargetNLPC)
         {
-            TargetNLPC->OnTakenDamage(NLContext->GetHitResult(), NLContext->AimPunchMagnitude);
+            TargetNLPC->OnTakenDamage(NLContext->GetHitResult(), DamageOrigin, bIsCriticalHit, DamageType);
         }
     }
 }
