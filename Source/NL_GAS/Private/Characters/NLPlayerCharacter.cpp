@@ -23,6 +23,7 @@
 #include "UnrealClient.h"
 #include "Components/NLViewSkeletalMeshComponent.h"
 #include "Data/NLDataTableRows.h"
+#include "Data/AimPunchData.h"
 
 ANLPlayerCharacter::ANLPlayerCharacter()
     : LookPitchRepTime(0.02f)
@@ -256,6 +257,22 @@ bool ANLPlayerCharacter::CommitWeaponCost_Implementation(bool& bIsLast)
 bool ANLPlayerCharacter::CanAttack_Implementation()
 {
     return NLCharacterComponent->CanAttack();
+}
+
+void ANLPlayerCharacter::AddAimPunch_Implementation(const FTaggedAimPunch& AimPunchData, FVector HitDirection, bool bIsCriticalHit)
+{
+    FRotator ShakeMagnitude(-1.f, 0.f, 0.f);
+    const FVector ForwardDirection = GetActorForwardVector();
+    const FVector RightDirection = GetActorRightVector();
+
+    double Pitch = FVector::DotProduct(ForwardDirection, HitDirection);
+    double Yaw = FVector::DotProduct(RightDirection, HitDirection);
+
+    float Magnitude = bIsCriticalHit ? AimPunchData.CriticalMagnitude : AimPunchData.BaseMagnitude;
+    FVector2D Normalized = FVector2D(Pitch, Yaw).GetSafeNormal();
+    ShakeMagnitude = FRotator(Normalized.X * Magnitude, Normalized.Y * Magnitude, 0.f);
+
+    ControlShakeManager->AddShake(AimPunchData.Duration, AimPunchData.ControlShakeCurve, ShakeMagnitude);
 }
 
 bool ANLPlayerCharacter::CanCrouch() const

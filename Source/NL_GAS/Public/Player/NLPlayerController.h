@@ -11,6 +11,7 @@ class UInputConfig;
 class UInputMappingContext;
 class UNLAbilitySystemComponent;
 class ANLPlayerState;
+class UAimPunchData;
 struct FInputActionValue;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnTakenDamageSignature, FVector);
@@ -51,8 +52,8 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TSoftObjectPtr<UInputConfig> InputConfig;
 
-	// UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	// TODO: AimPunchControlShakeDataAsset with Map<DamageType, Curve and magnitude>
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TObjectPtr<UAimPunchData> AimPunchData;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
@@ -69,7 +70,7 @@ protected:
 	void Client_ShowDamageCauseIndicator(float InDamage, bool bIsCriticalHit, AActor* DamagedActor);
 
 	UFUNCTION(Client, Reliable)
-	void Client_TakenDamage(FVector DamageOrigin, bool bIsCriticalHit, FGameplayTag DamageType);
+	void Client_TakenDamage(FVector DamageOrigin, FVector HitDirection, bool bIsCriticalHit, FGameplayTag DamageType);
 
 public:
 	float GetBaseLookSensitivity() const { return LookSensitivity; }

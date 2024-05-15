@@ -15,6 +15,7 @@
 #include "Interface/CombatInterface.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Data/AimPunchData.h"
 
 void ANLPlayerController::SetupInputComponent()
 {
@@ -168,9 +169,20 @@ void ANLPlayerController::Client_ShowDamageCauseIndicator_Implementation(float I
     }
 }
 
-void ANLPlayerController::Client_TakenDamage_Implementation(FVector DamageOrigin, bool bIsCriticalHit, FGameplayTag DamageType)
+void ANLPlayerController::Client_TakenDamage_Implementation(FVector DamageOrigin, FVector HitDirection, bool bIsCriticalHit, FGameplayTag DamageType)
 {
     OnTakenDamageDelegate.Broadcast(DamageOrigin);
+
+    if (HitDirection.SquaredLength() > 0.f)
+    {
+        if (const FTaggedAimPunch* AimPunch = AimPunchData->GetAimPunchData(DamageType))
+        {
+            if (GetPawn()->Implements<UCombatInterface>())
+            {
+                ICombatInterface::Execute_AddAimPunch(GetPawn(), *AimPunch, HitDirection, bIsCriticalHit);
+            }
+        }
+    }
 }
 
 void ANLPlayerController::SetLookSensitivity(float InLookSensitivity)
@@ -185,12 +197,11 @@ void ANLPlayerController::OnCausedDamage(float InDamage, bool bInIsCriticalHit, 
 
 void ANLPlayerController::OnTakenDamage(const FHitResult* InHitResult, FVector DamageOrigin, bool bIsCriticalHit, const FGameplayTag& DamageType)
 {
-    // TODO: Add AimPunch
-
     FVector HitDirection = FVector::ZeroVector;
     if (InHitResult)
     {
         HitDirection = (InHitResult->TraceEnd - InHitResult->TraceStart).GetSafeNormal();
     }
-    Client_TakenDamage(DamageOrigin, bIsCriticalHit, DamageType);
+
+    Client_TakenDamage(DamageOrigin, HitDirection, bIsCriticalHit, DamageType);
 }

@@ -9,6 +9,7 @@
 #include "ControlShakeManager.generated.h"
 
 class UWeaponRecoilPattern;
+struct FTaggedAimPunch;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class NL_GAS_API UControlShakeManager : public UActorComponent

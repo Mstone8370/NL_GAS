@@ -57,6 +57,7 @@ public:
 
 	//~Begin CombatInterface
 	virtual bool CanAttack_Implementation() override;
+	virtual void AddAimPunch_Implementation(const FTaggedAimPunch& AimPunchData, FVector HitDirection, bool bIsCriticalHit) override;
 	//~End CombatInterface
 
 	//~Begin Crouch functions override

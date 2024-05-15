@@ -7,6 +7,7 @@
 #include "CombatInterface.generated.h"
 
 class AWeaponActor;
+struct FTaggedAimPunch;
 
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
@@ -31,4 +32,7 @@ public:
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void ShowDamageText(float Value, bool bIsCriticalHit);
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	void AddAimPunch(const FTaggedAimPunch& AimPunchData, FVector HitDirection, bool bIsCriticalHit);
 };
