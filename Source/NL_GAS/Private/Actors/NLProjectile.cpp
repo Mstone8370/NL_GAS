@@ -10,6 +10,7 @@ ANLProjectile::ANLProjectile()
     : StartLocation(FVector::ZeroVector)
 {
     PrimaryActorTick.bCanEverTick = true;
+    bReplicates = true;
 
     SphereCollision = CreateDefaultSubobject<USphereComponent>(FName("SphereCollision"));
     SetRootComponent(SphereCollision);
