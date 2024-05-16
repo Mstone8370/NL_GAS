@@ -10,6 +10,7 @@
 #include "AbilitySystem/NLAbilitySystemTypes.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "NLGameplayTags.h"
+#include "Components/HitboxComponent.h"
 
 void UNLAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -76,11 +77,20 @@ void UNLAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
             }
         }
 
-        // TODO: Check if it's critical hit.
         bool bIsCriticalHit = false;
         if (NLContext->bCanCriticalHit)
         {
-            NLContext->GetHitResult()->GetComponent();
+            if (NLContext->GetHitResult()->GetComponent())
+            {
+                if (UHitboxComponent* Hitbox = Cast<UHitboxComponent>(NLContext->GetHitResult()->GetComponent()))
+                {
+                    bIsCriticalHit = Hitbox->IsWeakHitbox();
+                    if (bIsCriticalHit)
+                    {
+                        LocalIncomingDamage *= Hitbox->GetCriticalHitDamageMultiplier();
+                    }
+                }
+            }
         }
 
         SetHealth(FMath::Max(GetHealth() - LocalIncomingDamage, 0.f));
