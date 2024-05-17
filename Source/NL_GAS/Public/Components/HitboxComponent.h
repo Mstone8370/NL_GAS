@@ -18,7 +18,7 @@ public:
 	UHitboxComponent();
 	
 protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	bool bIsWeakHitbox;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (EditCondition = "bIsWeakHitbox"))
@@ -30,4 +30,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE float GetCriticalHitDamageMultiplier() const { return CriticalHitDamageMultiplier; }
+
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE void SetIsWeakHitbox(bool bInIsWeakHitbox) { bIsWeakHitbox = bInIsWeakHitbox; }
 };

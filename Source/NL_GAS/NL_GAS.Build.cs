@@ -8,7 +8,24 @@ public class NL_GAS : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "GameplayAbilities", "GameplayTags", "GameplayTasks", "UMG", "EditorScriptingUtilities", "Niagara" });
+		PublicDependencyModuleNames.AddRange(new string[] {
+			"Core",
+			"CoreUObject",
+			"Engine",
+            "UnrealEd",
+            "InputCore",
+			"EnhancedInput",
+			"GameplayAbilities",
+			"GameplayTags",
+			"GameplayTasks",
+			"UMG",
+			"EditorScriptingUtilities",
+			"Niagara",
+            "JsonUtilities",
+            "Json",
+            "Blutility",
+            "AssetRegistry"
+        });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 

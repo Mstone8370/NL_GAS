@@ -26,3 +26,25 @@ public:
     UPROPERTY(EditAnywhere)
     TObjectPtr<UCurveVector> LoopingControlShakeCurve;
 };
+
+USTRUCT(BlueprintType)
+struct FHitboxInfoRow : public FTableRowBase
+{
+    GENERATED_BODY()
+
+public:
+    UPROPERTY(EditAnywhere)
+    FName BoneName;
+
+    UPROPERTY(EditAnywhere)
+    FVector Location;
+
+    UPROPERTY(EditAnywhere)
+    FRotator Rotation;
+
+    UPROPERTY(EditAnywhere)
+    FVector Extend;
+
+    UPROPERTY(EditAnywhere)
+    bool IsWeakHitbox;
+};

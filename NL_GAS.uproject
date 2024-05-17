@@ -13,7 +13,8 @@
 				"GameplayAbilities",
 				"EnhancedInput",
 				"CoreUObject",
-				"UMG"
+				"UMG",
+				"Blutility"
 			]
 		}
 	],
@@ -57,6 +58,10 @@
 			"Name": "DLSSMoviePipelineSupport",
 			"Enabled": true,
 			"MarketplaceURL": "https://www.unrealengine.com/marketplace/en-US/product/nvidia-dlss"
+		},
+		{
+			"Name": "JsonBlueprintUtilities",
+			"Enabled": true
 		}
 	]
 }
