@@ -22,56 +22,66 @@ void UActorActionUtility_HitboxInfo::SaveHitbox()
     TArray<AActor*> SelectedActors = UEditorUtilityLibrary::GetSelectionSet();
     for (AActor* SelectedActor : SelectedActors)
     {
-        if (ASkeletalMeshActor* SKA = Cast<ASkeletalMeshActor>(SelectedActor))
+        ASkeletalMeshActor* SKA = Cast<ASkeletalMeshActor>(SelectedActor);
+        if (!SKA)
         {
-            FString MeshAssetName = GetNameSafe(SKA->GetSkeletalMeshComponent()->GetSkinnedAsset());
-            FString AssetPath = "/Game/Blueprints/Data/Hitbox/";
-            FString AssetName = "DA_HitboxInfo_" + MeshAssetName;
-            FString FullPath = AssetPath + AssetName;
+            continue;
+        }
 
-            UDataTable* DT = nullptr;
-            if (UEditorAssetLibrary::DoesAssetExist(FullPath))
+        FString MeshAssetName = GetNameSafe(SKA->GetSkeletalMeshComponent()->GetSkinnedAsset());
+        FString AssetPath = "/Game/Blueprints/Data/Hitbox/";
+        FString AssetName = "DA_HitboxInfo_" + MeshAssetName;
+        FString FullPath = AssetPath + AssetName;
+
+        // Load or Create DataTable
+        UDataTable* DT = nullptr;
+        if (UEditorAssetLibrary::DoesAssetExist(FullPath))
+        {
+            DT = Cast<UDataTable>(UEditorAssetLibrary::LoadAsset(FullPath));
+        }
+        else
+        {
+            DT = CreateDataTableAsset(AssetPath, AssetName);
+            if (!DT)
             {
-                DT = Cast<UDataTable>(UEditorAssetLibrary::LoadAsset(FullPath));
+                UE_LOG(LogTemp, Error, TEXT("Failed to create new DataTable asset."));
+                continue;
             }
-            else
+        }
+
+        // Save Hitbox Info
+        TMap<FName, TArray<FHitboxInfoRow>> HitboxInfos;
+        TArray<AActor*> AttachedActors;
+        SelectedActor->GetAttachedActors(AttachedActors);
+        for (const AActor* BoxActor : AttachedActors)
+        {
+            if (UHitboxComponent* HitboxComp = Cast<UHitboxComponent>(BoxActor->GetRootComponent()))
             {
-                DT = CreateDataTableAsset(AssetPath, AssetName);
-                if (!DT)
-                {
-                    UE_LOG(LogTemp, Error, TEXT("Failed to create new DataTable asset."));
-                    continue;
-                }
+                FHitboxInfoRow Info;
+                Info.BoneName = BoxActor->GetAttachParentSocketName();
+                Info.Location = HitboxComp->GetRelativeLocation();
+                Info.Rotation = HitboxComp->GetRelativeRotation();
+                Info.Extend = HitboxComp->GetScaledBoxExtent();
+                Info.IsWeakHitbox = HitboxComp->IsWeakHitbox();
+
+                TArray<FHitboxInfoRow>& Array = HitboxInfos.FindOrAdd(Info.BoneName, TArray<FHitboxInfoRow>());
+                Array.Add(Info);
             }
+        }
 
-            // Save Hitbox Info
-            TArray<FHitboxInfoRow> HitboxInfos;
-            TArray<AActor*> AttachedActors;
-            SelectedActor->GetAttachedActors(AttachedActors);
-            for (const AActor* BoxActor : AttachedActors)
+        // Convert to JSON format
+        TArray<TSharedPtr<FJsonValue>> JsonArray;
+        for (const TTuple<FName, TArray<FHitboxInfoRow>>& Item : HitboxInfos)
+        {
+            FName BoneName = Item.Key;
+            const TArray<FHitboxInfoRow>& InfoArray = Item.Value;
+            for (int i = 0; i < InfoArray.Num(); i++)
             {
-                if (UHitboxComponent* HitboxComp = Cast<UHitboxComponent>(BoxActor->GetRootComponent()))
-                {
-                    FHitboxInfoRow Info;
-                    Info.BoneName = BoxActor->GetAttachParentSocketName();
-                    Info.Location = HitboxComp->GetRelativeLocation();
-                    Info.Rotation = HitboxComp->GetRelativeRotation();
-                    Info.Extend = HitboxComp->GetScaledBoxExtent();
-                    Info.IsWeakHitbox = HitboxComp->IsWeakHitbox();
-
-                    HitboxInfos.Add(Info);
-                }
-            }
-
-            // Convert to JSON format
-            TArray<TSharedPtr<FJsonValue>> JsonArray;
-            for (int32 i = 0; i < HitboxInfos.Num(); i++)
-            {
-                const FHitboxInfoRow& Info = HitboxInfos[i];
+                const FHitboxInfoRow& Info = InfoArray[i];
 
                 TSharedPtr<FJsonObject> Json_Row = MakeShareable(new FJsonObject);
 
-                Json_Row->SetStringField("Name", FString("Row_") + FString::FromInt(i));
+                Json_Row->SetStringField("Name", FString("Hitbox_") + BoneName.ToString() + FString("_") + FString::FromInt(i));
 
                 Json_Row->SetStringField("BoneName", Info.BoneName.ToString());
 
@@ -98,17 +108,18 @@ void UActorActionUtility_HitboxInfo::SaveHitbox()
                 TSharedPtr<FJsonValueObject> JsonValue = MakeShareable(new FJsonValueObject(Json_Row));
                 JsonArray.Add(JsonValue);
             }
-
-            FString JsonString;
-            const TSharedRef<TJsonWriter<>> JsonWriter = TJsonWriterFactory<>::Create(&JsonString);
-            FJsonSerializer::Serialize(JsonArray, JsonWriter);
-
-            // Fill DataTable
-            UDataTableFunctionLibrary::FillDataTableFromJSONString(DT, JsonString);
-
-            // Save DataTable Asset
-            UEditorAssetLibrary::SaveAsset(FullPath);
         }
+            
+        // To JSON string
+        FString JsonString;
+        const TSharedRef<TJsonWriter<>> JsonWriter = TJsonWriterFactory<>::Create(&JsonString);
+        FJsonSerializer::Serialize(JsonArray, JsonWriter);
+
+        // Fill DataTable
+        UDataTableFunctionLibrary::FillDataTableFromJSONString(DT, JsonString);
+
+        // Save DataTable Asset
+        UEditorAssetLibrary::SaveAsset(FullPath);
     }
 }
 
@@ -129,52 +140,59 @@ void UActorActionUtility_HitboxInfo::LoadHitbox(TSubclassOf<AActor> HitboxActorC
     TArray<AActor*> SelectedActors = UEditorUtilityLibrary::GetSelectionSet();
     for (AActor* SelectedActor : SelectedActors)
     {
-        if (ASkeletalMeshActor* SKA = Cast<ASkeletalMeshActor>(SelectedActor))
+        ASkeletalMeshActor* SKA = Cast<ASkeletalMeshActor>(SelectedActor);
+        if (!SKA)
         {
-            FString MeshAssetName = GetNameSafe(SKA->GetSkeletalMeshComponent()->GetSkinnedAsset());
-            FString AssetPath = "/Game/Blueprints/Data/Hitbox/";
-            FString AssetName = "DA_HitboxInfo_" + MeshAssetName;
-            FString FullPath = AssetPath + AssetName;
+            continue;
+        }
 
-            UDataTable* DT = nullptr;
-            if (UEditorAssetLibrary::DoesAssetExist(FullPath))
+        FString MeshAssetName = GetNameSafe(SKA->GetSkeletalMeshComponent()->GetSkinnedAsset());
+        FString AssetFolderPath = "/Game/Blueprints/Data/Hitbox/";
+        FString AssetName = "DA_HitboxInfo_" + MeshAssetName;
+        FString FullPath = AssetFolderPath + AssetName;
+
+        UDataTable* DT = nullptr;
+        if (UEditorAssetLibrary::DoesAssetExist(FullPath))
+        {
+            DT = Cast<UDataTable>(UEditorAssetLibrary::LoadAsset(FullPath));
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("Hitbox Info of [%s] is not exist."), *MeshAssetName);
+            continue;
+        }
+
+        TArray<FName> RowNames = DT->GetRowNames();
+        for (const FName& RowName : RowNames)
+        {
+            FHitboxInfoRow* Info = DT->FindRow<FHitboxInfoRow>(RowName, "");
+            if (!Info)
             {
-                DT = Cast<UDataTable>(UEditorAssetLibrary::LoadAsset(FullPath));
-            }
-            else
-            {
-                UE_LOG(LogTemp, Error, TEXT("Hitbox Info of [%s] is not exist."), *MeshAssetName);
                 continue;
             }
 
-            TArray<FName> RowNames = DT->GetRowNames();
-            for (const FName& RowName : RowNames)
+            AActor* NewActor = SelectedActor->GetWorld()->SpawnActor<AActor>(
+                HitboxActorClass,
+                Info->Location,
+                Info->Rotation,
+                ActorSpawnParam
+            );
+            if (!NewActor)
             {
-                if (FHitboxInfoRow* Info = DT->FindRow<FHitboxInfoRow>(RowName, ""))
-                {
-                    AActor* NewActor = SelectedActor->GetWorld()->SpawnActor<AActor>(
-                        HitboxActorClass,
-                        Info->Location,
-                        Info->Rotation,
-                        ActorSpawnParam
-                    );
-                    if (!NewActor)
-                    {
-                        UE_LOG(LogTemp, Error, TEXT("Failed to Spawn HitboxActor. RowName: %s"), *RowName.ToString());
-                        continue;
-                    }
+                UE_LOG(LogTemp, Error, TEXT("Failed to Spawn HitboxActor. RowName: %s"), *RowName.ToString());
+                continue;
+            }
 
-                    NewActor->AttachToComponent(
-                        SKA->GetSkeletalMeshComponent(),
-                        FAttachmentTransformRules::KeepRelativeTransform,
-                        Info->BoneName
-                    );
-                    if (UHitboxComponent* HitboxComp = Cast<UHitboxComponent>(NewActor->GetRootComponent()))
-                    {
-                        HitboxComp->SetBoxExtent(Info->Extend);
-                        HitboxComp->SetIsWeakHitbox(Info->IsWeakHitbox);
-                    }
-                }
+            NewActor->SetActorLabel(RowName.ToString());
+            NewActor->AttachToComponent(
+                SKA->GetSkeletalMeshComponent(),
+                FAttachmentTransformRules::KeepRelativeTransform,
+                Info->BoneName
+            );
+            if (UHitboxComponent* HitboxComp = Cast<UHitboxComponent>(NewActor->GetRootComponent()))
+            {
+                HitboxComp->SetBoxExtent(Info->Extend);
+                HitboxComp->SetIsWeakHitbox(Info->IsWeakHitbox);
             }
         }
     }
