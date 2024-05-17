@@ -16,58 +16,44 @@
 #include "UObject/Package.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "UObject/SavePackage.h"
+#include "Util/HitboxUtilActor.h"
 
 void UActorActionUtility_HitboxInfo::SaveHitbox()
 {
     TArray<AActor*> SelectedActors = UEditorUtilityLibrary::GetSelectionSet();
     for (AActor* SelectedActor : SelectedActors)
     {
-        ASkeletalMeshActor* SKA = Cast<ASkeletalMeshActor>(SelectedActor);
-        if (!SKA)
+        ASkeletalMeshActor* SkeletalMeshActor = Cast<ASkeletalMeshActor>(SelectedActor);
+        if (!SkeletalMeshActor)
         {
             continue;
         }
 
-        FString MeshAssetName = GetNameSafe(SKA->GetSkeletalMeshComponent()->GetSkinnedAsset());
+        FString MeshAssetName = GetNameSafe(SkeletalMeshActor->GetSkeletalMeshComponent()->GetSkinnedAsset());
         FString AssetPath = "/Game/Blueprints/Data/Hitbox/";
         FString AssetName = "DA_HitboxInfo_" + MeshAssetName;
         FString FullPath = AssetPath + AssetName;
 
         // Load or Create DataTable
-        UDataTable* DT = nullptr;
+        UDataTable* DataTable = nullptr;
         if (UEditorAssetLibrary::DoesAssetExist(FullPath))
         {
-            DT = Cast<UDataTable>(UEditorAssetLibrary::LoadAsset(FullPath));
+            DataTable = Cast<UDataTable>(UEditorAssetLibrary::LoadAsset(FullPath));
         }
         else
         {
-            DT = CreateDataTableAsset(AssetPath, AssetName);
-            if (!DT)
+            DataTable = CreateDataTableAsset(AssetPath, AssetName);
+            if (!DataTable)
             {
                 UE_LOG(LogTemp, Error, TEXT("Failed to create new DataTable asset."));
                 continue;
             }
         }
+        DataTable->RowStruct = FHitboxInfoRow::StaticStruct();
 
-        // Save Hitbox Info
+        // Get Hitbox Info
         TMap<FName, TArray<FHitboxInfoRow>> HitboxInfos;
-        TArray<AActor*> AttachedActors;
-        SelectedActor->GetAttachedActors(AttachedActors);
-        for (const AActor* BoxActor : AttachedActors)
-        {
-            if (UHitboxComponent* HitboxComp = Cast<UHitboxComponent>(BoxActor->GetRootComponent()))
-            {
-                FHitboxInfoRow Info;
-                Info.BoneName = BoxActor->GetAttachParentSocketName();
-                Info.Location = HitboxComp->GetRelativeLocation();
-                Info.Rotation = HitboxComp->GetRelativeRotation();
-                Info.Extend = HitboxComp->GetScaledBoxExtent();
-                Info.IsWeakHitbox = HitboxComp->IsWeakHitbox();
-
-                TArray<FHitboxInfoRow>& Array = HitboxInfos.FindOrAdd(Info.BoneName, TArray<FHitboxInfoRow>());
-                Array.Add(Info);
-            }
-        }
+        GetAttachedHitboxInfo(SelectedActor, HitboxInfos);
 
         // Convert to JSON format
         TArray<TSharedPtr<FJsonValue>> JsonArray;
@@ -116,45 +102,41 @@ void UActorActionUtility_HitboxInfo::SaveHitbox()
         FJsonSerializer::Serialize(JsonArray, JsonWriter);
 
         // Fill DataTable
-        UDataTableFunctionLibrary::FillDataTableFromJSONString(DT, JsonString);
+        UDataTableFunctionLibrary::FillDataTableFromJSONString(DataTable, JsonString);
 
         // Save DataTable Asset
         UEditorAssetLibrary::SaveAsset(FullPath);
     }
 }
 
-void UActorActionUtility_HitboxInfo::LoadHitbox(TSubclassOf<AActor> HitboxActorClass)
+void UActorActionUtility_HitboxInfo::LoadHitbox(TSubclassOf<AActor> HitboxActorClassOverride)
 {
-    if (!HitboxActorClass)
+    UClass* HitboxActorClass = AHitboxUtilActor::StaticClass();
+    if (HitboxActorClassOverride)
     {
-        UE_LOG(LogTemp, Error, TEXT("HitboxActorClass should not be null"));
-        return;
+        HitboxActorClass = HitboxActorClassOverride;
     }
 
     ClearAllChild();
 
-    FActorSpawnParameters ActorSpawnParam;
-    ActorSpawnParam.bNoFail = true;
-    ActorSpawnParam.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
     TArray<AActor*> SelectedActors = UEditorUtilityLibrary::GetSelectionSet();
     for (AActor* SelectedActor : SelectedActors)
     {
-        ASkeletalMeshActor* SKA = Cast<ASkeletalMeshActor>(SelectedActor);
-        if (!SKA)
+        ASkeletalMeshActor* SkeletalMeshActor = Cast<ASkeletalMeshActor>(SelectedActor);
+        if (!SkeletalMeshActor)
         {
             continue;
         }
 
-        FString MeshAssetName = GetNameSafe(SKA->GetSkeletalMeshComponent()->GetSkinnedAsset());
+        FString MeshAssetName = GetNameSafe(SkeletalMeshActor->GetSkeletalMeshComponent()->GetSkinnedAsset());
         FString AssetFolderPath = "/Game/Blueprints/Data/Hitbox/";
         FString AssetName = "DA_HitboxInfo_" + MeshAssetName;
         FString FullPath = AssetFolderPath + AssetName;
 
-        UDataTable* DT = nullptr;
+        UDataTable* DataTable = nullptr;
         if (UEditorAssetLibrary::DoesAssetExist(FullPath))
         {
-            DT = Cast<UDataTable>(UEditorAssetLibrary::LoadAsset(FullPath));
+            DataTable = Cast<UDataTable>(UEditorAssetLibrary::LoadAsset(FullPath));
         }
         else
         {
@@ -162,38 +144,23 @@ void UActorActionUtility_HitboxInfo::LoadHitbox(TSubclassOf<AActor> HitboxActorC
             continue;
         }
 
-        TArray<FName> RowNames = DT->GetRowNames();
+        TArray<FName> RowNames = DataTable->GetRowNames();
         for (const FName& RowName : RowNames)
         {
-            FHitboxInfoRow* Info = DT->FindRow<FHitboxInfoRow>(RowName, "");
+            FHitboxInfoRow* Info = DataTable->FindRow<FHitboxInfoRow>(RowName, "");
             if (!Info)
             {
                 continue;
             }
 
-            AActor* NewActor = SelectedActor->GetWorld()->SpawnActor<AActor>(
+            AActor* NewActor = SpawnHitboxActor(
+                SelectedActor,
                 HitboxActorClass,
-                Info->Location,
-                Info->Rotation,
-                ActorSpawnParam
-            );
-            if (!NewActor)
-            {
-                UE_LOG(LogTemp, Error, TEXT("Failed to Spawn HitboxActor. RowName: %s"), *RowName.ToString());
-                continue;
-            }
-
-            NewActor->SetActorLabel(RowName.ToString());
-            NewActor->AttachToComponent(
-                SKA->GetSkeletalMeshComponent(),
-                FAttachmentTransformRules::KeepRelativeTransform,
+                *Info,
+                RowName.ToString(),
+                SkeletalMeshActor->GetSkeletalMeshComponent(),
                 Info->BoneName
             );
-            if (UHitboxComponent* HitboxComp = Cast<UHitboxComponent>(NewActor->GetRootComponent()))
-            {
-                HitboxComp->SetBoxExtent(Info->Extend);
-                HitboxComp->SetIsWeakHitbox(Info->IsWeakHitbox);
-            }
         }
     }
 }
@@ -208,6 +175,59 @@ void UActorActionUtility_HitboxInfo::ClearAllChild()
         for (AActor* Child : AttachedActors)
         {
             Child->Destroy();
+        }
+    }
+}
+
+void UActorActionUtility_HitboxInfo::SymmetrizeHitbox(bool bMirror)
+{
+    TArray<AActor*> SelectedActors = UEditorUtilityLibrary::GetSelectionSet();
+    for (AActor* SelectedActor : SelectedActors)
+    {
+        ASkeletalMeshActor* SkeletalMeshActor = Cast<ASkeletalMeshActor>(SelectedActor);
+        if (!SkeletalMeshActor)
+        {
+            continue;
+        }
+
+        // Get Hitbox Info
+        TMap<FName, TArray<FHitboxInfoRow>> HitboxInfos;
+        GetAttachedHitboxInfo(SelectedActor, HitboxInfos);
+
+        for (const TTuple<FName, TArray<FHitboxInfoRow>>& Item : HitboxInfos)
+        {
+            FString BoneNameString = Item.Key.ToString();
+            int32 BoneNameLength = BoneNameString.Len();
+            if (BoneNameString[BoneNameLength - 1] != 'l' && BoneNameString[BoneNameLength - 1] != 'r')
+            {
+                continue;
+            }
+
+            FString TargetBoneNameString = FString(BoneNameString);
+            TargetBoneNameString[BoneNameLength - 1] = TargetBoneNameString[BoneNameLength - 1] == 'l' ? 'r' : 'l';
+            FName TargetBoneName(TargetBoneNameString);
+            if (HitboxInfos.Contains(TargetBoneName))
+            {
+                continue;
+            }
+
+            const TArray<FHitboxInfoRow>& InfoArray = Item.Value;
+            for (int i = 0; i < InfoArray.Num(); i++)
+            {
+                const FHitboxInfoRow& Info = InfoArray[i];
+                const FString ActorName = FString("Hitbox_") + TargetBoneNameString + FString("_") + FString::FromInt(i);
+                FHitboxInfoRow NewInfo(Info);
+                NewInfo.Location *= bMirror ? 1 : -1;
+
+                AActor* NewActor = SpawnHitboxActor(
+                    SelectedActor,
+                    AHitboxUtilActor::StaticClass(),
+                    NewInfo,
+                    ActorName,
+                    SkeletalMeshActor->GetSkeletalMeshComponent(),
+                    TargetBoneName
+                );
+            }
         }
     }
 }
@@ -257,4 +277,60 @@ UDataTable* UActorActionUtility_HitboxInfo::CreateDataTableAsset(FString Path, F
         return DataTable;
     }
     return nullptr;
+}
+
+void UActorActionUtility_HitboxInfo::GetAttachedHitboxInfo(AActor* ParentActor, TMap<FName, TArray<FHitboxInfoRow>>& OutHitboxInfos)
+{
+    OutHitboxInfos.Empty();
+
+    TArray<AActor*> AttachedActors;
+    ParentActor->GetAttachedActors(AttachedActors);
+    for (const AActor* BoxActor : AttachedActors)
+    {
+        if (UHitboxComponent* HitboxComp = Cast<UHitboxComponent>(BoxActor->GetRootComponent()))
+        {
+            FHitboxInfoRow Info;
+            Info.BoneName = BoxActor->GetAttachParentSocketName();
+            Info.Location = HitboxComp->GetRelativeLocation();
+            Info.Rotation = HitboxComp->GetRelativeRotation();
+            Info.Extend = HitboxComp->GetScaledBoxExtent();
+            Info.IsWeakHitbox = HitboxComp->IsWeakHitbox();
+
+            TArray<FHitboxInfoRow>& InfoArray = OutHitboxInfos.FindOrAdd(Info.BoneName, TArray<FHitboxInfoRow>());
+            InfoArray.Add(Info);
+        }
+    }
+}
+
+AActor* UActorActionUtility_HitboxInfo::SpawnHitboxActor(UObject* WorldContextObject, UClass* Class, const FHitboxInfoRow& HitboxInfo, FString ActorName, USkeletalMeshComponent* ParentMeshComponent, FName ParentBoneName)
+{
+    FActorSpawnParameters ActorSpawnParam;
+    ActorSpawnParam.bNoFail = true;
+    ActorSpawnParam.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+    AActor* NewActor = WorldContextObject->GetWorld()->SpawnActor<AActor>(
+        Class,
+        HitboxInfo.Location,
+        HitboxInfo.Rotation,
+        ActorSpawnParam
+    );
+    if (!NewActor)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Failed to Spawn HitboxActor. RowName: %s"), *ActorName);
+        return nullptr;
+    }
+
+    NewActor->SetActorLabel(ActorName);
+    if (UHitboxComponent* HitboxComp = Cast<UHitboxComponent>(NewActor->GetRootComponent()))
+    {
+        HitboxComp->SetBoxExtent(HitboxInfo.Extend);
+        HitboxComp->SetIsWeakHitbox(HitboxInfo.IsWeakHitbox);
+    }
+    NewActor->AttachToComponent(
+        ParentMeshComponent,
+        FAttachmentTransformRules::KeepRelativeTransform,
+        ParentBoneName
+    );
+
+    return NewActor;
 }

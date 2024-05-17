@@ -7,6 +7,7 @@
 #include "ActorActionUtility_HitboxInfo.generated.h"
 
 class UDataTable;
+struct FHitboxInfoRow;
 
 /**
  * 
@@ -21,11 +22,18 @@ public:
 	void SaveHitbox();
 
 	UFUNCTION(CallInEditor, BlueprintCallable)
-	void LoadHitbox(TSubclassOf<AActor> HitboxActorClass);
+	void LoadHitbox(TSubclassOf<AActor> HitboxActorClassOverride);
 
 	UFUNCTION(CallInEditor, BlueprintCallable)
 	void ClearAllChild();
 
+	UFUNCTION(CallInEditor, BlueprintCallable)
+	void SymmetrizeHitbox(bool bMirror = false);
+
 protected:
 	UDataTable* CreateDataTableAsset(FString Path, FString Name, bool bSyncBrowserToObject = true);
+
+	void GetAttachedHitboxInfo(AActor* ParentActor, TMap<FName, TArray<FHitboxInfoRow>>& OutHitboxInfos);
+
+	AActor* SpawnHitboxActor(UObject* WorldContextObject, UClass* Class, const FHitboxInfoRow& HitboxInfo, FString ActorName, USkeletalMeshComponent* ParentMeshComponent, FName ParentBoneName);
 };
