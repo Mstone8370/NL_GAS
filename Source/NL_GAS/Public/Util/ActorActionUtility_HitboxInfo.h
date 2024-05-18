@@ -31,7 +31,7 @@ public:
 	void SymmetrizeHitbox(bool bMirror = false);
 
 protected:
-	UDataTable* CreateDataTableAsset(FString Path, FString Name, bool bSyncBrowserToObject = true);
+	UDataTable* CreateDataTableAsset(FString FullPath, bool bSyncBrowserToObject = true);
 
 	void GetAttachedHitboxInfo(AActor* ParentActor, TMap<FName, TArray<FHitboxInfoRow>>& OutHitboxInfos);
 

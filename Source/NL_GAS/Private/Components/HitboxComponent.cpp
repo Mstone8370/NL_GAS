@@ -8,4 +8,5 @@ UHitboxComponent::UHitboxComponent()
     , CriticalHitDamageMultiplier(2.f)
 {
     SetCollisionProfileName(FName("Hitbox"));
+    bHiddenInGame = 0;
 }

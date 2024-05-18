@@ -3,20 +3,22 @@
 
 #include "Util/ActorActionUtility_HitboxInfo.h"
 
+#include "NLFunctionLibrary.h"
+#include "Data/NLDataTableRows.h"
+#include "Animation/SkeletalMeshActor.h"
+#include "Components/HitboxComponent.h"
+#include "Rendering/SkeletalMeshModel.h"
+#include "Kismet/DataTableFunctionLibrary.h"
+#include "Util/HitboxUtilActor.h"
+
 #include "UnrealEd.h"
 #include "Editor/EditorEngine.h"
 
 #include "EditorUtilityLibrary.h"
-#include "Animation/SkeletalMeshActor.h"
-#include "Components/HitboxComponent.h"
 #include "EditorAssetLibrary.h"
-#include "Rendering/SkeletalMeshModel.h"
-#include "Data/NLDataTableRows.h"
-#include "Kismet/DataTableFunctionLibrary.h"
 #include "UObject/Package.h"
-#include "AssetRegistry/AssetRegistryModule.h"
 #include "UObject/SavePackage.h"
-#include "Util/HitboxUtilActor.h"
+#include "AssetRegistry/AssetRegistryModule.h"
 
 void UActorActionUtility_HitboxInfo::SaveHitbox()
 {
@@ -29,20 +31,17 @@ void UActorActionUtility_HitboxInfo::SaveHitbox()
             continue;
         }
 
-        FString MeshAssetName = GetNameSafe(SkeletalMeshActor->GetSkeletalMeshComponent()->GetSkinnedAsset());
-        FString AssetPath = "/Game/Blueprints/Data/Hitbox/";
-        FString AssetName = "DA_HitboxInfo_" + MeshAssetName;
-        FString FullPath = AssetPath + AssetName;
+        const FString DataTablePath = UNLFunctionLibrary::MakeHitboxInfoDataTablePath(SkeletalMeshActor->GetSkeletalMeshComponent());
 
         // Load or Create DataTable
         UDataTable* DataTable = nullptr;
-        if (UEditorAssetLibrary::DoesAssetExist(FullPath))
+        if (UEditorAssetLibrary::DoesAssetExist(DataTablePath))
         {
-            DataTable = Cast<UDataTable>(UEditorAssetLibrary::LoadAsset(FullPath));
+            DataTable = Cast<UDataTable>(UEditorAssetLibrary::LoadAsset(DataTablePath));
         }
         else
         {
-            DataTable = CreateDataTableAsset(AssetPath, AssetName);
+            DataTable = CreateDataTableAsset(DataTablePath);
             if (!DataTable)
             {
                 UE_LOG(LogTemp, Error, TEXT("Failed to create new DataTable asset."));
@@ -89,7 +88,7 @@ void UActorActionUtility_HitboxInfo::SaveHitbox()
                 Json_Extend->SetNumberField("Z", Info.Extend.Z);
                 Json_Row->SetObjectField("Extend", Json_Extend);
 
-                Json_Row->SetBoolField("IsWeakHitbox", Info.IsWeakHitbox);
+                Json_Row->SetBoolField("bIsWeakHitbox", Info.bIsWeakHitbox);
 
                 TSharedPtr<FJsonValueObject> JsonValue = MakeShareable(new FJsonValueObject(Json_Row));
                 JsonArray.Add(JsonValue);
@@ -105,7 +104,7 @@ void UActorActionUtility_HitboxInfo::SaveHitbox()
         UDataTableFunctionLibrary::FillDataTableFromJSONString(DataTable, JsonString);
 
         // Save DataTable Asset
-        UEditorAssetLibrary::SaveAsset(FullPath);
+        UEditorAssetLibrary::SaveAsset(DataTablePath);
     }
 }
 
@@ -128,19 +127,16 @@ void UActorActionUtility_HitboxInfo::LoadHitbox(TSubclassOf<AActor> HitboxActorC
             continue;
         }
 
-        FString MeshAssetName = GetNameSafe(SkeletalMeshActor->GetSkeletalMeshComponent()->GetSkinnedAsset());
-        FString AssetFolderPath = "/Game/Blueprints/Data/Hitbox/";
-        FString AssetName = "DA_HitboxInfo_" + MeshAssetName;
-        FString FullPath = AssetFolderPath + AssetName;
+        const FString DataTablePath = UNLFunctionLibrary::MakeHitboxInfoDataTablePath(SkeletalMeshActor->GetSkeletalMeshComponent());
 
         UDataTable* DataTable = nullptr;
-        if (UEditorAssetLibrary::DoesAssetExist(FullPath))
+        if (UEditorAssetLibrary::DoesAssetExist(DataTablePath))
         {
-            DataTable = Cast<UDataTable>(UEditorAssetLibrary::LoadAsset(FullPath));
+            DataTable = Cast<UDataTable>(UEditorAssetLibrary::LoadAsset(DataTablePath));
         }
         else
         {
-            UE_LOG(LogTemp, Error, TEXT("Hitbox Info of [%s] is not exist."), *MeshAssetName);
+            UE_LOG(LogTemp, Error, TEXT("Hitbox Info [%s] is not exist."), *DataTablePath);
             continue;
         }
 
@@ -232,14 +228,12 @@ void UActorActionUtility_HitboxInfo::SymmetrizeHitbox(bool bMirror)
     }
 }
 
-UDataTable* UActorActionUtility_HitboxInfo::CreateDataTableAsset(FString Path, FString Name, bool bSyncBrowserToObject)
+UDataTable* UActorActionUtility_HitboxInfo::CreateDataTableAsset(FString FullPath, bool bSyncBrowserToObject)
 {
-    FString FullPath = Path + Name;
-
     UPackage* Package = CreatePackage(*FullPath);
     Package->FullyLoad();
 
-    UDataTable* DataTable = NewObject<UDataTable>(Package, *Name, RF_Public | RF_Standalone | RF_MarkAsRootSet);
+    UDataTable* DataTable = NewObject<UDataTable>(Package, *FPaths::GetCleanFilename(FullPath), RF_Public | RF_Standalone | RF_MarkAsRootSet);
     DataTable->RowStruct = FHitboxInfoRow::StaticStruct();
 
     Package->MarkPackageDirty();
@@ -294,7 +288,7 @@ void UActorActionUtility_HitboxInfo::GetAttachedHitboxInfo(AActor* ParentActor, 
             Info.Location = HitboxComp->GetRelativeLocation();
             Info.Rotation = HitboxComp->GetRelativeRotation();
             Info.Extend = HitboxComp->GetScaledBoxExtent();
-            Info.IsWeakHitbox = HitboxComp->IsWeakHitbox();
+            Info.bIsWeakHitbox = HitboxComp->IsWeakHitbox();
 
             TArray<FHitboxInfoRow>& InfoArray = OutHitboxInfos.FindOrAdd(Info.BoneName, TArray<FHitboxInfoRow>());
             InfoArray.Add(Info);
@@ -324,7 +318,7 @@ AActor* UActorActionUtility_HitboxInfo::SpawnHitboxActor(UObject* WorldContextOb
     if (UHitboxComponent* HitboxComp = Cast<UHitboxComponent>(NewActor->GetRootComponent()))
     {
         HitboxComp->SetBoxExtent(HitboxInfo.Extend);
-        HitboxComp->SetIsWeakHitbox(HitboxInfo.IsWeakHitbox);
+        HitboxComp->SetIsWeakHitbox(HitboxInfo.bIsWeakHitbox);
     }
     NewActor->AttachToComponent(
         ParentMeshComponent,

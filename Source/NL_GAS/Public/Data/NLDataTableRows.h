@@ -46,5 +46,5 @@ public:
     FVector Extend;
 
     UPROPERTY(EditAnywhere)
-    bool IsWeakHitbox;
+    bool bIsWeakHitbox;
 };

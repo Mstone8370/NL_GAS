@@ -12,6 +12,9 @@
 #include "EditorAssetLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "NLGameplayTags.h"
+#include "Data/NLDataTableRows.h"
+#include "Components/HitboxComponent.h"
+#include "Engine/ObjectLibrary.h"
 
 const FWeaponInfo* UNLFunctionLibrary::GetWeaponInfoByTag(const UObject* WorldContextObject, const FGameplayTag& WeaponTag)
 {
@@ -91,4 +94,78 @@ void UNLFunctionLibrary::ApplyDamageEffect(const FDamageEffectParams& Params)
     UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, Attribute_Meta_IncomingDamage, Damage);
 
     Params.SourceASC->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), Params.TargetASC);
+}
+
+FString UNLFunctionLibrary::MakeHitboxInfoDataTablePath(const USkeletalMeshComponent* SkeletalMeshComponent)
+{
+    FString FullPath = "";
+    const FString HitboxInfoFolderPath = "/Game/Blueprints/Data/Hitbox";
+
+    if (SkeletalMeshComponent && SkeletalMeshComponent->GetSkinnedAsset())
+    {
+        const FString MeshAssetName = GetNameSafe(SkeletalMeshComponent->GetSkinnedAsset());
+        const FString AssetName = "DA_HitboxInfo_" + MeshAssetName;
+        FullPath = FPaths::ConvertRelativePathToFull(HitboxInfoFolderPath, AssetName);
+    }
+
+    return FullPath;
+}
+
+void UNLFunctionLibrary::LoadHitboxComponents(USkeletalMeshComponent* SkeletalMeshComponent)
+{
+    const FString DataTablePath = UNLFunctionLibrary::MakeHitboxInfoDataTablePath(SkeletalMeshComponent);
+    if (!UNLFunctionLibrary::AssetExists(DataTablePath))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Failed to find HitboxInfo DataTable Asset: %s"), *DataTablePath);
+        return;
+    }
+
+    UDataTable* DataTable = LoadObject<UDataTable>(NULL, *DataTablePath);
+    if (!DataTable)
+    {
+        UE_LOG(LogTemp, Error, TEXT("HitboxInfo DataTable Asset load failed: %s"), *DataTablePath);
+        return;
+    }
+
+    TArray<FName> RowNames = DataTable->GetRowNames();
+    for (const FName& RowName : RowNames)
+    {
+        FHitboxInfoRow* Info = DataTable->FindRow<FHitboxInfoRow>(RowName, "");
+        if (!Info)
+        {
+            continue;
+        }
+
+        UHitboxComponent* HitboxComp = NewObject<UHitboxComponent>(SkeletalMeshComponent);
+        HitboxComp->RegisterComponent();
+        HitboxComp->SetRelativeLocationAndRotation(Info->Location,Info->Rotation);
+        HitboxComp->SetBoxExtent(Info->Extend);
+        HitboxComp->SetIsWeakHitbox(Info->bIsWeakHitbox);
+        HitboxComp->AttachToComponent(
+            SkeletalMeshComponent,
+            FAttachmentTransformRules::KeepRelativeTransform,
+            Info->BoneName
+        );
+    }
+}
+
+bool UNLFunctionLibrary::AssetExists(FString FullPath)
+{
+    const FString FolderPath = FPaths::GetPath(FullPath);
+    const FName AssetName = FName(FPaths::GetCleanFilename(FullPath));
+
+    UObjectLibrary* ObjectLibrary = UObjectLibrary::CreateLibrary(nullptr, false, GIsEditor);
+    ObjectLibrary->LoadAssetDataFromPath(FolderPath);
+
+    TArray<FAssetData> AssetDatas;
+    ObjectLibrary->GetAssetDataList(AssetDatas);
+
+    for (const FAssetData& AssetData : AssetDatas)
+    {
+        if (AssetData.AssetName.IsEqual(AssetName))
+        {
+            return true;
+        }
+    }
+    return false;
 }

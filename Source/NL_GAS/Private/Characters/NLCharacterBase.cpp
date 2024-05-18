@@ -6,6 +6,7 @@
 #include "AbilitySystem/NLAbilitySystemComponent.h"
 #include "Components/NLCharacterComponent.h"
 #include "Components/DamageTextWidgetComponent.h"
+#include "NLFunctionLibrary.h"
 
 ANLCharacterBase::ANLCharacterBase()
 {
@@ -18,6 +19,7 @@ void ANLCharacterBase::BeginPlay()
 {
     Super::BeginPlay();
     
+    UNLFunctionLibrary::LoadHitboxComponents(GetMesh());
 }
 
 UAbilitySystemComponent* ANLCharacterBase::GetAbilitySystemComponent() const

@@ -27,4 +27,13 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "NLFunctionLibrary")
 	static void ApplyDamageEffect(const FDamageEffectParams& Params);
+
+	UFUNCTION(BlueprintCallable, Category = "NLFunctionLibrary")
+	static FString MakeHitboxInfoDataTablePath(const USkeletalMeshComponent* SkeletalMeshComponent);
+
+	UFUNCTION(BlueprintCallable, Category = "NLFunctionLibrary")
+	static void LoadHitboxComponents(USkeletalMeshComponent* SkeletalMeshComponent);
+
+	UFUNCTION(BlueprintCallable, Category = "NLFunctionLibrary")
+	static bool AssetExists(FString FullPath);
 };
