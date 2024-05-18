@@ -38,6 +38,7 @@ ANLPlayerCharacter::ANLPlayerCharacter()
     PrimaryActorTick.bCanEverTick = false;
     
     GetMesh()->bOwnerNoSee = true;
+    GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::OnlyTickPoseWhenRendered;
 
     SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(FName("SpringArm"));
     SpringArmComponent->TargetArmLength = 0.f;
@@ -91,6 +92,12 @@ void ANLPlayerCharacter::BeginPlay()
     }
 
     check(NLCharacterMovementComponent);
+
+    if (HasAuthority())
+    {
+        // 서버에서는 캐릭터 메시의 본을 항상 업데이트
+        GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
+    }
 
     NLCharacterMovementComponent->FallingStarted.BindUObject(this, &ANLPlayerCharacter::OnFallingStarted);
 

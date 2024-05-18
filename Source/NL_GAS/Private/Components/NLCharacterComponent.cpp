@@ -170,6 +170,7 @@ void UNLCharacterComponent::OnWeaponHolstered()
         ChangedWeapon->GetWeaponAnimInstanceClass(),
         ChangedWeapon->GetArmsAnimLayerClass()
     );
+    UpdateOwningCharacterMesh();
 
     // Draw New Weapon
     const bool bDrawFirst = !ChangedWeapon->IsEverDrawn();
