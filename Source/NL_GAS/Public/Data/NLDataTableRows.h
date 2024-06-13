@@ -15,16 +15,16 @@ struct FFOVModifyValue : public FTableRowBase
 
 public:
     UPROPERTY(EditAnywhere)
-    float CameraFOVMultiplier;
+    float CameraFOVMultiplier = 1.f;
 
     UPROPERTY(EditAnywhere)
-    float ViewModelHorizontalFOV;
+    float ViewModelHorizontalFOV = 80.f;
 
     UPROPERTY(EditAnywhere)
-    float LookSensitivityMultiplier;
+    float LookSensitivityMultiplier = 1.f;
 
     UPROPERTY(EditAnywhere)
-    TObjectPtr<UCurveVector> LoopingControlShakeCurve;
+    TObjectPtr<UCurveVector> LoopingControlShakeCurve = nullptr;
 };
 
 USTRUCT(BlueprintType)
@@ -34,17 +34,17 @@ struct FHitboxInfoRow : public FTableRowBase
 
 public:
     UPROPERTY(EditAnywhere)
-    FName BoneName;
+    FName BoneName = NAME_None;
 
     UPROPERTY(EditAnywhere)
-    FVector Location;
+    FVector Location = FVector::ZeroVector;
 
     UPROPERTY(EditAnywhere)
-    FRotator Rotation;
+    FRotator Rotation = FRotator::ZeroRotator;
 
     UPROPERTY(EditAnywhere)
-    FVector Extend;
+    FVector Extend = FVector::ZeroVector;
 
     UPROPERTY(EditAnywhere)
-    bool bIsWeakHitbox;
+    bool bIsWeakHitbox = false;
 };

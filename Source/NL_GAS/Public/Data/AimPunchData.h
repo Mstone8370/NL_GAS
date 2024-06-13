@@ -16,16 +16,16 @@ struct FTaggedAimPunch
 
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TObjectPtr<UCurveVector> ControlShakeCurve;
+	TObjectPtr<UCurveVector> ControlShakeCurve = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	float Duration;
+	float Duration = 0.f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	float BaseMagnitude;
+	float BaseMagnitude = 0.f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	float CriticalMagnitude;
+	float CriticalMagnitude = 0.f;
 };
 
 UCLASS()
