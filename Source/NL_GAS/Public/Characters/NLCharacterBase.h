@@ -22,7 +22,7 @@ class NL_GAS_API ANLCharacterBase : public ACharacter, public IAbilitySystemInte
 	GENERATED_BODY()
 
 public:
-	ANLCharacterBase();
+	ANLCharacterBase(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	virtual void BeginPlay() override;

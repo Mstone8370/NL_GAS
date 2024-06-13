@@ -23,7 +23,7 @@ class NL_GAS_API ANLPlayerCharacter : public ANLCharacterBase, public IPlayerInt
 	GENERATED_BODY()
 	
 public:
-	ANLPlayerCharacter();
+	ANLPlayerCharacter(const FObjectInitializer& ObjectInitializer);
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
@@ -70,6 +70,15 @@ public:
 
 	virtual void Landed(const FHitResult& Hit) override;
 	void OnFallingStarted();
+
+	virtual bool CanSprint();
+	// Request to sprint
+	virtual void Sprint();
+	// Request to stop sprinting
+	virtual void StopSprint();
+	
+	virtual void OnStartSprint();
+	virtual void OnEndSprint();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USpringArmComponent> SpringArmComponent;
@@ -181,4 +190,13 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE bool IsADS() const { return bIsADS; }
+
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_IsSprinting)
+	bool bIsSprinting = false;
+
+	UFUNCTION()
+	virtual void OnRep_IsSprinting();
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	FORCEINLINE bool IsSprinting() const { return bIsSprinting; }
 };

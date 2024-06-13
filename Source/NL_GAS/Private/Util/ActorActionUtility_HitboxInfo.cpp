@@ -11,8 +11,8 @@
 #include "Kismet/DataTableFunctionLibrary.h"
 #include "Util/HitboxUtilActor.h"
 
-#include "UnrealEd.h"
-#include "Editor/EditorEngine.h"
+// #include "UnrealEd.h"
+// #include "Editor/EditorEngine.h"
 
 #include "EditorUtilityLibrary.h"
 #include "EditorAssetLibrary.h"

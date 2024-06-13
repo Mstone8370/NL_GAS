@@ -104,7 +104,7 @@ FString UNLFunctionLibrary::MakeHitboxInfoDataTablePath(const USkeletalMeshCompo
     if (SkeletalMeshComponent && SkeletalMeshComponent->GetSkinnedAsset())
     {
         const FString MeshAssetName = GetNameSafe(SkeletalMeshComponent->GetSkinnedAsset());
-        const FString AssetName = "DA_HitboxInfo_" + MeshAssetName;
+        const FString AssetName = "DT_HitboxInfo_" + MeshAssetName;
         FullPath = FPaths::ConvertRelativePathToFull(HitboxInfoFolderPath, AssetName);
     }
 

@@ -8,7 +8,8 @@
 #include "Components/DamageTextWidgetComponent.h"
 #include "NLFunctionLibrary.h"
 
-ANLCharacterBase::ANLCharacterBase()
+ANLCharacterBase::ANLCharacterBase(const FObjectInitializer& ObjectInitializer)
+    : Super(ObjectInitializer)
 {
     PrimaryActorTick.bCanEverTick = false;
 

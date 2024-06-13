@@ -30,6 +30,51 @@ public:
 	UFUNCTION()
 	void ShrinkCapsuleHeight(bool bClientSimulation = false);
 
+	virtual float GetMaxSpeed() const override;
+
+	virtual void UpdateCharacterStateBeforeMovement(float DeltaSeconds) override;
+
+	virtual class FNetworkPredictionData_Client* GetPredictionData_Client() const override;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	float MaxSprintSpeed = 600.f;
+
+	bool bWantsToSprint = false;
+
+	bool IsSprinting() const;
+
+	virtual bool CanSprintInCurrentState() const;
+
+	virtual void Sprint(bool bClientSimulation);
+	virtual void StopSprint(bool bClientSimulation);
+
 protected:
 	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode) override;
+
+	virtual void UpdateFromCompressedFlags(uint8 Flags) override;
+};
+
+
+class FSavedMove_NLCharacter : public FSavedMove_Character
+{
+public:
+	typedef FSavedMove_Character Super;
+
+	virtual void Clear() override;
+
+	virtual void SetMoveFor(ACharacter* C, float InDeltaTime, FVector const& NewAccel, class FNetworkPredictionData_Client_Character& ClientData) override;
+
+	uint8 GetCompressedFlags() const override;
+
+	uint32 bWantsToSprint : 1;
+};
+
+class FNetworkPredictionData_Client_NLCharacter : public FNetworkPredictionData_Client_Character
+{
+public:
+	typedef FNetworkPredictionData_Client_Character Super;
+
+	FNetworkPredictionData_Client_NLCharacter(const UCharacterMovementComponent& ClientMovement);
+
+	virtual FSavedMovePtr AllocateNewMove() override;
 };

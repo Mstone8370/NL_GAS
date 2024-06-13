@@ -11,6 +11,7 @@
 #include "NLGameplayTags.h"
 #include "AbilitySystem/NLAbilitySystemComponent.h"
 #include "Player/NLPlayerState.h"
+#include "Characters/NLPlayerCharacter.h"
 #include "HUD/NLHUD.h"
 #include "Interface/CombatInterface.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -68,17 +69,31 @@ void ANLPlayerController::SetupInputComponent()
 
 void ANLPlayerController::PostProcessInput(const float DeltaTime, const bool bGamePaused)
 {
+    Super::PostProcessInput(DeltaTime, bGamePaused);
+
     if (GetNLAbilitySystemComponent())
     {
         GetNLAbilitySystemComponent()->ProcessAbilityInput(DeltaTime, bGamePaused);
     }
 
-    Super::PostProcessInput(DeltaTime, bGamePaused);
+    if (GetNLPlayerCharacter())
+    {
+        MoveInputDirection.Normalize();
+        if (MoveInputDirection.SquaredLength() > 0.25f && MoveInputDirection.X > 0.7f)
+        {
+            GetNLPlayerCharacter()->Sprint();
+        }
+        else
+        {
+            GetNLPlayerCharacter()->StopSprint();
+        }
+    }
 }
 
 void ANLPlayerController::Move(const FInputActionValue& Value)
 {
     const FVector VectorValue = Value.Get<FVector>();
+    MoveInputDirection += VectorValue;
     const FRotator MovementRotation = FRotator(0.f, GetControlRotation().Yaw, 0.f);
     const FVector ForwardDirection = MovementRotation.Vector();
     const FVector MoveDirection = ForwardDirection.RotateAngleAxis(VectorValue.Rotation().Yaw, FVector::UpVector);
@@ -154,6 +169,11 @@ ANLPlayerState* ANLPlayerController::GetNLPlayerState()
         NLPlayerState = Cast<ANLPlayerState>(GetPlayerState<ANLPlayerState>());
     }
     return NLPlayerState;
+}
+
+ANLPlayerCharacter* ANLPlayerController::GetNLPlayerCharacter()
+{
+    return Cast<ANLPlayerCharacter>(GetCharacter());
 }
 
 void ANLPlayerController::Client_ShowDamageCauseIndicator_Implementation(float InDamage, bool bInIsCriticalHit, AActor* DamagedActor)

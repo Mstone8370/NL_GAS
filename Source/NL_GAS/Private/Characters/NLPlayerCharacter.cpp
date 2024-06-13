@@ -25,8 +25,9 @@
 #include "Data/NLDataTableRows.h"
 #include "Data/AimPunchData.h"
 
-ANLPlayerCharacter::ANLPlayerCharacter()
-    : LookPitchRepTime(0.02f)
+ANLPlayerCharacter::ANLPlayerCharacter(const FObjectInitializer& ObjectInitializer)
+    : Super(ObjectInitializer.SetDefaultSubobjectClass<UNLCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))  // CharacterMovementComponent의 클래스를 NLCharacterMovementComponent로 변경
+    , LookPitchRepTime(0.02f)
     , LookPitch(0.f)
     , CrouchInterpSpeed(10.f)
     , CrouchInterpErrorTolerance(0.1f)
@@ -72,6 +73,7 @@ void ANLPlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 
     DOREPLIFETIME_CONDITION(ANLPlayerCharacter, bIsCapsuleShrinked, COND_SimulatedOnly);
     DOREPLIFETIME_CONDITION_NOTIFY(ANLPlayerCharacter, LookPitch, COND_SimulatedOnly, REPNOTIFY_OnChanged);
+    DOREPLIFETIME_CONDITION_NOTIFY(ANLPlayerCharacter, bIsSprinting, COND_SimulatedOnly, REPNOTIFY_OnChanged);
 }
 
 void ANLPlayerCharacter::PostInitializeComponents()
@@ -80,18 +82,14 @@ void ANLPlayerCharacter::PostInitializeComponents()
 
     ArmMesh->Initialize();
     ViewWeaponMesh->Initialize();
+
+    NLCharacterMovementComponent = Cast<UNLCharacterMovementComponent>(GetCharacterMovement());
+    check(NLCharacterMovementComponent);
 }
 
 void ANLPlayerCharacter::BeginPlay()
 {
     Super::BeginPlay();
-
-    if (GetCharacterMovement()->IsA<UNLCharacterMovementComponent>())
-    {
-        NLCharacterMovementComponent = Cast<UNLCharacterMovementComponent>(GetCharacterMovement());
-    }
-
-    check(NLCharacterMovementComponent);
 
     if (HasAuthority())
     {
@@ -387,6 +385,38 @@ void ANLPlayerCharacter::OnFallingStarted()
     }
 }
 
+bool ANLPlayerCharacter::CanSprint()
+{
+    return !bIsSprinting && NLCharacterMovementComponent && NLCharacterMovementComponent->IsMovingOnGround() && GetRootComponent() && !GetRootComponent()->IsSimulatingPhysics();
+}
+
+void ANLPlayerCharacter::Sprint()
+{
+    if (NLCharacterMovementComponent)
+    {
+        if (CanSprint())
+        {
+            NLCharacterMovementComponent->bWantsToSprint = true;
+        }
+    }
+}
+
+void ANLPlayerCharacter::StopSprint()
+{
+    if (NLCharacterMovementComponent)
+    {
+        NLCharacterMovementComponent->bWantsToSprint = false;
+    }
+}
+
+void ANLPlayerCharacter::OnStartSprint()
+{
+}
+
+void ANLPlayerCharacter::OnEndSprint()
+{
+}
+
 void ANLPlayerCharacter::OnViewportResized(FViewport* InViewport, uint32 arg)
 {
     /**
@@ -560,6 +590,24 @@ void ANLPlayerCharacter::OnADS(bool bInIsADS)
     else
     {
         ControlShakeManager->ClearLoopingShake();
+    }
+}
+
+void ANLPlayerCharacter::OnRep_IsSprinting()
+{
+    if (NLCharacterMovementComponent)
+    {
+        if (bIsSprinting)
+        {
+            NLCharacterMovementComponent->bWantsToSprint = true;
+            NLCharacterMovementComponent->Sprint(true);
+        }
+        else
+        {
+            NLCharacterMovementComponent->bWantsToSprint = false;
+            NLCharacterMovementComponent->StopSprint(true);
+        }
+        NLCharacterMovementComponent->bNetworkUpdateReceived = true;
     }
 }
 

@@ -11,6 +11,7 @@ class UInputConfig;
 class UInputMappingContext;
 class UNLAbilitySystemComponent;
 class ANLPlayerState;
+class ANLPlayerCharacter;
 class UAimPunchData;
 struct FInputActionValue;
 
@@ -42,6 +43,8 @@ protected:
 public:
 	UNLAbilitySystemComponent* GetNLAbilitySystemComponent();
 	ANLPlayerState* GetNLPlayerState();
+	ANLPlayerCharacter* GetNLPlayerCharacter();
+
 	FORCEINLINE bool IsListenServerController() const { return bIsListenServerController; }
 
 	FOnTakenDamageSignature OnTakenDamageDelegate;
@@ -61,10 +64,13 @@ protected:
 
 	TObjectPtr<UNLAbilitySystemComponent> LNAbilitySystemComponent;
 	TObjectPtr<ANLPlayerState> NLPlayerState;
+	TObjectPtr<ANLPlayerCharacter> NLPlayerCharacter;
 
 	bool bIsListenServerController = false;
 
 	float CurrentLookSensitivity;
+
+	FVector MoveInputDirection;
 
 	UFUNCTION(Client, Reliable)
 	void Client_ShowDamageCauseIndicator(float InDamage, bool bIsCriticalHit, AActor* DamagedActor);

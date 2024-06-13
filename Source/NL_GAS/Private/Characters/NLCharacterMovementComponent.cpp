@@ -5,6 +5,9 @@
 
 #include "GameFramework/Character.h"
 #include "Components/CapsuleComponent.h"
+#include "Characters/NLPlayerCharacter.h"
+
+DECLARE_CYCLE_STAT(TEXT("Char Update Acceleration"), STAT_CharUpdateAcceleration, STATGROUP_Character);
 
 bool UNLCharacterMovementComponent::CanAttemptJump() const
 {
@@ -122,6 +125,110 @@ void UNLCharacterMovementComponent::ShrinkCapsuleHeight(bool bClientSimulation)
     }
 }
 
+float UNLCharacterMovementComponent::GetMaxSpeed() const
+{
+    if (MovementMode == MOVE_Walking || MovementMode == MOVE_NavWalking)
+    {
+        if (!IsCrouching())
+        {
+            return IsSprinting() ? MaxSprintSpeed : MaxWalkSpeed;
+        }
+    }
+
+    return Super::GetMaxSpeed();
+}
+
+void UNLCharacterMovementComponent::UpdateCharacterStateBeforeMovement(float DeltaSeconds)
+{
+    Super::UpdateCharacterStateBeforeMovement(DeltaSeconds);
+
+    if (CharacterOwner->GetLocalRole() != ROLE_SimulatedProxy)
+    {
+        const bool bIsSprinting = IsSprinting();
+        if (bIsSprinting && (!bWantsToSprint || !CanSprintInCurrentState()))
+        {
+            StopSprint(false);
+        }
+        else if (!bIsSprinting && bWantsToSprint && CanSprintInCurrentState())
+        {
+            Sprint(false);
+        }
+    }
+}
+
+FNetworkPredictionData_Client* UNLCharacterMovementComponent::GetPredictionData_Client() const
+{
+    if (ClientPredictionData == nullptr)
+    {
+        UNLCharacterMovementComponent* MutableThis = const_cast<UNLCharacterMovementComponent*>(this);
+        MutableThis->ClientPredictionData = new FNetworkPredictionData_Client_NLCharacter(*this);
+    }
+
+    return ClientPredictionData;
+}
+
+bool UNLCharacterMovementComponent::IsSprinting() const
+{
+    if (GetCharacterOwner())
+    {
+        if (ANLPlayerCharacter* NLPlayerCharacter = Cast<ANLPlayerCharacter>(GetCharacterOwner()))
+        {
+            return NLPlayerCharacter->IsSprinting();
+        }
+    }
+    return false;
+}
+
+bool UNLCharacterMovementComponent::CanSprintInCurrentState() const
+{
+    return IsMovingOnGround() && UpdatedComponent && !UpdatedComponent->IsSimulatingPhysics();
+}
+
+void UNLCharacterMovementComponent::Sprint(bool bClientSimulation)
+{
+    if (!HasValidData())
+    {
+        return;
+    }
+
+    if (!bClientSimulation && !CanSprintInCurrentState())
+    {
+        return;
+    }
+
+    if (GetCharacterOwner())
+    {
+        if (ANLPlayerCharacter* NLPlayerCharacter = Cast<ANLPlayerCharacter>(GetCharacterOwner()))
+        {
+            if (!bClientSimulation)
+            {
+                NLPlayerCharacter->bIsSprinting = true;
+            }
+            NLPlayerCharacter->OnStartSprint();
+        }
+    }
+}
+
+void UNLCharacterMovementComponent::StopSprint(bool bClientSimulation)
+{
+    if (!HasValidData())
+    {
+        return;
+    }
+
+    if (GetCharacterOwner())
+    {
+        if (ANLPlayerCharacter* NLPlayerCharacter = Cast<ANLPlayerCharacter>(GetCharacterOwner()))
+        {
+            if (!bClientSimulation)
+            {
+                NLPlayerCharacter->bIsSprinting = false;
+            }
+            NLPlayerCharacter->OnEndSprint();
+        }
+    }
+}
+
 void UNLCharacterMovementComponent::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode)
 {
     Super::OnMovementModeChanged(PreviousMovementMode, PreviousCustomMode);
@@ -130,4 +237,51 @@ void UNLCharacterMovementComponent::OnMovementModeChanged(EMovementMode Previous
     {
         FallingStarted.ExecuteIfBound();
     }
+}
+
+void UNLCharacterMovementComponent::UpdateFromCompressedFlags(uint8 Flags)
+{
+    Super::UpdateFromCompressedFlags(Flags);
+
+    bWantsToSprint = ((Flags & FSavedMove_Character::FLAG_Custom_0) != 0);
+
+    UE_LOG(LogTemp, Warning, TEXT("UpdateFromCompressedFlags bWantsToSprint: %d"), bWantsToSprint);
+}
+
+void FSavedMove_NLCharacter::Clear()
+{
+    Super::Clear();
+
+    bWantsToSprint = false;
+}
+
+void FSavedMove_NLCharacter::SetMoveFor(ACharacter* C, float InDeltaTime, FVector const& NewAccel, FNetworkPredictionData_Client_Character& ClientData)
+{
+    Super::SetMoveFor(C, InDeltaTime, NewAccel, ClientData);
+
+    if (UNLCharacterMovementComponent* NLCMC = Cast<UNLCharacterMovementComponent>(C->GetCharacterMovement()))
+    {
+        bWantsToSprint = NLCMC->bWantsToSprint;
+    }
+}
+
+uint8 FSavedMove_NLCharacter::GetCompressedFlags() const
+{
+    uint8 Result = Super::GetCompressedFlags();
+
+    if (bWantsToSprint)
+    {
+        Result |= FLAG_Custom_0;
+    }
+
+    return Result;
+}
+
+FNetworkPredictionData_Client_NLCharacter::FNetworkPredictionData_Client_NLCharacter(const UCharacterMovementComponent& ClientMovement)
+    : Super(ClientMovement)
+{}
+
+FSavedMovePtr FNetworkPredictionData_Client_NLCharacter::AllocateNewMove()
+{
+    return FSavedMovePtr(new FSavedMove_NLCharacter());
 }
