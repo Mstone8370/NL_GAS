@@ -7,8 +7,6 @@
 #include "Components/CapsuleComponent.h"
 #include "Characters/NLPlayerCharacter.h"
 
-DECLARE_CYCLE_STAT(TEXT("Char Update Acceleration"), STAT_CharUpdateAcceleration, STATGROUP_Character);
-
 bool UNLCharacterMovementComponent::CanAttemptJump() const
 {
     return IsJumpAllowed() &&
@@ -181,7 +179,7 @@ bool UNLCharacterMovementComponent::IsSprinting() const
 
 bool UNLCharacterMovementComponent::CanSprintInCurrentState() const
 {
-    return IsMovingOnGround() && UpdatedComponent && !UpdatedComponent->IsSimulatingPhysics();
+    return IsMovingOnGround() && !IsCrouching() && UpdatedComponent && !UpdatedComponent->IsSimulatingPhysics();
 }
 
 void UNLCharacterMovementComponent::Sprint(bool bClientSimulation)
@@ -244,8 +242,6 @@ void UNLCharacterMovementComponent::UpdateFromCompressedFlags(uint8 Flags)
     Super::UpdateFromCompressedFlags(Flags);
 
     bWantsToSprint = ((Flags & FSavedMove_Character::FLAG_Custom_0) != 0);
-
-    UE_LOG(LogTemp, Warning, TEXT("UpdateFromCompressedFlags bWantsToSprint: %d"), bWantsToSprint);
 }
 
 void FSavedMove_NLCharacter::Clear()

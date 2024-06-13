@@ -88,6 +88,7 @@ void ANLPlayerController::PostProcessInput(const float DeltaTime, const bool bGa
             GetNLPlayerCharacter()->StopSprint();
         }
     }
+    MoveInputDirection = FVector::ZeroVector;
 }
 
 void ANLPlayerController::Move(const FInputActionValue& Value)

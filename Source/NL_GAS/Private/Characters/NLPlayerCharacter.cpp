@@ -387,7 +387,7 @@ void ANLPlayerCharacter::OnFallingStarted()
 
 bool ANLPlayerCharacter::CanSprint()
 {
-    return !bIsSprinting && NLCharacterMovementComponent && NLCharacterMovementComponent->IsMovingOnGround() && GetRootComponent() && !GetRootComponent()->IsSimulatingPhysics();
+    return !bIsSprinting && !bIsCrouched && NLCharacterMovementComponent && NLCharacterMovementComponent->IsMovingOnGround() && GetRootComponent() && !GetRootComponent()->IsSimulatingPhysics();
 }
 
 void ANLPlayerCharacter::Sprint()

@@ -34,6 +34,7 @@ public:
 
 	virtual void UpdateCharacterStateBeforeMovement(float DeltaSeconds) override;
 
+	// 커스텀 PredictionData를 리턴하도록 수정함
 	virtual class FNetworkPredictionData_Client* GetPredictionData_Client() const override;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
@@ -51,10 +52,15 @@ public:
 protected:
 	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode) override;
 
+	// 클라이언트에서 받은 Flag를 통해 상태 업데이트
 	virtual void UpdateFromCompressedFlags(uint8 Flags) override;
 };
 
 
+/** 
+* 새로운 상태를 추가한 커스텀 SavedMove 클래스
+* 이걸 기반으로 한 정보가 서버로 전달됨.
+*/
 class FSavedMove_NLCharacter : public FSavedMove_Character
 {
 public:
@@ -69,6 +75,11 @@ public:
 	uint32 bWantsToSprint : 1;
 };
 
+
+/**
+* 클라이언트에서 사용되는 Prediction 데이터
+* 여기에서 SavedMove를 관리함
+*/
 class FNetworkPredictionData_Client_NLCharacter : public FNetworkPredictionData_Client_Character
 {
 public:
