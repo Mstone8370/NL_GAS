@@ -19,6 +19,9 @@ class NL_GAS_API UNLGameplayAbility_WeaponPrimary : public UNLGameplayAbility_Da
 {
 	GENERATED_BODY()
 
+protected:
+	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled);
+
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	float FirePerSecond = 10;

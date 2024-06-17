@@ -134,6 +134,7 @@ void ANLPlayerCharacter::InitAbilityActorInfo()
     check(PS);
 
     AbilitySystemComponent = PS->GetAbilitySystemComponent();
+    check(GetNLASC());
     AbilitySystemComponent->InitAbilityActorInfo(PS, this);
 
     AttributeSet = PS->GetAttributeSet();
@@ -143,6 +144,7 @@ void ANLPlayerCharacter::InitAbilityActorInfo()
     }
 
     AbilitySystemComponent->RegisterGameplayTagEvent(Ability_Weapon_Secondary, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ANLPlayerCharacter::OnGameplayTagCountChanged);
+    AbilitySystemComponent->RegisterGameplayTagEvent(Ability_Block_Sprint, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ANLPlayerCharacter::OnGameplayTagCountChanged);
 
     if (ANLPlayerController* PC = Cast<ANLPlayerController>(GetController()))
     {
@@ -387,7 +389,7 @@ void ANLPlayerCharacter::OnFallingStarted()
 
 bool ANLPlayerCharacter::CanSprint()
 {
-    return !bIsSprinting && !bIsCrouched && NLCharacterMovementComponent && NLCharacterMovementComponent->IsMovingOnGround() && GetRootComponent() && !GetRootComponent()->IsSimulatingPhysics();
+    return !bIsSprinting && !bSprintBlocked && !bIsCrouched && !bIsADS && NLCharacterMovementComponent && NLCharacterMovementComponent->IsMovingOnGround() && GetRootComponent() && !GetRootComponent()->IsSimulatingPhysics();
 }
 
 void ANLPlayerCharacter::Sprint()
@@ -411,10 +413,24 @@ void ANLPlayerCharacter::StopSprint()
 
 void ANLPlayerCharacter::OnStartSprint()
 {
+    if (GetWorldTimerManager().IsTimerActive(SprintStopTimer))
+    {
+        GetWorldTimerManager().ClearTimer(SprintStopTimer);
+        GetNLASC()->RemoveLooseGameplayTag(Ability_Sprint);
+    }
+    GetNLASC()->AddLooseGameplayTag(Ability_Sprint);
 }
 
 void ANLPlayerCharacter::OnEndSprint()
 {
+    FTimerDelegate Dele;
+    Dele.BindLambda(
+        [this]()
+        {
+            GetNLASC()->RemoveLooseGameplayTag(Ability_Sprint);
+        }
+    );
+    GetWorldTimerManager().SetTimer(SprintStopTimer, Dele, .2f, false);
 }
 
 void ANLPlayerCharacter::OnViewportResized(FViewport* InViewport, uint32 arg)
@@ -531,6 +547,10 @@ void ANLPlayerCharacter::InterpolateCrouch(float DeltaSeconds)
 
 void ANLPlayerCharacter::OnGameplayTagCountChanged(const FGameplayTag Tag, int32 TagCount)
 {
+    if (Tag.MatchesTagExact(Ability_Block_Sprint))
+    {
+        bSprintBlocked = TagCount > 0;
+    }
     if (Tag.MatchesTagExact(Ability_Weapon_Secondary))
     {
         OnADS(TagCount > 0);
@@ -636,6 +656,15 @@ ANLPlayerController* ANLPlayerCharacter::GetNLPC()
         NLPlayerController = Cast<ANLPlayerController>(GetController());
     }
     return NLPlayerController;
+}
+
+UNLAbilitySystemComponent* ANLPlayerCharacter::GetNLASC()
+{
+    if (!NLAbilitySystemComponent)
+    {
+        NLAbilitySystemComponent = Cast<UNLAbilitySystemComponent>(AbilitySystemComponent);
+    }
+    return NLAbilitySystemComponent;
 }
 
 void ANLPlayerCharacter::UpdateViewWeaponAndAnimLayer(USkeletalMesh* NewWeaponMesh, TSubclassOf<UAnimInstance> WeaponAnimInstanceClass, TSubclassOf<UAnimInstance> NewAnimLayerClass)

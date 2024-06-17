@@ -16,6 +16,7 @@ class UAnimMontage;
 class UControlShakeManager;
 class UMaterialInstanceDynamic;
 class UNLViewSkeletalMeshComponent;
+class UNLAbilitySystemComponent;
 
 UCLASS()
 class NL_GAS_API ANLPlayerCharacter : public ANLCharacterBase, public IPlayerInterface
@@ -80,6 +81,10 @@ public:
 	virtual void OnStartSprint();
 	virtual void OnEndSprint();
 
+	FTimerHandle SprintStopTimer;
+
+	bool bSprintBlocked = false;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USpringArmComponent> SpringArmComponent;
 
@@ -102,6 +107,8 @@ protected:
 	TObjectPtr<UNLCharacterMovementComponent> NLCharacterMovementComponent;
 
 	TObjectPtr<ANLPlayerController> NLPlayerController;
+
+	TObjectPtr<UNLAbilitySystemComponent> NLAbilitySystemComponent;
 
 	void OnViewportResized(FViewport* InViewport, uint32 arg);
 
@@ -167,6 +174,8 @@ public:
 	bool IsListenServerControlledCharacter();
 
 	ANLPlayerController* GetNLPC();
+
+	UNLAbilitySystemComponent* GetNLASC();
 
 	void UpdateViewWeaponAndAnimLayer(USkeletalMesh* NewWeaponMesh, TSubclassOf<UAnimInstance> WeaponAnimInstanceClass, TSubclassOf<UAnimInstance> NewAnimLayerClass);
 

@@ -34,6 +34,8 @@ public:
 
 	virtual void UpdateCharacterStateBeforeMovement(float DeltaSeconds) override;
 
+	virtual void UpdateCharacterStateAfterMovement(float DeltaSeconds) override;
+
 	// 커스텀 PredictionData를 리턴하도록 수정함
 	virtual class FNetworkPredictionData_Client* GetPredictionData_Client() const override;
 

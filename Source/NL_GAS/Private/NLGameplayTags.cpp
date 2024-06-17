@@ -28,9 +28,11 @@ UE_DEFINE_GAMEPLAY_TAG(Ability_WeaponChange_1, "Ability.WeaponChange.1");
 UE_DEFINE_GAMEPLAY_TAG(Ability_WeaponChange_2, "Ability.WeaponChange.2");
 UE_DEFINE_GAMEPLAY_TAG(Ability_WeaponChange_3, "Ability.WeaponChange.3");
 UE_DEFINE_GAMEPLAY_TAG(Ability_Melee, "Ability.Melee");
+UE_DEFINE_GAMEPLAY_TAG(Ability_Sprint, "Ability.Sprint");
 
 // Ability Block Tag
 UE_DEFINE_GAMEPLAY_TAG(Ability_Block_Weapon, "Ability.Block.Weapon");
+UE_DEFINE_GAMEPLAY_TAG(Ability_Block_Sprint, "Ability.Block.Sprint");
 
 // Weapon Tag
 UE_DEFINE_GAMEPLAY_TAG(Weapon_Unarmed, "Weapon.Unarmed");

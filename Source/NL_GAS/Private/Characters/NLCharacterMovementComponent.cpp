@@ -140,6 +140,12 @@ void UNLCharacterMovementComponent::UpdateCharacterStateBeforeMovement(float Del
 {
     Super::UpdateCharacterStateBeforeMovement(DeltaSeconds);
 
+}
+
+void UNLCharacterMovementComponent::UpdateCharacterStateAfterMovement(float DeltaSeconds)
+{
+    Super::UpdateCharacterStateAfterMovement(DeltaSeconds);
+
     if (CharacterOwner->GetLocalRole() != ROLE_SimulatedProxy)
     {
         const bool bIsSprinting = IsSprinting();
@@ -179,6 +185,20 @@ bool UNLCharacterMovementComponent::IsSprinting() const
 
 bool UNLCharacterMovementComponent::CanSprintInCurrentState() const
 {
+    if (GetCharacterOwner())
+    {
+        if (ANLPlayerCharacter* NLPlayerCharacter = Cast<ANLPlayerCharacter>(GetCharacterOwner()))
+        {
+            if (NLPlayerCharacter->IsADS() || NLPlayerCharacter->bSprintBlocked)
+            {
+                return false;
+            }
+        }
+    }
+    if (Velocity.SizeSquared2D() < 60000.f)  // 현재 속도가 충분히 빠르지 않으면 달리지 않음
+    {
+        return false;
+    }
     return IsMovingOnGround() && !IsCrouching() && UpdatedComponent && !UpdatedComponent->IsSimulatingPhysics();
 }
 
