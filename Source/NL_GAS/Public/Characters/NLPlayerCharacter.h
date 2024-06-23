@@ -18,6 +18,8 @@ class UMaterialInstanceDynamic;
 class UNLViewSkeletalMeshComponent;
 class UNLAbilitySystemComponent;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSlideStateChanged, bool, bSlide);
+
 UCLASS()
 class NL_GAS_API ANLPlayerCharacter : public ANLCharacterBase, public IPlayerInterface
 {
@@ -84,6 +86,12 @@ public:
 	FTimerHandle SprintStopTimer;
 
 	bool bSprintBlocked = false;
+
+	virtual void OnStartSlide();
+	virtual void OnEndSlide();
+
+	UPROPERTY(BlueprintAssignable)
+	FOnSlideStateChanged OnSlideStateChanged;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USpringArmComponent> SpringArmComponent;
@@ -208,4 +216,13 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE bool IsSprinting() const { return bIsSprinting; }
+
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_IsSliding)
+	bool bIsSliding = false;
+
+	UFUNCTION()
+	virtual void OnRep_IsSliding();
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	FORCEINLINE bool IsSliding() const { return bIsSliding; }
 };

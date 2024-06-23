@@ -17,9 +17,13 @@ class NL_GAS_API UNLCharacterMovementComponent : public UCharacterMovementCompon
 	GENERATED_BODY()
 
 public:
+	virtual void BeginPlay() override;
+
 	virtual bool CanAttemptJump() const override;
 
 	virtual void Crouch(bool bClientSimulation = false) override;
+
+	virtual void UnCrouch(bool bClientSimulation = false) override;
 
 	FFallingStartedSignature FallingStarted;
 
@@ -51,7 +55,27 @@ public:
 	virtual void Sprint(bool bClientSimulation);
 	virtual void StopSprint(bool bClientSimulation);
 
+
+	bool IsSliding() const;
+
+	virtual bool CanSlideInCurrentState() const;
+
+	virtual void Slide(bool bClientSimulation);
+	virtual void StopSlide(bool bClientSimulation);
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	float SlideGroundFriction = 0.f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	float SlideBrakingDecelerationWalking = 512.f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	float SlideMaxAcceleration = 512.f;
+
 protected:
+	// DefaultValues
+	float DefaultGroundFriction;
+	float DefaultBrakingDecelerationWalking;
+	float DefaultMaxAcceleration;
+
 	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode) override;
 
 	// 클라이언트에서 받은 Flag를 통해 상태 업데이트

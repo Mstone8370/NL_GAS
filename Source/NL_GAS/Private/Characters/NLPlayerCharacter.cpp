@@ -433,6 +433,16 @@ void ANLPlayerCharacter::OnEndSprint()
     GetWorldTimerManager().SetTimer(SprintStopTimer, Dele, .2f, false);
 }
 
+void ANLPlayerCharacter::OnStartSlide()
+{
+    OnSlideStateChanged.Broadcast(true);
+}
+
+void ANLPlayerCharacter::OnEndSlide()
+{
+    OnSlideStateChanged.Broadcast(false);
+}
+
 void ANLPlayerCharacter::OnViewportResized(FViewport* InViewport, uint32 arg)
 {
     /**
@@ -626,6 +636,22 @@ void ANLPlayerCharacter::OnRep_IsSprinting()
         {
             NLCharacterMovementComponent->bWantsToSprint = false;
             NLCharacterMovementComponent->StopSprint(true);
+        }
+        NLCharacterMovementComponent->bNetworkUpdateReceived = true;
+    }
+}
+
+void ANLPlayerCharacter::OnRep_IsSliding()
+{
+    if (NLCharacterMovementComponent)
+    {
+        if (bIsSliding)
+        {
+            
+        }
+        else
+        {
+            
         }
         NLCharacterMovementComponent->bNetworkUpdateReceived = true;
     }

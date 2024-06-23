@@ -7,6 +7,15 @@
 #include "Components/CapsuleComponent.h"
 #include "Characters/NLPlayerCharacter.h"
 
+void UNLCharacterMovementComponent::BeginPlay()
+{
+    Super::BeginPlay();
+
+    DefaultGroundFriction = GroundFriction;
+    DefaultBrakingDecelerationWalking = BrakingDecelerationWalking;
+    DefaultMaxAcceleration = MaxAcceleration;
+}
+
 bool UNLCharacterMovementComponent::CanAttemptJump() const
 {
     return IsJumpAllowed() &&
@@ -30,6 +39,22 @@ void UNLCharacterMovementComponent::Crouch(bool bClientSimulation)
     // 캐릭터의 bIsCrouched는 캐릭터 무브먼트의 MaxSpeed를 결정지음.
     // 앉기를 시작할때부터 속도를 낮추길 원하므로 여기에서 bIsCrouched를 설정.
     CharacterOwner->bIsCrouched = true;
+
+    if (CanSlideInCurrentState())
+    {
+        Slide(bClientSimulation);
+        ShrinkCapsuleHeight(bClientSimulation);
+    }
+}
+
+void UNLCharacterMovementComponent::UnCrouch(bool bClientSimulation)
+{
+    Super::UnCrouch(bClientSimulation);
+
+    if (IsSliding())
+    {
+        StopSlide(bClientSimulation);
+    }
 }
 
 void UNLCharacterMovementComponent::ShrinkCapsuleHeight(bool bClientSimulation)
@@ -148,6 +173,7 @@ void UNLCharacterMovementComponent::UpdateCharacterStateAfterMovement(float Delt
 
     if (CharacterOwner->GetLocalRole() != ROLE_SimulatedProxy)
     {
+        // Check Sprint state
         const bool bIsSprinting = IsSprinting();
         if (bIsSprinting && (!bWantsToSprint || !CanSprintInCurrentState()))
         {
@@ -156,6 +182,13 @@ void UNLCharacterMovementComponent::UpdateCharacterStateAfterMovement(float Delt
         else if (!bIsSprinting && bWantsToSprint && CanSprintInCurrentState())
         {
             Sprint(false);
+        }
+        
+        // Check Slide state
+        const double SquaredSpeed = Velocity.SizeSquared2D();
+        if (IsSliding() && (!IsCrouching() || SquaredSpeed <= MaxWalkSpeedCrouched * MaxWalkSpeedCrouched))
+        {
+            StopSlide(false);
         }
     }
 }
@@ -245,6 +278,86 @@ void UNLCharacterMovementComponent::StopSprint(bool bClientSimulation)
             NLPlayerCharacter->OnEndSprint();
         }
     }
+}
+
+bool UNLCharacterMovementComponent::IsSliding() const
+{
+    if (GetCharacterOwner())
+    {
+        if (ANLPlayerCharacter* NLPlayerCharacter = Cast<ANLPlayerCharacter>(GetCharacterOwner()))
+        {
+            return NLPlayerCharacter->IsSliding();
+        }
+    }
+    return false;
+}
+
+bool UNLCharacterMovementComponent::CanSlideInCurrentState() const
+{
+    if (GetCharacterOwner())
+    {
+        if (ANLPlayerCharacter* NLPlayerCharacter = Cast<ANLPlayerCharacter>(GetCharacterOwner()))
+        {
+            if (GetLastUpdateVelocity().SquaredLength() <= MaxWalkSpeed * MaxWalkSpeed + 2500.f /*padding*/)
+            {
+                return false;
+            }
+        }
+    }
+    return IsMovingOnGround() && !IsSliding() && IsCrouching() && UpdatedComponent && !UpdatedComponent->IsSimulatingPhysics();
+}
+
+void UNLCharacterMovementComponent::Slide(bool bClientSimulation)
+{
+    if (!HasValidData())
+    {
+        return;
+    }
+
+    if (!bClientSimulation && !CanSlideInCurrentState())
+    {
+        return;
+    }
+
+    if (GetCharacterOwner())
+    {
+        if (ANLPlayerCharacter* NLPlayerCharacter = Cast<ANLPlayerCharacter>(GetCharacterOwner()))
+        {
+            if (!bClientSimulation)
+            {
+                NLPlayerCharacter->bIsSliding = true;
+            }
+            NLPlayerCharacter->OnStartSlide();
+        }
+    }
+    
+    GroundFriction = SlideGroundFriction;
+    BrakingDecelerationWalking = SlideBrakingDecelerationWalking;
+    MaxAcceleration = SlideMaxAcceleration;
+}
+
+void UNLCharacterMovementComponent::StopSlide(bool bClientSimulation)
+{
+    if (!HasValidData())
+    {
+        return;
+    }
+
+    if (GetCharacterOwner())
+    {
+        if (ANLPlayerCharacter* NLPlayerCharacter = Cast<ANLPlayerCharacter>(GetCharacterOwner()))
+        {
+            if (!bClientSimulation)
+            {
+                NLPlayerCharacter->bIsSliding = false;
+            }
+            NLPlayerCharacter->OnEndSlide();
+        }
+    }
+
+    GroundFriction = DefaultGroundFriction;
+    BrakingDecelerationWalking = DefaultBrakingDecelerationWalking;
+    MaxAcceleration = DefaultMaxAcceleration;
 }
 
 void UNLCharacterMovementComponent::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode)
