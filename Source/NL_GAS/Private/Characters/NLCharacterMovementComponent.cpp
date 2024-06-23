@@ -57,6 +57,37 @@ void UNLCharacterMovementComponent::UnCrouch(bool bClientSimulation)
     }
 }
 
+bool UNLCharacterMovementComponent::DoJump(bool bReplayingMoves)
+{
+    if (CharacterOwner && CharacterOwner->CanJump())
+    {
+        // Don't jump if we can't move up/down.
+        if (!bConstrainToPlane || FMath::Abs(PlaneConstraintNormal.Z) != 1.f)
+        {
+            if (HasCustomGravity())
+            {
+                FVector GravityRelativeVelocity = RotateWorldToGravity(Velocity);
+                GravityRelativeVelocity.Z = FMath::Max<FVector::FReal>(GravityRelativeVelocity.Z, JumpZVelocity);
+                Velocity = RotateGravityToWorld(GravityRelativeVelocity);
+            }
+            else
+            {
+                Velocity.Z = FMath::Max<FVector::FReal>(Velocity.Z, JumpZVelocity);
+            }
+
+            if (IsSliding())
+            {
+                StopSlide(false);
+            }
+
+            SetMovementMode(MOVE_Falling);
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void UNLCharacterMovementComponent::ShrinkCapsuleHeight(bool bClientSimulation)
 {
     // Codes from UCharacterMovementComponent::Crouch(bool bClientSimulation)

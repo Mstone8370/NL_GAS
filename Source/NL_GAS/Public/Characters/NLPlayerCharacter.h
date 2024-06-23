@@ -18,8 +18,6 @@ class UMaterialInstanceDynamic;
 class UNLViewSkeletalMeshComponent;
 class UNLAbilitySystemComponent;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSlideStateChanged, bool, bSlide);
-
 UCLASS()
 class NL_GAS_API ANLPlayerCharacter : public ANLCharacterBase, public IPlayerInterface
 {
@@ -90,9 +88,6 @@ public:
 	virtual void OnStartSlide();
 	virtual void OnEndSlide();
 
-	UPROPERTY(BlueprintAssignable)
-	FOnSlideStateChanged OnSlideStateChanged;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USpringArmComponent> SpringArmComponent;
 
@@ -131,6 +126,19 @@ protected:
 	void Server_InvokeLookPitchReplication();
 
 	FTimerHandle LookPitchRepTimerHandle;
+
+	UPROPERTY(EditDefaultsOnly)
+	float SlidingTiltInterpSpeed = 10.f;
+
+	UPROPERTY(EditDefaultsOnly)
+	float SlidingTiltTargetDegree = 10.f;
+
+	FTimerHandle SlideTiltTimer;
+
+	UPROPERTY(EditDefaultsOnly)
+	float SlidingTiltInterpTime = .5f;
+
+	void TiltCamera(float DeltaTime);
 
 	//~Begin Crouch Interpolation
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)

@@ -160,6 +160,7 @@ void ANLPlayerCharacter::Tick(float DeltaSeconds)
     Super::Tick(DeltaSeconds);
 
     InterpolateCrouch(DeltaSeconds);
+    TiltCamera(DeltaSeconds);
 }
 
 void ANLPlayerCharacter::PossessedBy(AController* NewController)
@@ -435,14 +436,14 @@ void ANLPlayerCharacter::OnEndSprint()
 
 void ANLPlayerCharacter::OnStartSlide()
 {
-    OnSlideStateChanged.Broadcast(true);
+    GetWorldTimerManager().SetTimer(SlideTiltTimer, SlidingTiltInterpTime, false);
 
     SetTargetFOVByTag(FOV_Movement_Slide);
 }
 
 void ANLPlayerCharacter::OnEndSlide()
 {
-    OnSlideStateChanged.Broadcast(false);
+    GetWorldTimerManager().SetTimer(SlideTiltTimer, SlidingTiltInterpTime, false);
 
     SetTargetFOVByTag(FOV_Default, 5.f);
 }
@@ -527,6 +528,35 @@ void ANLPlayerCharacter::Server_InvokeLookPitchReplication()
         }
         LookPitch = NewPitch;
     }
+}
+
+void ANLPlayerCharacter::TiltCamera(float DeltaTime)
+{
+    if (GetLocalRole() == ROLE_SimulatedProxy)
+    {
+        return;
+    }
+
+    float TargetTiltDegree = 0.f;
+
+    if (bIsSliding)
+    {
+        const FVector SlidingDirection = GetCharacterMovement()->GetLastUpdateVelocity().GetSafeNormal2D();
+        TargetTiltDegree = SlidingTiltTargetDegree * SlidingDirection.Dot(GetActorRightVector()) * -1.f;
+    }
+    
+    FRotator NewRot = FRotator(0.f, 0.f, TargetTiltDegree);
+    if (GetWorldTimerManager().IsTimerActive(SlideTiltTimer))
+    {
+        NewRot = UKismetMathLibrary::RInterpTo(
+            SpringArmComponent->GetRelativeRotation(),
+            NewRot,
+            DeltaTime,
+            SlidingTiltInterpSpeed
+        );
+    }
+
+    SpringArmComponent->SetRelativeRotation(NewRot);
 }
 
 void ANLPlayerCharacter::OnRep_IsCapsuleShrinked()

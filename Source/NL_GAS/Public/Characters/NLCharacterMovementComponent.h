@@ -25,6 +25,8 @@ public:
 
 	virtual void UnCrouch(bool bClientSimulation = false) override;
 
+	virtual bool DoJump(bool bReplayingMoves) override;
+
 	FFallingStartedSignature FallingStarted;
 
 	/**
@@ -68,7 +70,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	float SlideBrakingDecelerationWalking = 512.f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	float SlideMaxAcceleration = 512.f;
+	float SlideMaxAcceleration = 256.f;
 
 protected:
 	// DefaultValues
