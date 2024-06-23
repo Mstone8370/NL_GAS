@@ -18,6 +18,9 @@ public:
     float CameraFOVMultiplier = 1.f;
 
     UPROPERTY(EditAnywhere)
+    float CameraFOVAdditive = 0.f;
+
+    UPROPERTY(EditAnywhere)
     float ViewModelHorizontalFOV = 80.f;
 
     UPROPERTY(EditAnywhere)

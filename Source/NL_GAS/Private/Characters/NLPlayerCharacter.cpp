@@ -436,11 +436,15 @@ void ANLPlayerCharacter::OnEndSprint()
 void ANLPlayerCharacter::OnStartSlide()
 {
     OnSlideStateChanged.Broadcast(true);
+
+    SetTargetFOVByTag(FOV_Movement_Slide);
 }
 
 void ANLPlayerCharacter::OnEndSlide()
 {
     OnSlideStateChanged.Broadcast(false);
+
+    SetTargetFOVByTag(FOV_Default, 5.f);
 }
 
 void ANLPlayerCharacter::OnViewportResized(FViewport* InViewport, uint32 arg)
@@ -463,6 +467,52 @@ void ANLPlayerCharacter::OnViewportResized(FViewport* InViewport, uint32 arg)
                 ViewWeaponMesh->UpdateFOV();
             }
         }
+    }
+}
+
+void ANLPlayerCharacter::SetTargetFOVByTag(FGameplayTag FOVTag, float TransientInterpSpeed)
+{
+    /**
+    * GameplayTag에 따라 카메라의 FOV, 뷰모델의 HFOV, 마우스 감도를 조정
+    * 뷰모델은 배율에 맞게 정해진 값으로 설정. 카메라의 FOV값에 영향 받지 않음.
+    */
+    float CameraTargetFOV = CameraComponent->GetBaseFOV();
+    float ViewMeshTargetFOV = ArmMesh->DefaultHFOV;
+    float LookSensitivityMultiplier = 1.f;
+    UCurveVector* LoopingControlShakeCurve = LoopingShakeCurve_Idle;
+
+    check(FOV_Data);
+
+    if (!FOVTag.IsValid())
+    {
+        FOVTag = FOV_Default;
+    }
+    FName FOVRowName = FOVTag.GetTagName();
+
+    if (FFOVModifyValue* DataRow = FOV_Data->FindRow<FFOVModifyValue>(FOVRowName, FString()))
+    {
+        CameraTargetFOV = CameraComponent->GetBaseFOV() * DataRow->CameraFOVMultiplier + DataRow->CameraFOVAdditive;
+        ViewMeshTargetFOV = DataRow->ViewModelHorizontalFOV;
+        LookSensitivityMultiplier = DataRow->LookSensitivityMultiplier;
+        LoopingControlShakeCurve = DataRow->LoopingControlShakeCurve;
+    }
+
+    CameraComponent->SetTargetFOV(CameraTargetFOV, TransientInterpSpeed);
+    ArmMesh->SetTargetHFOV(ViewMeshTargetFOV, TransientInterpSpeed);
+    ViewWeaponMesh->SetTargetHFOV(ViewMeshTargetFOV, TransientInterpSpeed);
+
+    if (GetNLPC())
+    {
+        GetNLPC()->SetLookSensitivity(GetNLPC()->GetBaseLookSensitivity() * LookSensitivityMultiplier);
+    }
+
+    if (LoopingControlShakeCurve)
+    {
+        ControlShakeManager->AddShake(-1.f, LoopingControlShakeCurve, FRotator(1.f, 1.f, 1.f), true);
+    }
+    else
+    {
+        ControlShakeManager->ClearLoopingShake();
     }
 }
 
@@ -576,51 +626,8 @@ void ANLPlayerCharacter::OnADS(bool bInIsADS)
 
     bIsADS = bInIsADS;
 
-    /**
-    * ADS를 하면 배율에 맞게 카메라의 FOV를 조정
-    * 뷰모델은 배율에 맞게 정해진 값으로 설정. 카메라의 FOV값에 영향 받지 않음.
-    */
-    float CameraTargetFOV = CameraComponent->GetBaseFOV();
-    float ViewMeshTargetFOV = ArmMesh->DefaultHFOV;
-    float LookSensitivityMultiplier = 1.f;
-    UCurveVector* LoopingControlShakeCurve = LoopingShakeCurve_Idle;
-
-    if (bIsADS && FOV_Data)
-    {
-        FName FOVRowName = FName("Default");
-
-        FGameplayTag FOVTag = NLCharacterComponent->GetCurrentWeaponADSFOVTag();
-        if (FOVTag.IsValid())
-        {
-            FOVRowName = FOVTag.GetTagName();
-        }
-
-        if (FFOVModifyValue* DataRow = FOV_Data->FindRow<FFOVModifyValue>(FOVRowName, FString()))
-        {
-            CameraTargetFOV = CameraComponent->GetBaseFOV() * DataRow->CameraFOVMultiplier;
-            ViewMeshTargetFOV = DataRow->ViewModelHorizontalFOV;
-            LookSensitivityMultiplier = DataRow->LookSensitivityMultiplier;
-            LoopingControlShakeCurve = DataRow->LoopingControlShakeCurve;
-        }
-    }
-
-    CameraComponent->SetTargetFOV(CameraTargetFOV);
-    ArmMesh->SetTargetHFOV(ViewMeshTargetFOV);
-    ViewWeaponMesh->SetTargetHFOV(ViewMeshTargetFOV);
-
-    if (GetNLPC())
-    {
-        GetNLPC()->SetLookSensitivity(GetNLPC()->GetBaseLookSensitivity() * LookSensitivityMultiplier);
-    }
-
-    if (LoopingControlShakeCurve)
-    {
-        ControlShakeManager->AddShake(-1.f, LoopingControlShakeCurve, FRotator(1.f, 1.f, 1.f), true);
-    }
-    else
-    {
-        ControlShakeManager->ClearLoopingShake();
-    }
+    FGameplayTag FOVTag = bIsADS ? NLCharacterComponent->GetCurrentWeaponADSFOVTag() : FGameplayTag();
+    SetTargetFOVByTag(FOVTag);
 }
 
 void ANLPlayerCharacter::OnRep_IsSprinting()

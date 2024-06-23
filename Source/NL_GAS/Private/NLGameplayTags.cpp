@@ -62,11 +62,13 @@ UE_DEFINE_GAMEPLAY_TAG(Event_Reload_MagIn, "Event.Reload.MagIn");
 UE_DEFINE_GAMEPLAY_TAG(Event_Reload_Finished, "Event.Reload.Finished");
 
 // FOV Tag
+UE_DEFINE_GAMEPLAY_TAG(FOV_Default, "FOV.Default");
 UE_DEFINE_GAMEPLAY_TAG(FOV_ADS_None, "FOV.ADS.None");
 UE_DEFINE_GAMEPLAY_TAG(FOV_ADS_1x, "FOV.ADS.1x");
 UE_DEFINE_GAMEPLAY_TAG(FOV_ADS_2x, "FOV.ADS.2x");
 UE_DEFINE_GAMEPLAY_TAG(FOV_ADS_3x, "FOV.ADS.3x");
 UE_DEFINE_GAMEPLAY_TAG(FOV_ADS_4x, "FOV.ADS.4x");
+UE_DEFINE_GAMEPLAY_TAG(FOV_Movement_Slide, "FOV.Movement.Slide");
 
 // Attribute Tag
 UE_DEFINE_GAMEPLAY_TAG(Attribute_Meta_IncomingDamage, "Attribute.Meta.IncomingDamage");

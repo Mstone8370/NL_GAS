@@ -26,11 +26,12 @@ void UNLPlayerCameraComponent::InterpFOV(float DeltaTime)
         return;
     }
 
-    CurrentFOV = FMath::FInterpTo(CurrentFOV, TargetFOV, DeltaTime, InterpSpeed);
+    CurrentFOV = FMath::FInterpTo(CurrentFOV, TargetFOV, DeltaTime, CurrentInterpSpeed);
     if (FMath::IsNearlyEqual(CurrentFOV, TargetFOV))
     {
         CurrentFOV = TargetFOV;
         bDoInterp = false;
+        CurrentInterpSpeed = InterpSpeed;
     }
     SetFieldOfView(CurrentFOV);
 }
@@ -56,11 +57,12 @@ void UNLPlayerCameraComponent::SetBaseFOV(float InBaseFOV)
     }
 }
 
-void UNLPlayerCameraComponent::SetTargetFOV(float InTargetFOV)
+void UNLPlayerCameraComponent::SetTargetFOV(float InTargetFOV, float TransientInterpSpeed)
 {
     if (!FMath::IsNearlyEqual(TargetFOV, InTargetFOV))
     {
         TargetFOV = InTargetFOV;
         bDoInterp = true;
+        CurrentInterpSpeed = TransientInterpSpeed > 0.f ? TransientInterpSpeed : InterpSpeed;
     }
 }

@@ -40,11 +40,12 @@ void UNLViewSkeletalMeshComponent::InterpFOV(float DeltaTime)
         return;
     }
 
-    CurrentHFOV = FMath::FInterpTo(CurrentHFOV, TargetHFOV, DeltaTime, InterpSpeed);
+    CurrentHFOV = FMath::FInterpTo(CurrentHFOV, TargetHFOV, DeltaTime, CurrentInterpSpeed);
     if (FMath::IsNearlyEqual(CurrentHFOV, TargetHFOV))
     {
         CurrentHFOV = TargetHFOV;
         bDoInterp = false;
+        CurrentInterpSpeed = InterpSpeed;
     }
     UpdateFOV();
 }
@@ -86,12 +87,13 @@ UGameViewportClient* UNLViewSkeletalMeshComponent::GetViewportClient()
     return ViewportClient;
 }
 
-void UNLViewSkeletalMeshComponent::SetTargetHFOV(float InTargetHFOV)
+void UNLViewSkeletalMeshComponent::SetTargetHFOV(float InTargetHFOV, float TransientInterpSpeed)
 {
     if (!FMath::IsNearlyEqual(TargetHFOV, InTargetHFOV))
     {
         TargetHFOV = InTargetHFOV;
         bDoInterp = true;
+        CurrentInterpSpeed = TransientInterpSpeed > 0.f ? TransientInterpSpeed : InterpSpeed;
     }
 }
 

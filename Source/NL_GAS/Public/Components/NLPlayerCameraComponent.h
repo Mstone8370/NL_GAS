@@ -33,12 +33,14 @@ protected:
 
 	bool bDoInterp;
 
+	float CurrentInterpSpeed;
+
 public:
 	UFUNCTION(BlueprintCallable)
 	void SetBaseFOV(float InBaseFOV);
 
 	UFUNCTION(BlueprintCallable)
-	void SetTargetFOV(float InTargetFOV);
+	void SetTargetFOV(float InTargetFOV, float TransientInterpSpeed = -1.f);
 
 	FORCEINLINE float GetBaseFOV() const { return BaseFOV; }
 

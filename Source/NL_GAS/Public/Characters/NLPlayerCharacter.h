@@ -120,6 +120,8 @@ protected:
 
 	void OnViewportResized(FViewport* InViewport, uint32 arg);
 
+	void SetTargetFOVByTag(FGameplayTag FOVTag, float TransientInterpSpeed = -1.f);
+
 	UPROPERTY(EditDefaultsOnly)
 	float LookPitchRepTime;
 

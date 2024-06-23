@@ -56,6 +56,8 @@ protected:
 
 	bool bDoInterp;
 
+	float CurrentInterpSpeed;
+
 	void InterpFOV(float DeltaTime);
 
 	/**
@@ -75,7 +77,7 @@ public:
 	// Update Mesh's FOV by CurrentHFOV
 	void UpdateFOV();
 
-	void SetTargetHFOV(float InTargetHFOV);
+	void SetTargetHFOV(float InTargetHFOV, float TransientInterpSpeed = -1.f);
 
 	virtual void SetSkeletalMesh(class USkeletalMesh* NewMesh, bool bReinitPose = true) override;
 
