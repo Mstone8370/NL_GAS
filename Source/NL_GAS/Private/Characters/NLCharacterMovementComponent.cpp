@@ -196,6 +196,7 @@ void UNLCharacterMovementComponent::UpdateCharacterStateBeforeMovement(float Del
 {
     Super::UpdateCharacterStateBeforeMovement(DeltaSeconds);
 
+    bWasFalling = (MovementMode == EMovementMode::MOVE_Falling);
 }
 
 void UNLCharacterMovementComponent::UpdateCharacterStateAfterMovement(float DeltaSeconds)
@@ -216,11 +217,31 @@ void UNLCharacterMovementComponent::UpdateCharacterStateAfterMovement(float Delt
         }
         
         // Check Slide state
-        const double SquaredSpeed = Velocity.SizeSquared2D();
-        if (IsSliding() && (!IsCrouching() || SquaredSpeed <= MaxWalkSpeedCrouched * MaxWalkSpeedCrouched))
+        if (IsSliding())
         {
-            StopSlide(false);
+            const double SquaredSpeed = Velocity.SizeSquared2D();
+            if (!IsCrouching() || SquaredSpeed <= MaxWalkSpeedCrouched * MaxWalkSpeedCrouched)
+            {
+                StopSlide(false);
+            }
         }
+
+        // Check laded and crouched
+        if (bWasFalling && MovementMode == EMovementMode::MOVE_Walking)
+        {
+            if (IsCrouching() && CanSlideInCurrentState())
+            {
+                Slide(false);
+            }
+        }
+
+        // Check Slide boost here
+        // 여기에서 적용해야 다음 틱에 이동하기 전에 임펄스가 정상적으로 적용됨.
+        if (bJustSlided && CanApplySlideBoost())
+        {
+            ApplySlideBoost();
+        }
+        bJustSlided = false;
     }
 }
 
@@ -365,6 +386,8 @@ void UNLCharacterMovementComponent::Slide(bool bClientSimulation)
     GroundFriction = SlideGroundFriction;
     BrakingDecelerationWalking = SlideBrakingDecelerationWalking;
     MaxAcceleration = SlideMaxAcceleration;
+
+    bJustSlided = true;
 }
 
 void UNLCharacterMovementComponent::StopSlide(bool bClientSimulation)
@@ -389,6 +412,23 @@ void UNLCharacterMovementComponent::StopSlide(bool bClientSimulation)
     GroundFriction = DefaultGroundFriction;
     BrakingDecelerationWalking = DefaultBrakingDecelerationWalking;
     MaxAcceleration = DefaultMaxAcceleration;
+}
+
+bool UNLCharacterMovementComponent::CanApplySlideBoost() const
+{
+    return bSlideBoost;
+}
+
+void UNLCharacterMovementComponent::ApplySlideBoost()
+{
+    /**
+    * Apply Accumulated Force
+    * Update Character State Before Movement
+    * Handle Pending Launch
+    * Clear Accumulated Force
+    * 순서로 작동하므로, Before movement에 슬라이드 부스트를 주면 임펄스 값이 바로 지워짐
+    */
+    AddImpulse(Velocity.GetSafeNormal2D() * SlideBoostForce, true);
 }
 
 void UNLCharacterMovementComponent::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode)

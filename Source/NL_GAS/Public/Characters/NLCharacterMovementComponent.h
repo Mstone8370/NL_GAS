@@ -65,12 +65,23 @@ public:
 	virtual void Slide(bool bClientSimulation);
 	virtual void StopSlide(bool bClientSimulation);
 
+	virtual bool CanApplySlideBoost() const;
+
+	void ApplySlideBoost();
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	float SlideGroundFriction = 0.f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	float SlideBrakingDecelerationWalking = 512.f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	float SlideMaxAcceleration = 256.f;
+
+	bool bJustSlided = false;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	bool bSlideBoost = true;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	float SlideBoostForce = 300.f;
 
 protected:
 	// DefaultValues
@@ -82,6 +93,9 @@ protected:
 
 	// 클라이언트에서 받은 Flag를 통해 상태 업데이트
 	virtual void UpdateFromCompressedFlags(uint8 Flags) override;
+
+	// 이번 프레임에 땅에 닿았는지를 확인하기 위한 변수. 슬라이드할때 사용됨.
+	bool bWasFalling;
 };
 
 
