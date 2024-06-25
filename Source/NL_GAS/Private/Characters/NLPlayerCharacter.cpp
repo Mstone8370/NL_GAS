@@ -298,33 +298,73 @@ void ANLPlayerCharacter::Crouch(bool bClientSimulation)
     {
         return;
     }
+
+    if (IsCrouchInterpolatableCharacter())
+    {
+        if (GetCharacterMovement()->IsWalking())
+        {
+            /**
+            * 캡슐이 줄어들 때에는 캡슐의 상단부와 하단부 모두 Delta만큼 크기가 줄어듬.
+            * 그런데 Walking일때 앉기를 하면 캡슐이 줄어들때 바닥에 닿아있는 상태를 유지하기위해
+            * 캡슐의 중심 위치를 Delta만큼 아래로 옮기게 됨.
+            * 따라서 Delta의 두배 차이나게 설정해야 최종 Target Offset의 위치로 Interpolation 함.
+            */
+            TargetSpringArmOffset = BaseSpringArmOffset - 2 * GetCrouchedHalfHeightDelta();
+        }
+        else
+        {
+            /**
+            * 하지만 공중에 있을 때에는 캡슐의 중심 위치가 옮겨지지 않으므로 Delta만큼만 차이나게 함.
+            */
+            TargetSpringArmOffset = BaseSpringArmOffset - GetCrouchedHalfHeightDelta();
+        }
+    }
     
     // Start interpolate
     bIsInterpolatingCrouch = true;
-
-    float HalfHeightAdjust = 0.f;
-    float ScaledHalfHeightAdjust = 0.f;
-    GetCrouchedHalfHeightAdjust(HalfHeightAdjust, ScaledHalfHeightAdjust);
-
-    TargetSpringArmOffset = BaseSpringArmOffset - HalfHeightAdjust;
-    if (GetCharacterMovement()->IsWalking())
-    {
-        // Walking일때 앉으면 시야가 HalfHeightAdjust의 두배만큼 내려가야함.
-        TargetSpringArmOffset -= HalfHeightAdjust;
-    }
 }
 
 void ANLPlayerCharacter::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
 {
     Super::OnStartCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
 
+    // Same with On Capsule shrinked
+
     bIsCapsuleShrinked = true;
 
-    if (IsCrouchInterpolatableCharacter() && GetCharacterMovement()->IsWalking())
+    if (!IsCrouchInterpolatableCharacter())
     {
-        // Walking일때 캡슐 크기가 줄어들면, 아래쪽의 HalfHeightAdjust만큼 캡슐의 위치가 내려가므로
-        // 시야 높이 유지를 위해 오프셋을 증가.
+        return;
+    }
+
+    if (GetCharacterMovement()->IsWalking())
+    {
+        /**
+        * Walking일때 캡슐이 줄어들어야 하는 상황이라면, Crouch Interpolation의 Target Spring Arm Offset이
+        * Base Spring Arm Offset과 Delta의 두배 차이나게 설정되어있는 상태임.
+        * 이는 캡슐이 줄어들면 캡슐의 상단부와 하단부 양쪽에서 모두 Delta만큼 캡슐이 줄어들며,
+        * 공중에 있을때에는 그저 줄어들기만 하고 중심은 유지하면 되지만, 바닥에 닿아있는 Walking일땐
+        * 바닥에 닿은 상태를 유지하기 위해 중심을 Delta만큼 아래로 이동하기 때문에 발생하는 차이임.
+        * 따라서 Crouch Interpolation의 부드러운 연결을 위해 Target Spring Arm Offset을
+        * Delta의 두배만큼 차이나게 설정했다가 캡슐이 줄어들어 중심이 Delta만큼 아래로 이동했다면
+        * 그 Delta만큼 Offset을 올려줘야 중심이 이동하기 전 위치를 그대로 유지하게 됨.
+        */
         SpringArmComponent->TargetOffset.Z += HalfHeightAdjust;
+
+        if (bIsInterpolatingCrouch)
+        {
+            /**
+            * 만약 아직 Target Spring Arm Offset만큼 Interpolation이 되지 않았는데 캡슐이 줄어들었다면
+            * 캡슐이 줄어든 상황에 맞는 Target Spring Arm Offset 값으로 설정해줌.
+            * 이런 상황이 발생하는 예시로는 슬라이딩이 있음.
+            */
+            TargetSpringArmOffset = BaseSpringArmOffset - GetCrouchedHalfHeightDelta();
+        }
+    }
+
+    if (GetLocalRole() == ROLE_AutonomousProxy && GetNetMode() == NM_Client)
+    {
+        Server_CapsuleShrinked(true);
     }
 }
 
@@ -340,14 +380,18 @@ void ANLPlayerCharacter::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHei
     }
 
     TargetSpringArmOffset = BaseSpringArmOffset;
-    bIsInterpolatingCrouch = true;
     
     if (GetCharacterMovement()->IsWalking())
     {
-        // Walking일때 캡슐 크기가 늘어나면, 아래쪽의 HalfHeightAdjust만큼 캡슐의 위치가 올라가므로
-        // 시야 높이 유지를 위해 오프셋을 감소.
+        /**
+        * Walking일때 앉기를 끝내서 캡슐의 크기가 늘어났다면, 캡슐 하단부의 늘어난 Delta만큼 중심의 위치로 위로 올라가게 됨.
+        * 그렇다는건 월드 관점에서는 Spring Arm의 Target Offset의 Teleportation이 발생하게되는 상황이므로
+        * Target Offset을 Delta만큼 낮추어서 월드 위치를 유지하게 하고, 자연스러운 Interpolation이 가능하게 됨.
+        */
         SpringArmComponent->TargetOffset.Z -= HalfHeightAdjust;
     }
+
+    bIsInterpolatingCrouch = true;
 
     if (GetLocalRole() == ROLE_AutonomousProxy && GetNetMode() == NM_Client)
     {
@@ -359,32 +403,31 @@ void ANLPlayerCharacter::Landed(const FHitResult& Hit)
 {
     Super::Landed(Hit);
 
-    if (bIsCrouched && bIsInterpolatingCrouch)
+    if (bIsCrouched && !bIsCapsuleShrinked)
     {
-        float HalfHeightAdjust = 0.f;
-        float ScaledHalfHeightAdjust = 0.f;
-        GetCrouchedHalfHeightAdjust(HalfHeightAdjust, ScaledHalfHeightAdjust);
-
-        TargetSpringArmOffset = BaseSpringArmOffset - 2 * HalfHeightAdjust;
+        /**
+        * 캡슐이 줄어들지 않은 상태면 Crouch Interpolating 상태며, 슬라이딩 상태가 아니고,
+        * Falling일때 앉기 시작했다는 의미일 수 있으니
+        * Target Spring Arm Offset이 Base Spring Arm Offset과 Delta만큼의 차이만 설정되어 있을 수 있음.
+        * Landed 상태와 엮이면 Delta의 두배만큼 차이가 있어야하므로
+        * Target Spring Arm Offset을 Delta의 두배로 다시 지정.
+        */
+        TargetSpringArmOffset = BaseSpringArmOffset - 2 * GetCrouchedHalfHeightDelta();
     }
 }
 
 void ANLPlayerCharacter::OnFallingStarted()
 {
-    /**
-    * Falling에 앉을때에는 캡슐 아래쪽의 HalfHeightAdjust만큼 높이를 낮추지 않음.
-    * 하지만 Walking일때 앉기를 시작했다면 캡슐의 높이를 낮출것을 예상하고 TargetSpringArmOffset을 두배로 낮췄음.
-    * 따라서 Crouch Interpolation중이라면 목표 높이 값을 변경해야함.
-    *
-    * 떨어지기 시작했을 때, bIsCrouched가 true이고, Crouch Interpolation중인 경우라면 Walking일때 앉기를 시작했다는 뜻.
-    */
     if (bIsCrouched && bIsInterpolatingCrouch)
     {
-        float HalfHeightAdjust = 0.f;
-        float ScaledHalfHeightAdjust = 0.f;
-        GetCrouchedHalfHeightAdjust(HalfHeightAdjust, ScaledHalfHeightAdjust);
-
-        TargetSpringArmOffset = BaseSpringArmOffset - HalfHeightAdjust;
+        /**
+        * Landed()에서와 다르게 여기에서는 Crouch Interpolating 상태인지 확인함.
+        * 슬라이딩 상태에서는 캡슐은 줄었지만 Crouch Interpolating 상태고,
+        * 그때의 Target Spring Arm Offset은 Base Spring Arm Offset과 Delta만큼의 차이만 있어야 함.
+        * 물론 OnStartCrouch() 함수에서도 이런 경우를 고려해서 Target Spring Arm Offset을 설정하지만,
+        * 혹시 모를 그 외의 경우를 위해서 여기에서 한번 더 진행하고, 논리적으로도 이해하는데 도움이 될듯 함.
+        */
+        TargetSpringArmOffset = BaseSpringArmOffset - GetCrouchedHalfHeightDelta();
     }
 }
 
@@ -627,10 +670,6 @@ void ANLPlayerCharacter::InterpolateCrouch(float DeltaSeconds)
         {
             // 앉기는 interpolation이 시작되었다면 이 시점에서 불가능한 경우는 없으므로 추가 확인없이 진행.
             NLCharacterMovementComponent->ShrinkCapsuleHeight();
-            if (GetLocalRole() == ROLE_AutonomousProxy && GetNetMode() == NM_Client)
-            {
-                Server_CapsuleShrinked(true);
-            }
         }
     }
 }
@@ -694,17 +733,16 @@ void ANLPlayerCharacter::OnRep_IsSliding()
     }
 }
 
-void ANLPlayerCharacter::GetCrouchedHalfHeightAdjust(float& OutHalfHeightAdjust, float& OutScaledHalfHeightAdjust) const
+float ANLPlayerCharacter::GetCrouchedHalfHeightDelta()
 {
-    // Change collision size to crouching dimensions
-    const float ComponentScale = GetCapsuleComponent()->GetShapeScale();
-    const float OldUnscaledHalfHeight = GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight();
-    const float OldUnscaledRadius = GetCapsuleComponent()->GetUnscaledCapsuleRadius();
-    // Height is not allowed to be smaller than radius.
-    const float ClampedCrouchedHalfHeight = FMath::Max3(0.f, OldUnscaledRadius, GetCharacterMovement()->GetCrouchedHalfHeight());
-    
-    OutHalfHeightAdjust = (OldUnscaledHalfHeight - ClampedCrouchedHalfHeight);
-    OutScaledHalfHeightAdjust = OutHalfHeightAdjust * ComponentScale;
+    if (CrouchedHalfHeightDelta <= 0.f)
+    {
+        ACharacter* DefaultCharacter = GetClass()->GetDefaultObject<ACharacter>();
+        const float DefaultHalfHeight = DefaultCharacter->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight();
+        const float CrouchedHalfHeight = GetCharacterMovement()->GetCrouchedHalfHeight();
+        CrouchedHalfHeightDelta = FMath::Abs(DefaultHalfHeight - CrouchedHalfHeight);
+    }
+    return CrouchedHalfHeightDelta;
 }
 
 bool ANLPlayerCharacter::IsListenServerControlledCharacter()

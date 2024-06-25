@@ -168,6 +168,7 @@ protected:
 	UFUNCTION(Server, Reliable)
 	void Server_CapsuleShrinked(bool bInShrinked);
 
+	float CrouchedHalfHeightDelta = -1.f;
 	bool bIsInterpolatingCrouch;
 	float BaseSpringArmOffset;
 	float TargetSpringArmOffset;
@@ -186,7 +187,7 @@ protected:
 	TObjectPtr<UCurveVector> LoopingShakeCurve_Idle;
 
 public:
-	void GetCrouchedHalfHeightAdjust(float& OutHalfHeightAdjust, float& OutScaledHalfHeightAdjust) const;
+	float GetCrouchedHalfHeightDelta();
 
 	FORCEINLINE float GetLookPitch() const { return LookPitch; }
 
