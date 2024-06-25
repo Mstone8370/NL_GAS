@@ -75,12 +75,13 @@ bool UNLCharacterMovementComponent::DoJump(bool bReplayingMoves)
                 Velocity.Z = FMath::Max<FVector::FReal>(Velocity.Z, JumpZVelocity);
             }
 
+            SetMovementMode(MOVE_Falling);
+
             if (IsSliding())
             {
                 StopSlide(false);
             }
 
-            SetMovementMode(MOVE_Falling);
             return true;
         }
     }
@@ -232,6 +233,32 @@ void UNLCharacterMovementComponent::UpdateCharacterStateAfterMovement(float Delt
             if (IsCrouching() && CanSlideInCurrentState())
             {
                 Slide(false);
+            }
+
+            // Check Slide boost cooltime timer
+            /**
+            * If Slide boost feature is true and
+            * currently not sliding and
+            * Slide boost is not ready and
+            * Slide boost cooltime timer is not setted
+            * Check StopSlide() function for additional condition
+            */
+            if (bSlideBoost && !IsSliding() && !bSlideBoostReady)
+            {
+                if (GetWorld())
+                {
+                    FTimerManager& TimerManager = GetWorld()->GetTimerManager();
+                    if (!TimerManager.IsTimerActive(SlideBoostCooltimeTimer))
+                    {
+                        GetWorld()->GetTimerManager().SetTimer(
+                            SlideBoostCooltimeTimer,
+                            this,
+                            &UNLCharacterMovementComponent::OnSlideBoostCooltimeFinished,
+                            SlideBoostCooltime,
+                            false
+                        );
+                    }
+                }
             }
         }
 
@@ -412,23 +439,37 @@ void UNLCharacterMovementComponent::StopSlide(bool bClientSimulation)
     GroundFriction = DefaultGroundFriction;
     BrakingDecelerationWalking = DefaultBrakingDecelerationWalking;
     MaxAcceleration = DefaultMaxAcceleration;
+
+    // Slide boost 쿨타임은 땅에 닿아있고, 슬라이딩을 하지 않을때만 시작
+    if (bSlideBoost && MovementMode != EMovementMode::MOVE_Falling && GetWorld())
+    {
+        GetWorld()->GetTimerManager().SetTimer(
+            SlideBoostCooltimeTimer,
+            this,
+            &UNLCharacterMovementComponent::OnSlideBoostCooltimeFinished,
+            SlideBoostCooltime,
+            false
+        );
+    }
 }
 
 bool UNLCharacterMovementComponent::CanApplySlideBoost() const
 {
-    return bSlideBoost;
+    return bSlideBoost && bSlideBoostReady;
 }
 
 void UNLCharacterMovementComponent::ApplySlideBoost()
 {
     /**
-    * Apply Accumulated Force
-    * Update Character State Before Movement
-    * Handle Pending Launch
-    * Clear Accumulated Force
-    * 순서로 작동하므로, Before movement에 슬라이드 부스트를 주면 임펄스 값이 바로 지워짐
+    * 1. Apply Accumulated Force
+    * 2. Update Character State Before Movement
+    * 3. Handle Pending Launch
+    * 4. Clear Accumulated Force
+    * 순서로 작동하므로, Before movement에 임펄스를 추가하면 임펄스 값이 바로 지워짐
     */
     AddImpulse(Velocity.GetSafeNormal2D() * SlideBoostForce, true);
+    
+    bSlideBoostReady = false;
 }
 
 void UNLCharacterMovementComponent::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode)
@@ -446,6 +487,11 @@ void UNLCharacterMovementComponent::UpdateFromCompressedFlags(uint8 Flags)
     Super::UpdateFromCompressedFlags(Flags);
 
     bWantsToSprint = ((Flags & FSavedMove_Character::FLAG_Custom_0) != 0);
+}
+
+void UNLCharacterMovementComponent::OnSlideBoostCooltimeFinished()
+{
+    bSlideBoostReady = true;
 }
 
 void FSavedMove_NLCharacter::Clear()

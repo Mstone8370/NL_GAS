@@ -81,6 +81,7 @@ public:
 	virtual void OnStartSprint();
 	virtual void OnEndSprint();
 
+	// sprint가 끝나고 walk로 돌아가는데 걸리는 시간을 다룸
 	FTimerHandle SprintStopTimer;
 
 	bool bSprintBlocked = false;
