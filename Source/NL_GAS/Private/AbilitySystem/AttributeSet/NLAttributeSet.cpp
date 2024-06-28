@@ -3,6 +3,9 @@
 
 #include "AbilitySystem/AttributeSet/NLAttributeSet.h"
 
+#include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
+
 #include "Net/UnrealNetwork.h"
 #include "GameplayEffectExtension.h"
 #include "AbilitySystem/NLAbilitySystemTypes.h"
@@ -90,6 +93,17 @@ void UNLAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
                         LocalIncomingDamage *= Hitbox->GetCriticalHitDamageMultiplier();
                     }
                 }
+            }
+        }
+
+        if (NLContext->KnockbackMagnitude > 0.f && NLContext->GetHitResult())
+        {
+            FHitResult* HitRes = NLContext->GetHitResult();
+            const FVector KnockbackDirection = (HitRes->TraceEnd - HitRes->TraceStart).GetSafeNormal();
+            const FVector KnockbackForce = KnockbackDirection * NLContext->KnockbackMagnitude;
+            if (ACharacter* TargetCharacter = Cast<ACharacter>(Params.TargetAvatarActor))
+            {
+                TargetCharacter->GetCharacterMovement()->AddImpulse(KnockbackForce, true);
             }
         }
 

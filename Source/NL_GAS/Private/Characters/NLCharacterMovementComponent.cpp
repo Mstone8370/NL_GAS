@@ -261,14 +261,6 @@ void UNLCharacterMovementComponent::UpdateCharacterStateAfterMovement(float Delt
                 }
             }
         }
-
-        // Check Slide boost here
-        // 여기에서 적용해야 다음 틱에 이동하기 전에 임펄스가 정상적으로 적용됨.
-        if (bJustSlided && CanApplySlideBoost())
-        {
-            ApplySlideBoost();
-        }
-        bJustSlided = false;
     }
 }
 
@@ -377,7 +369,12 @@ bool UNLCharacterMovementComponent::CanSlideInCurrentState() const
     {
         if (ANLPlayerCharacter* NLPlayerCharacter = Cast<ANLPlayerCharacter>(GetCharacterOwner()))
         {
-            if (GetLastUpdateVelocity().SquaredLength() <= MaxWalkSpeed * MaxWalkSpeed + 2500.f /*padding*/)
+            const double Speed2DSquared = GetLastUpdateVelocity().SizeSquared2D();
+            if (!bWasFalling && Speed2DSquared <= MaxWalkSpeed * MaxWalkSpeed + 2500.f /*padding*/)
+            {
+                return false;
+            }
+            else if (bWasFalling && Speed2DSquared <= MaxWalkSpeed * MaxWalkSpeed - 2500.f /*padding*/)
             {
                 return false;
             }
@@ -414,7 +411,10 @@ void UNLCharacterMovementComponent::Slide(bool bClientSimulation)
     BrakingDecelerationWalking = SlideBrakingDecelerationWalking;
     MaxAcceleration = SlideMaxAcceleration;
 
-    bJustSlided = true;
+    if (CanApplySlideBoost())
+    {
+        ApplySlideBoost();
+    }
 }
 
 void UNLCharacterMovementComponent::StopSlide(bool bClientSimulation)
@@ -467,8 +467,17 @@ void UNLCharacterMovementComponent::ApplySlideBoost()
     * 4. Clear Accumulated Force
     * 순서로 작동하므로, Before movement에 임펄스를 추가하면 임펄스 값이 바로 지워짐
     */
-    AddImpulse(Velocity.GetSafeNormal2D() * SlideBoostForce, true);
-    
+    /**
+    * 원래는 AddImpulse로 속도를 추가하려고 했으나, 위와 같은 이유로 속도는 다음 틱에 적용되고,
+    * 서버에서도 다음 틱에서야 속도가 추가되어 클라이언트간의 동기화와 예측이 꼬이게 되어서
+    * 위치 보정이 되고, 플레이에 불편함이 생김.
+    * 따라서 임펄스는 이번 틱에 적용되어야하는데, 앉기 체크는 임펄스가 적용된 이후에 처리하므로
+    * 임펄스를 사용할 수 없음.
+    * 그러므로 임펄스와 동일하게 작동하는 방식으로 Velocity를 직접 변경하는 방법을 사용했고,
+    * 결과는 만족스러움.
+    */
+    Velocity += Velocity.GetSafeNormal2D() * SlideBoostForce;
+
     bSlideBoostReady = false;
 }
 
@@ -508,6 +517,33 @@ void FSavedMove_NLCharacter::SetMoveFor(ACharacter* C, float InDeltaTime, FVecto
     if (UNLCharacterMovementComponent* NLCMC = Cast<UNLCharacterMovementComponent>(C->GetCharacterMovement()))
     {
         bWantsToSprint = NLCMC->bWantsToSprint;
+    }
+}
+
+bool FSavedMove_NLCharacter::CanCombineWith(const FSavedMovePtr& NewMove, ACharacter* InCharacter, float MaxDelta) const
+{
+    if (FSavedMove_NLCharacter* NewNLMove = static_cast<FSavedMove_NLCharacter*>(NewMove.Get()))
+    {
+        if (NewNLMove->bWantsToSprint != bWantsToSprint)
+        {
+            return false;
+        }
+        if (NewNLMove->bWantsToCrouch != bWantsToCrouch)
+        {
+            return false;
+        }
+    }
+
+    return Super::CanCombineWith(NewMove, InCharacter, MaxDelta);
+}
+
+void FSavedMove_NLCharacter::PrepMoveFor(ACharacter* C)
+{
+    Super::PrepMoveFor(C);
+
+    if (UNLCharacterMovementComponent* NLCMC = Cast<UNLCharacterMovementComponent>(C->GetCharacterMovement()))
+    {
+        NLCMC->bWantsToSprint = bWantsToSprint;
     }
 }
 

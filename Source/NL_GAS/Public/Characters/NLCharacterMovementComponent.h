@@ -97,8 +97,6 @@ protected:
 	// 이번 프레임에 땅에 닿았는지를 확인하기 위한 변수. 슬라이드할때 사용됨.
 	bool bWasFalling;
 
-	bool bJustSlided = false;
-
 	bool bSlideBoostReady = true;
 
 	FTimerHandle SlideBoostCooltimeTimer;
@@ -119,6 +117,10 @@ public:
 	virtual void Clear() override;
 
 	virtual void SetMoveFor(ACharacter* C, float InDeltaTime, FVector const& NewAccel, class FNetworkPredictionData_Client_Character& ClientData) override;
+
+	virtual bool CanCombineWith(const FSavedMovePtr& NewMove, ACharacter* InCharacter, float MaxDelta) const override;
+
+	virtual void PrepMoveFor(ACharacter* C) override;
 
 	uint8 GetCompressedFlags() const override;
 
