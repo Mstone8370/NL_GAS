@@ -433,17 +433,14 @@ void ANLPlayerCharacter::OnFallingStarted()
 
 bool ANLPlayerCharacter::CanSprint()
 {
-    return !bIsSprinting && !bSprintBlocked && !bIsCrouched && !bIsADS && NLCharacterMovementComponent && NLCharacterMovementComponent->IsMovingOnGround() && GetRootComponent() && !GetRootComponent()->IsSimulatingPhysics();
+    return !bSprintBlocked && !bIsCrouched && !bIsADS && NLCharacterMovementComponent && NLCharacterMovementComponent->IsMovingOnGround() && GetRootComponent() && !GetRootComponent()->IsSimulatingPhysics();
 }
 
 void ANLPlayerCharacter::Sprint()
 {
     if (NLCharacterMovementComponent)
     {
-        if (CanSprint())
-        {
-            NLCharacterMovementComponent->bWantsToSprint = true;
-        }
+        NLCharacterMovementComponent->bWantsToSprint = CanSprint();
     }
 }
 
