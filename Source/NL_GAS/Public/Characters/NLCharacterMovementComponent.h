@@ -6,6 +6,18 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "NLCharacterMovementComponent.generated.h"
 
+UENUM(BlueprintType)
+enum ENLMovementMode : uint8
+{
+	/** None (movement is disabled). */
+	NLMOVE_None				UMETA(DisplayName = "None"),
+
+	/** Walking on a surface. */
+	NLMOVE_LedgeClimbing	UMETA(DisplayName = "LedgeClimbing"),
+
+	NLMOVE_MAX				UMETA(Hidden),
+};
+
 DECLARE_DELEGATE(FFallingStartedSignature);
 
 /**
@@ -83,6 +95,13 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	float SlideBoostCooltime = 2.f;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	float LedgeTraceLength = 40.f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	float LedgeTraceBottomHalfHeight = 35.f;
+
+	bool bLedgeClimbing = false;
+
 protected:
 	// DefaultValues
 	float DefaultGroundFriction;
@@ -102,6 +121,18 @@ protected:
 	FTimerHandle SlideBoostCooltimeTimer;
 
 	void OnSlideBoostCooltimeFinished();
+
+	bool CheckLedgeDetectionCondition() const;
+
+	bool FindBlockingLedge(FHitResult& OutHitResult, bool bDebug = false) const;
+
+	bool CanStandUpOnLegde(FHitResult& OutHitResult, float& OutLedgeHeight, bool bDebug = false) const;
+
+	float LedgeHeight;
+
+	virtual void PhysCustom(float deltaTime, int32 Iterations) override;
+
+	void PhysLedgeClimbing(float deltaTime, int32 Iterations);
 };
 
 

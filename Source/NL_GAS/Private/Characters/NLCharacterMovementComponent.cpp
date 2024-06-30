@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "Components/CapsuleComponent.h"
 #include "Characters/NLPlayerCharacter.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 void UNLCharacterMovementComponent::BeginPlay()
 {
@@ -198,6 +199,24 @@ void UNLCharacterMovementComponent::UpdateCharacterStateBeforeMovement(float Del
     Super::UpdateCharacterStateBeforeMovement(DeltaSeconds);
 
     bWasFalling = (MovementMode == EMovementMode::MOVE_Falling);
+
+    if (CharacterOwner->GetLocalRole() != ROLE_SimulatedProxy && UpdatedComponent && CheckLedgeDetectionCondition())
+    {
+        const FVector AccelDir = Acceleration.GetSafeNormal2D();
+        const FVector Forward = UpdatedComponent->GetForwardVector();
+        const float Dot = AccelDir.Dot(Forward);
+        if (Dot >= 0.7f) // 전진 입력을 하고있는 동안만
+        {
+            FHitResult BlockingLedgeHitResult;
+            FHitResult StandUpHitResult;
+            float LedgeHeightTemp = 0.f;
+            if (FindBlockingLedge(BlockingLedgeHitResult, true) && CanStandUpOnLegde(StandUpHitResult, LedgeHeightTemp, true))
+            {
+                LedgeHeight = LedgeHeightTemp;
+                SetMovementMode(MOVE_Custom, NLMOVE_LedgeClimbing);
+            }
+        }
+    }
 }
 
 void UNLCharacterMovementComponent::UpdateCharacterStateAfterMovement(float DeltaSeconds)
@@ -489,6 +508,14 @@ void UNLCharacterMovementComponent::OnMovementModeChanged(EMovementMode Previous
     {
         FallingStarted.ExecuteIfBound();
     }
+
+    if (MovementMode == MOVE_Custom)
+    {
+        if (CustomMovementMode == ENLMovementMode::NLMOVE_LedgeClimbing)
+        {
+
+        }
+    }
 }
 
 void UNLCharacterMovementComponent::UpdateFromCompressedFlags(uint8 Flags)
@@ -501,6 +528,136 @@ void UNLCharacterMovementComponent::UpdateFromCompressedFlags(uint8 Flags)
 void UNLCharacterMovementComponent::OnSlideBoostCooltimeFinished()
 {
     bSlideBoostReady = true;
+}
+
+bool UNLCharacterMovementComponent::CheckLedgeDetectionCondition() const
+{
+    return MovementMode == EMovementMode::MOVE_Falling && !IsCrouching() && !IsSliding();
+}
+
+bool UNLCharacterMovementComponent::FindBlockingLedge(FHitResult& OutHitResult, bool bDebug) const
+{
+    OutHitResult = FHitResult(1.f);
+    if (UCapsuleComponent* CapsuleComponent = Cast<UCapsuleComponent>(UpdatedComponent))
+    {
+        const float ScaledCapsuleHalfHeight = CapsuleComponent->GetScaledCapsuleHalfHeight();
+        const float ScaledCapsuleRadius = CapsuleComponent->GetScaledCapsuleRadius();
+
+        const FVector CapsuleLocation = CapsuleComponent->GetComponentLocation();
+        const FVector CapsuleForward = CapsuleComponent->GetForwardVector();
+
+        const FVector TraceStart = CapsuleLocation + CapsuleForward * ScaledCapsuleRadius - UE_KINDA_SMALL_NUMBER;
+        const FVector TraceEnd = TraceStart + CapsuleForward * LedgeTraceLength;
+        const FVector HalfSize(0.f, ScaledCapsuleRadius, ScaledCapsuleHalfHeight);
+        const FRotator Orientation = CapsuleComponent->GetComponentRotation();
+
+        TArray<AActor*> ActorsToIgnore({ GetOwner() });
+
+        UKismetSystemLibrary::BoxTraceSingleByProfile(
+            CapsuleComponent,
+            TraceStart + FVector(0.f, 0.f, LedgeTraceBottomHalfHeight),
+            TraceEnd + FVector(0.f, 0.f, LedgeTraceBottomHalfHeight),
+            HalfSize - FVector(0.f, 0.f, LedgeTraceBottomHalfHeight),
+            Orientation,
+            CapsuleComponent->GetCollisionProfileName(),
+            false,
+            ActorsToIgnore,
+            bDebug ? EDrawDebugTrace::ForOneFrame : EDrawDebugTrace::None,
+            OutHitResult,
+            true
+        );
+    }
+    return OutHitResult.bBlockingHit;
+}
+
+bool UNLCharacterMovementComponent::CanStandUpOnLegde(FHitResult& OutHitResult, float& OutLedgeHeight, bool bDebug) const
+{
+    OutHitResult = FHitResult(1.f);
+    OutLedgeHeight = 0.f;
+    if (UCapsuleComponent* CapsuleComponent = Cast<UCapsuleComponent>(UpdatedComponent))
+    {
+        const float ScaledCapsuleHalfHeight = CapsuleComponent->GetScaledCapsuleHalfHeight();
+        const float ScaledCapsuleRadius = CapsuleComponent->GetScaledCapsuleRadius();
+
+        const FVector CapsuleLocation = CapsuleComponent->GetComponentLocation();
+        const FVector CapsuleForward = CapsuleComponent->GetForwardVector();
+        const FVector CapsuleUp = CapsuleComponent->GetUpVector();
+
+        const FVector TraceStart = CapsuleLocation + CapsuleForward * (ScaledCapsuleRadius * 0.5f) + CapsuleUp * (ScaledCapsuleHalfHeight * 3.f) + UE_KINDA_SMALL_NUMBER;
+        const FVector TraceEnd = TraceStart - CapsuleUp * (ScaledCapsuleHalfHeight * 4.f);
+        const FVector HalfSize(ScaledCapsuleRadius * 1.5f, ScaledCapsuleRadius, 0.f);
+        const FRotator Orientation = CapsuleComponent->GetComponentRotation();
+
+        TArray<AActor*> ActorsToIgnore({ GetOwner() });
+
+        UKismetSystemLibrary::BoxTraceSingleByProfile(
+            CapsuleComponent,
+            TraceStart,
+            TraceEnd,
+            HalfSize,
+            Orientation,
+            CapsuleComponent->GetCollisionProfileName(),
+            false,
+            ActorsToIgnore,
+            bDebug ? EDrawDebugTrace::ForOneFrame : EDrawDebugTrace::None,
+            OutHitResult,
+            true
+        );
+
+        if (OutHitResult.bBlockingHit)
+        {
+            OutLedgeHeight = ScaledCapsuleHalfHeight * 4.f - OutHitResult.Distance;
+            return OutLedgeHeight <= ScaledCapsuleHalfHeight * 2.f;
+        }
+    }
+    return false;
+}
+
+void UNLCharacterMovementComponent::PhysCustom(float deltaTime, int32 Iterations)
+{
+    Super::PhysCustom(deltaTime, Iterations);
+
+    switch (CustomMovementMode)
+    {
+    case NLMOVE_None:
+        break;
+    case NLMOVE_LedgeClimbing:
+        PhysLedgeClimbing(deltaTime, Iterations);
+        break;
+    default:
+        SetMovementMode(MOVE_None);
+        break;
+    }
+}
+
+void UNLCharacterMovementComponent::PhysLedgeClimbing(float deltaTime, int32 Iterations)
+{
+    if (deltaTime < MIN_TICK_TIME)
+    {
+        return;
+    }
+
+    float remainingTime = deltaTime;
+    while ((remainingTime >= MIN_TICK_TIME) && (Iterations < MaxSimulationIterations))
+    {
+        Iterations++;
+        float timeTick = GetSimulationTimeStep(remainingTime, Iterations);
+        remainingTime -= timeTick;
+
+        const FVector OldLocation = UpdatedComponent->GetComponentLocation();
+        const FQuat PawnRotation = UpdatedComponent->GetComponentQuat();
+        bJustTeleported = false;
+
+        // TODO: Get Adjusted vector
+
+        FVector Adjusted;
+
+        // Move
+        FHitResult Hit(1.f);
+        SafeMoveUpdatedComponent(Adjusted, PawnRotation, true, Hit);
+
+        // TODO: 
+    }
 }
 
 void FSavedMove_NLCharacter::Clear()
