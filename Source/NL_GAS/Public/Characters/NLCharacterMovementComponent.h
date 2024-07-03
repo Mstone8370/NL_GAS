@@ -100,7 +100,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	float LedgeTraceBottomHalfHeight = 35.f;
 
-	bool bLedgeClimbing = false;
+	bool IsLedgeClimbing() const;
 
 protected:
 	// DefaultValues
@@ -124,15 +124,19 @@ protected:
 
 	bool CheckLedgeDetectionCondition() const;
 
-	bool FindBlockingLedge(FHitResult& OutHitResult, bool bDebug = false) const;
+	bool FindBlockingLedge(FHitResult& OutHitResult, bool bDebug = false);
 
-	bool CanStandUpOnLegde(FHitResult& OutHitResult, float& OutLedgeHeight, bool bDebug = false) const;
+	bool CanStandUpOnLegde(FHitResult& OutHitResult, bool bDebug = false);
 
-	float LedgeHeight;
+	bool GetLedgeClimbTargetLocation(const FHitResult& BlockingHitResult, const FHitResult& StandUpHitResult);
+
+	FVector LedgeClimbTargetLocation;
 
 	virtual void PhysCustom(float deltaTime, int32 Iterations) override;
 
 	void PhysLedgeClimbing(float deltaTime, int32 Iterations);
+
+	void GetCapsuleScaledSize(float& OutHalfHeight, float& OutRadius) const;
 };
 
 
