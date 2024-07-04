@@ -99,8 +99,16 @@ public:
 	float LedgeTraceLength = 40.f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	float LedgeTraceBottomHalfHeight = 35.f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	float LedgeClimbUpSpeed = 600.f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	float LedgeClimbForwardSpeed = 400.f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	float LedgeClimbForwardDist = 20.f;
 
 	bool IsLedgeClimbing() const;
+
+	void StopLedgeClimb();
 
 protected:
 	// DefaultValues
@@ -134,7 +142,7 @@ protected:
 
 	virtual void PhysCustom(float deltaTime, int32 Iterations) override;
 
-	void PhysLedgeClimbing(float deltaTime, int32 Iterations);
+	virtual void PhysLedgeClimbing(float deltaTime, int32 Iterations, bool bDebug = false);
 
 	void GetCapsuleScaledSize(float& OutHalfHeight, float& OutRadius) const;
 };

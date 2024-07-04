@@ -200,7 +200,7 @@ void UNLCharacterMovementComponent::UpdateCharacterStateBeforeMovement(float Del
 
     bWasFalling = (MovementMode == EMovementMode::MOVE_Falling);
 
-    if (CharacterOwner->GetLocalRole() != ROLE_SimulatedProxy && UpdatedComponent && CheckLedgeDetectionCondition())
+    if (CharacterOwner->GetLocalRole() != ROLE_SimulatedProxy && UpdatedComponent)
     {
         if (!IsLedgeClimbing() && CheckLedgeDetectionCondition())
         {
@@ -229,7 +229,7 @@ void UNLCharacterMovementComponent::UpdateCharacterStateBeforeMovement(float Del
             const float Dot = AccelDir.Dot(Forward);
             if (Dot <= -0.7f)
             {
-                // TODO: Stop Ledge Climb
+                StopLedgeClimb();
             }
         }
     }
@@ -521,6 +521,12 @@ bool UNLCharacterMovementComponent::IsLedgeClimbing() const
     return MovementMode == MOVE_Custom && CustomMovementMode == ENLMovementMode::NLMOVE_LedgeClimbing;
 }
 
+void UNLCharacterMovementComponent::StopLedgeClimb()
+{
+    Velocity = FVector::ZeroVector;
+    SetMovementMode(MOVE_Falling);
+}
+
 void UNLCharacterMovementComponent::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode)
 {
     Super::OnMovementModeChanged(PreviousMovementMode, PreviousCustomMode);
@@ -655,7 +661,7 @@ bool UNLCharacterMovementComponent::GetLedgeClimbTargetLocation(const FHitResult
     GetCapsuleScaledSize(CapsuleHalfHeight, CapsuleRadius);
 
     const FVector BlockingNormal2D = BlockingHitResult.Normal.GetSafeNormal2D();
-    const FVector TargetLocation2D = BlockingHitResult.ImpactPoint - (BlockingNormal2D * 5.f);
+    const FVector TargetLocation2D = BlockingHitResult.ImpactPoint - (BlockingNormal2D * LedgeClimbForwardDist);
 
     const float ApproxZ = StandUpHitResult.ImpactPoint.Z;
 
@@ -704,7 +710,7 @@ void UNLCharacterMovementComponent::PhysCustom(float deltaTime, int32 Iterations
     }
 }
 
-void UNLCharacterMovementComponent::PhysLedgeClimbing(float deltaTime, int32 Iterations)
+void UNLCharacterMovementComponent::PhysLedgeClimbing(float deltaTime, int32 Iterations, bool bDebug)
 {
     if (!HasValidData())
     {
@@ -716,23 +722,26 @@ void UNLCharacterMovementComponent::PhysLedgeClimbing(float deltaTime, int32 Ite
         return;
     }
 
-    DrawDebugPoint(
-        GetWorld(),
-        LedgeClimbTargetLocation,
-        2.f,
-        FColor::Cyan,
-        false
-    );
-    float hh;
-    float r;
-    GetCapsuleScaledSize(hh, r);
-    DrawDebugCapsule(
-        GetWorld(),
-        LedgeClimbTargetLocation,
-        hh, r,
-        FQuat::Identity,
-        FColor::Cyan
-    );
+    if (bDebug)
+    {
+        DrawDebugPoint(
+            GetWorld(),
+            LedgeClimbTargetLocation,
+            2.f,
+            FColor::Cyan,
+            false
+        );
+        float hh;
+        float r;
+        GetCapsuleScaledSize(hh, r);
+        DrawDebugCapsule(
+            GetWorld(),
+            LedgeClimbTargetLocation,
+            hh, r,
+            FQuat::Identity,
+            FColor::Cyan
+        );
+    }
 
     float remainingTime = deltaTime;
     while ((remainingTime >= MIN_TICK_TIME) && (Iterations < MaxSimulationIterations))
@@ -751,13 +760,14 @@ void UNLCharacterMovementComponent::PhysLedgeClimbing(float deltaTime, int32 Ite
         const bool bIsClimbing = DeltaLocation.Z > 0.f;
         if (bIsClimbing)
         {
-            Velocity = UpdatedComponent->GetUpVector() * 600.f;
+            Velocity = UpdatedComponent->GetUpVector() * LedgeClimbUpSpeed;
         }
         else
         {
-            Velocity = DeltaLocation.GetSafeNormal2D() * 600.f;
+            Velocity = DeltaLocation.GetSafeNormal2D() * LedgeClimbForwardSpeed;
         }
         FVector Adjusted = Velocity * timeTick;
+        // Clamp height
         Adjusted.Z = FMath::Min(Adjusted.Z, LedgeClimbTargetLocation.Z - UpdatedComponent->GetComponentLocation().Z);
 
         // Move
@@ -766,11 +776,26 @@ void UNLCharacterMovementComponent::PhysLedgeClimbing(float deltaTime, int32 Ite
 
         const FVector NewLocation = UpdatedComponent->GetComponentLocation();
         const FVector NewDeltaLocation = LedgeClimbTargetLocation - NewLocation;
-        if (NewDeltaLocation.SizeSquared2D() < 100.f)
+        bool bStuck = (OldLocation - NewLocation).SizeSquared() <= UE_SMALL_NUMBER;
+        if (bStuck)
         {
-            Velocity = FVector::ZeroVector;
-            SetMovementMode(MOVE_Falling);
-            StartFalling(Iterations, remainingTime, timeTick, Adjusted, OldLocation);
+            UE_LOG(LogTemp, Warning, TEXT("Character is stuck while ledge climbing"));
+        }
+        if (NewDeltaLocation.SizeSquared2D() < 25.f || bStuck)
+        {
+            StopLedgeClimb();
+
+            FFindFloorResult FloorResult;
+            FindFloor(NewLocation, FloorResult, false);
+            if (FloorResult.IsWalkableFloor())
+            {
+                ProcessLanded(Hit, remainingTime, Iterations);
+            }
+            else
+            {
+                StartFalling(Iterations, remainingTime, timeTick, Adjusted, OldLocation);
+            }
+            return;
         }
     }
 }
@@ -781,8 +806,7 @@ void UNLCharacterMovementComponent::GetCapsuleScaledSize(float& OutHalfHeight, f
     OutRadius = 0.f;
     if (ACharacter* DefaultCharacter = GetCharacterOwner()->GetClass()->GetDefaultObject<ACharacter>())
     {
-        OutHalfHeight = DefaultCharacter->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
-        OutRadius = DefaultCharacter->GetCapsuleComponent()->GetScaledCapsuleRadius();
+        DefaultCharacter->GetCapsuleComponent()->GetScaledCapsuleSize(OutRadius, OutHalfHeight);
     }
 }
 
