@@ -74,6 +74,7 @@ void ANLPlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
     DOREPLIFETIME_CONDITION(ANLPlayerCharacter, bIsCapsuleShrinked, COND_SimulatedOnly);
     DOREPLIFETIME_CONDITION_NOTIFY(ANLPlayerCharacter, LookPitch, COND_SimulatedOnly, REPNOTIFY_OnChanged);
     DOREPLIFETIME_CONDITION_NOTIFY(ANLPlayerCharacter, bIsSprinting, COND_SimulatedOnly, REPNOTIFY_OnChanged);
+    DOREPLIFETIME_CONDITION_NOTIFY(ANLPlayerCharacter, LedgeClimbData, COND_SimulatedOnly, REPNOTIFY_OnChanged);
 }
 
 void ANLPlayerCharacter::PostInitializeComponents()
@@ -486,6 +487,44 @@ void ANLPlayerCharacter::OnEndSlide()
     GetWorldTimerManager().SetTimer(SlideTiltTimer, SlidingTiltInterpTime, false);
 
     SetTargetFOVByTag(FOV_Default, 5.f);
+}
+
+void ANLPlayerCharacter::OnRep_LedgeClimbData()
+{
+    if (NLCharacterMovementComponent)
+    {
+        if (LedgeClimbData.bIsLedgeClimbing)
+        {
+            NLCharacterMovementComponent->StartLedgeClimb(LedgeClimbData.TargetLocation, true);
+        }
+        else
+        {
+            NLCharacterMovementComponent->StopLedgeClimb(true);
+        }
+        NLCharacterMovementComponent->bNetworkUpdateReceived = true;
+    }
+}
+
+void ANLPlayerCharacter::OnStartLedgeClimb(FVector TargetLocation)
+{
+    /**
+    * Note:
+    * 높은 climb면 무기를 down 하면서 재장전 중일 경우 재장전 취소
+    * ads 상태도 확인해야할듯
+    * 이 함수는 클라이언트와 서버 두곳에서 작동되는 코드
+    * Ability_Block_Weapon 태그는 재장전을 취소시켜주지는 않으므로 직접 취소해야할듯
+    */
+    /*
+    FGameplayTagContainer CancelTags;
+    CancelTags.AddTag(Ability_Weapon_Primary);
+    CancelTags.AddTag(Ability_Weapon_Secondary);
+    CancelTags.AddTag(Ability_Weapon_Reload);
+    GetAbilitySystemComponent()->CancelAbilities(&CancelTags);
+    */
+}
+
+void ANLPlayerCharacter::OnEndLedgeClimb()
+{
 }
 
 void ANLPlayerCharacter::OnViewportResized(FViewport* InViewport, uint32 arg)

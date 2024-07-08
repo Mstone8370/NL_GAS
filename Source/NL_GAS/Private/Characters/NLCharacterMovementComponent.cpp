@@ -216,20 +216,20 @@ void UNLCharacterMovementComponent::UpdateCharacterStateBeforeMovement(float Del
                 {
                     if (GetLedgeClimbTargetLocation(BlockingLedgeHitResult, StandUpHitResult))
                     {
-                        // Start Ledge Climbing
-                        SetMovementMode(MOVE_Custom, NLMOVE_LedgeClimbing);
+                        StartLedgeClimb(LedgeClimbTargetLocation, false);
                     }
                 }
             }
         }
         else if (IsLedgeClimbing())
         {
+            // Check backward Input
             const FVector AccelDir = Acceleration.GetSafeNormal2D();
             const FVector Forward = UpdatedComponent->GetForwardVector();
             const float Dot = AccelDir.Dot(Forward);
             if (Dot <= -0.7f)
             {
-                StopLedgeClimb();
+                StopLedgeClimb(false);
             }
         }
     }
@@ -521,10 +521,45 @@ bool UNLCharacterMovementComponent::IsLedgeClimbing() const
     return MovementMode == MOVE_Custom && CustomMovementMode == ENLMovementMode::NLMOVE_LedgeClimbing;
 }
 
-void UNLCharacterMovementComponent::StopLedgeClimb()
+void UNLCharacterMovementComponent::StartLedgeClimb(FVector TargetLocation, bool bClientSimulation)
 {
-    Velocity = FVector::ZeroVector;
+    if (!HasValidData())
+    {
+        return;
+    }
+
+    LedgeClimbTargetLocation = TargetLocation;
+    SetMovementMode(MOVE_Custom, NLMOVE_LedgeClimbing);
+
+    if (ANLPlayerCharacter* NLPlayerCharacter = Cast<ANLPlayerCharacter>(GetCharacterOwner()))
+    {
+        if (!bClientSimulation)
+        {
+            NLPlayerCharacter->LedgeClimbData.bIsLedgeClimbing = true;
+            NLPlayerCharacter->LedgeClimbData.TargetLocation = LedgeClimbTargetLocation;
+        }
+        NLPlayerCharacter->OnStartLedgeClimb(LedgeClimbTargetLocation);
+    }
+}
+
+void UNLCharacterMovementComponent::StopLedgeClimb(bool bClientSimulation)
+{
+    if (!HasValidData())
+    {
+        return;
+    }
+
     SetMovementMode(MOVE_Falling);
+
+    if (ANLPlayerCharacter* NLPlayerCharacter = Cast<ANLPlayerCharacter>(GetCharacterOwner()))
+    {
+        if (!bClientSimulation)
+        {
+            NLPlayerCharacter->LedgeClimbData.bIsLedgeClimbing = false;
+            NLPlayerCharacter->LedgeClimbData.TargetLocation = FVector::ZeroVector;
+        }
+        NLPlayerCharacter->OnEndLedgeClimb();
+    }
 }
 
 void UNLCharacterMovementComponent::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode)
@@ -783,7 +818,8 @@ void UNLCharacterMovementComponent::PhysLedgeClimbing(float deltaTime, int32 Ite
         }
         if (NewDeltaLocation.SizeSquared2D() < 25.f || bStuck)
         {
-            StopLedgeClimb();
+            Velocity = FVector::ZeroVector;
+            StopLedgeClimb(false);
 
             FFindFloorResult FloorResult;
             FindFloor(NewLocation, FloorResult, false);

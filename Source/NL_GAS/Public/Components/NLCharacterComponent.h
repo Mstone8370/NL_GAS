@@ -146,4 +146,10 @@ public:
 	float GetCurrentWeaponSpreadValue(bool bADS, bool bFalling, bool bCrouched, float CharacterSpeedSquared, int32 RecoilOffset) const;
 
 	const FGameplayTag GetCurrentWeaponADSFOVTag() const;
+
+	UFUNCTION(BlueprintCallable)
+	void StartDownWeapon();
+
+	UFUNCTION(BlueprintCallable)
+	void StopDownWeapon();
 };

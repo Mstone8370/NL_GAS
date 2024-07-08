@@ -18,6 +18,51 @@ class UMaterialInstanceDynamic;
 class UNLViewSkeletalMeshComponent;
 class UNLAbilitySystemComponent;
 
+USTRUCT()
+struct FLedgeClimbData
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	bool bIsLedgeClimbing = false;
+
+	UPROPERTY()
+	FVector TargetLocation = FVector::ZeroVector;
+
+	virtual bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess)
+	{
+		uint8 Flags = 0;
+
+		if (Ar.IsSaving())
+		{
+			if (bIsLedgeClimbing)
+			{
+				Flags |= 1 << 0;
+			}
+		}
+
+		Ar.SerializeBits(&Flags, 2);
+
+		if (Flags & (1 << 0))
+		{
+			bIsLedgeClimbing = true;
+			Ar << TargetLocation;
+		}
+		
+		bOutSuccess = true;
+		return true;
+	}
+};
+
+template<>
+struct TStructOpsTypeTraits< FLedgeClimbData > : public TStructOpsTypeTraitsBase2< FLedgeClimbData >
+{
+	enum
+	{
+		WithNetSerializer = true
+	};
+};
+
 UCLASS()
 class NL_GAS_API ANLPlayerCharacter : public ANLCharacterBase, public IPlayerInterface
 {
@@ -106,6 +151,21 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TObjectPtr<UDataTable> FOV_Data;
+
+	UPROPERTY(ReplicatedUsing = OnRep_LedgeClimbData)
+	FLedgeClimbData LedgeClimbData;
+
+	UFUNCTION()
+	void OnRep_LedgeClimbData();
+
+	virtual void OnStartLedgeClimb(FVector TargetLocation);
+	virtual void OnEndLedgeClimb();
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	FORCEINLINE bool IsLedgeClimbing() const { return LedgeClimbData.bIsLedgeClimbing; }
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	FORCEINLINE FVector GetLedgeClimbTargetLocation() const { return LedgeClimbData.TargetLocation; }
 
 protected:
 	TObjectPtr<UNLCharacterMovementComponent> NLCharacterMovementComponent;

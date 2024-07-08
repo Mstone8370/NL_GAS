@@ -449,10 +449,16 @@ void UNLCharacterComponent::TrySwapWeaponSlot(int32 NewWeaponSlot)
     GetOwningPlayer()->StopArmsAnimMontage();
     GetOwningPlayer()->StopWeaponAnimMontage();
     
-    // 무기 스왑은 현재 무기가 drawn 되기 전에 시작될 수 있음.
-    // 그런 경우에는 draw 타이머가 설정되어있으므로 holster중인 무기가 drawn 되어서 사용 가능하게 됨.
-    // 따라서 draw 타이머를 clear함.
-    GetWorld()->GetTimerManager().ClearTimer(DrawTimerHandle);
+    // 현재 무기를 draw중인 경우인지 확인
+    if (GetWorld()->GetTimerManager().IsTimerActive(DrawTimerHandle))
+    {
+        /**
+        * 무기 스왑은 현재 무기가 drawn 되기 전에 시작될 수 있음.
+        * 그런 경우에는 draw 타이머가 설정되어있으므로 holster중인 무기가 drawn 되어서 사용 가능하게 됨.
+        * 따라서 draw 타이머를 clear함.
+        */
+        GetWorld()->GetTimerManager().ClearTimer(DrawTimerHandle);
+    }
 
     const FGameplayTag& CurrentWeaponTag = GetCurrentWeaponTag();
     FTimerDelegate TimerDelegate;
@@ -636,4 +642,20 @@ const FGameplayTag UNLCharacterComponent::GetCurrentWeaponADSFOVTag() const
         return Weapon->GetADSFOVTag();
     }
     return FGameplayTag();
+}
+
+void UNLCharacterComponent::StartDownWeapon()
+{
+    if (GetASC())
+    {
+        GetASC()->AddLooseGameplayTag(Ability_Block_Weapon);
+    }
+}
+
+void UNLCharacterComponent::StopDownWeapon()
+{
+    if (GetASC())
+    {
+        GetASC()->RemoveLooseGameplayTag(Ability_Block_Weapon);
+    }
 }

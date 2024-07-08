@@ -108,7 +108,8 @@ public:
 
 	bool IsLedgeClimbing() const;
 
-	void StopLedgeClimb();
+	void StartLedgeClimb(FVector TargetLocation, bool bClientSimulation);
+	void StopLedgeClimb(bool bClientSimulation);
 
 protected:
 	// DefaultValues
