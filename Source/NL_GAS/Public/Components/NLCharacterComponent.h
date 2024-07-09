@@ -148,8 +148,10 @@ public:
 	const FGameplayTag GetCurrentWeaponADSFOVTag() const;
 
 	UFUNCTION(BlueprintCallable)
-	void StartDownWeapon();
+	void LowerWeapon();
 
 	UFUNCTION(BlueprintCallable)
-	void StopDownWeapon();
+	void RaiseWeapon();
+
+	void CheckCurrentWeaponReloadState();
 };

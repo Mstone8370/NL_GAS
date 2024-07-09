@@ -61,6 +61,8 @@ UE_DECLARE_GAMEPLAY_TAG_EXTERN(Montage_Weapon_LastFire);
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(Montage_Weapon_Secondary);
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(Montage_Weapon_ReloadLong);
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(Montage_Weapon_ReloadShort);
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(Montage_Weapon_Lower);
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(Montage_Weapon_Raise);
 
 // Event Tag
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Reload_MagOut);

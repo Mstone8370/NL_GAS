@@ -29,29 +29,7 @@ struct FLedgeClimbData
 	UPROPERTY()
 	FVector TargetLocation = FVector::ZeroVector;
 
-	virtual bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess)
-	{
-		uint8 Flags = 0;
-
-		if (Ar.IsSaving())
-		{
-			if (bIsLedgeClimbing)
-			{
-				Flags |= 1 << 0;
-			}
-		}
-
-		Ar.SerializeBits(&Flags, 2);
-
-		if (Flags & (1 << 0))
-		{
-			bIsLedgeClimbing = true;
-			Ar << TargetLocation;
-		}
-		
-		bOutSuccess = true;
-		return true;
-	}
+	virtual bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess);
 };
 
 template<>
@@ -152,6 +130,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TObjectPtr<UDataTable> FOV_Data;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float LedgeClimbHeightThreshold = 130.f;
+
 	UPROPERTY(ReplicatedUsing = OnRep_LedgeClimbData)
 	FLedgeClimbData LedgeClimbData;
 
@@ -246,6 +227,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UCurveVector> LoopingShakeCurve_Idle;
 
+	bool bIsWeaponLowered = false;
+
+	FTimerHandle WeaponRaiseTimer;
+
 public:
 	float GetCrouchedHalfHeightDelta();
 
@@ -297,4 +282,19 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE bool IsSliding() const { return bIsSliding; }
+
+	UFUNCTION(BlueprintCallable)
+	void LowerWeapon();
+
+	UFUNCTION(BlueprintCallable)
+	void RaiseWeapon();
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = "0.01"))
+	float WeaponLowerRaiseTime = 0.2f;
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	bool IsWeaponLowered() const { return bIsWeaponLowered; }
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	bool IsWeaponLoweredIncludeTransistion() const;
 };

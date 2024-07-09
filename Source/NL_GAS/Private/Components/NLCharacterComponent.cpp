@@ -644,18 +644,40 @@ const FGameplayTag UNLCharacterComponent::GetCurrentWeaponADSFOVTag() const
     return FGameplayTag();
 }
 
-void UNLCharacterComponent::StartDownWeapon()
+void UNLCharacterComponent::LowerWeapon()
 {
     if (GetASC())
     {
+        if (GetOwnerRole() == ROLE_Authority)
+        {
+            // Cancel abilities
+            FGameplayTagContainer CancelTags;
+            CancelTags.AddTag(Ability_Weapon_Primary);
+            CancelTags.AddTag(Ability_Weapon_Secondary);
+            CancelTags.AddTag(Ability_Weapon_Reload);
+            GetNLASC()->CancelAbilities(&CancelTags);
+        }
+
         GetASC()->AddLooseGameplayTag(Ability_Block_Weapon);
     }
+
+    GetOwningPlayer()->StopArmsAnimMontage();
+    GetOwningPlayer()->StopWeaponAnimMontage();
 }
 
-void UNLCharacterComponent::StopDownWeapon()
+void UNLCharacterComponent::RaiseWeapon()
 {
     if (GetASC())
     {
         GetASC()->RemoveLooseGameplayTag(Ability_Block_Weapon);
+    }
+    CheckCurrentWeaponReloadState();
+}
+
+void UNLCharacterComponent::CheckCurrentWeaponReloadState()
+{
+    if (GetOwnerRole() == ENetRole::ROLE_Authority && GetCurrentWeaponActor())
+    {
+        GetCurrentWeaponActor()->CheckReloadState();
     }
 }

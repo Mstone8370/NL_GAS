@@ -55,6 +55,8 @@ UE_DEFINE_GAMEPLAY_TAG(Montage_Weapon_LastFire, "Montage.Weapon.LastFire");
 UE_DEFINE_GAMEPLAY_TAG(Montage_Weapon_Secondary, "Montage.Weapon.Secondary");
 UE_DEFINE_GAMEPLAY_TAG(Montage_Weapon_ReloadLong, "Montage.Weapon.ReloadLong");
 UE_DEFINE_GAMEPLAY_TAG(Montage_Weapon_ReloadShort, "Montage.Weapon.ReloadShort");
+UE_DEFINE_GAMEPLAY_TAG(Montage_Weapon_Lower, "Montage.Weapon.Lower");
+UE_DEFINE_GAMEPLAY_TAG(Montage_Weapon_Raise, "Montage.Weapon.Raise");
 
 // Event Tag
 UE_DEFINE_GAMEPLAY_TAG(Event_Reload_MagOut, "Event.Reload.MagOut");

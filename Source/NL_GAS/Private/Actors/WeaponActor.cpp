@@ -159,13 +159,7 @@ void AWeaponActor::Drawn()
 {
 	bIsEverDrawn = true;
 
-	if (HasAuthority() && IsReloading())
-	{
-		if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetOwner()))
-		{
-			ASC->TryActivateAbility(ReloadAbilitySpecHandle);
-		}
-	}
+	CheckReloadState();
 }
 
 void AWeaponActor::SetBulletNum_Internal(int32 NewBulletNum)
@@ -215,4 +209,15 @@ void AWeaponActor::ReloadStateChanged(const FGameplayTag& StateTag)
 const FWeaponSpreadInfo* AWeaponActor::GetSpreadInfo() const
 {
 	return &SpreadInfo;
+}
+
+void AWeaponActor::CheckReloadState()
+{
+	if (HasAuthority() && IsReloading())
+	{
+		if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetOwner()))
+		{
+			ASC->TryActivateAbility(ReloadAbilitySpecHandle);
+		}
+	}
 }

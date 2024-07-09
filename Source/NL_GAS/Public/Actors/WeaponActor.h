@@ -139,4 +139,6 @@ public:
 	FORCEINLINE EReloadState GetReloadState() const { return ReloadState; }
 
 	const FWeaponSpreadInfo* GetSpreadInfo() const;
+
+	void CheckReloadState();
 };

@@ -265,7 +265,7 @@ bool ANLPlayerCharacter::CommitWeaponCost_Implementation(bool& bIsLast)
 
 bool ANLPlayerCharacter::CanAttack_Implementation()
 {
-    return NLCharacterComponent->CanAttack();
+    return !bIsWeaponLowered && NLCharacterComponent->CanAttack();
 }
 
 void ANLPlayerCharacter::AddAimPunch_Implementation(const FTaggedAimPunch& AimPunchData, FVector HitDirection, bool bIsCriticalHit)
@@ -507,24 +507,23 @@ void ANLPlayerCharacter::OnRep_LedgeClimbData()
 
 void ANLPlayerCharacter::OnStartLedgeClimb(FVector TargetLocation)
 {
-    /**
-    * Note:
-    * 높은 climb면 무기를 down 하면서 재장전 중일 경우 재장전 취소
-    * ads 상태도 확인해야할듯
-    * 이 함수는 클라이언트와 서버 두곳에서 작동되는 코드
-    * Ability_Block_Weapon 태그는 재장전을 취소시켜주지는 않으므로 직접 취소해야할듯
-    */
-    /*
-    FGameplayTagContainer CancelTags;
-    CancelTags.AddTag(Ability_Weapon_Primary);
-    CancelTags.AddTag(Ability_Weapon_Secondary);
-    CancelTags.AddTag(Ability_Weapon_Reload);
-    GetAbilitySystemComponent()->CancelAbilities(&CancelTags);
-    */
+    // On Server and Client
+
+    const float HeightDiff = FMath::Abs(TargetLocation.Z - GetActorLocation().Z);
+    if (HeightDiff >= LedgeClimbHeightThreshold)
+    {
+        LowerWeapon();
+    }
 }
 
 void ANLPlayerCharacter::OnEndLedgeClimb()
 {
+    // On Server and Client
+
+    if (bIsWeaponLowered)
+    {
+        RaiseWeapon();
+    }
 }
 
 void ANLPlayerCharacter::OnViewportResized(FViewport* InViewport, uint32 arg)
@@ -912,4 +911,70 @@ UAnimMontage* ANLPlayerCharacter::GetCurrentWeaponMontage() const
     }
 
     return nullptr;
+}
+
+void ANLPlayerCharacter::LowerWeapon()
+{
+    if (bIsWeaponLowered)
+    {
+        return;
+    }
+
+    bIsWeaponLowered = true;
+
+    if (NLCharacterComponent)
+    {
+        NLCharacterComponent->LowerWeapon();
+    }
+}
+
+void ANLPlayerCharacter::RaiseWeapon()
+{
+    if (!bIsWeaponLowered)
+    {
+        return;
+    }
+
+    bIsWeaponLowered = false;
+
+    FTimerDelegate Dele;
+    Dele.BindLambda(
+        [this]()
+        {
+            if (NLCharacterComponent)
+            {
+                NLCharacterComponent->RaiseWeapon();
+            }
+        }
+    );
+    GetWorldTimerManager().SetTimer(WeaponRaiseTimer, Dele, WeaponLowerRaiseTime, false);
+}
+
+bool ANLPlayerCharacter::IsWeaponLoweredIncludeTransistion() const
+{
+    return bIsWeaponLowered || GetWorldTimerManager().IsTimerActive(WeaponRaiseTimer);
+}
+
+bool FLedgeClimbData::NetSerialize(FArchive& Ar, UPackageMap* Map, bool& bOutSuccess)
+{
+    uint8 Flags = 0;
+
+    if (Ar.IsSaving())
+    {
+        if (bIsLedgeClimbing)
+        {
+            Flags |= 1 << 0;
+        }
+    }
+
+    Ar.SerializeBits(&Flags, 2);
+
+    if (Flags & (1 << 0))
+    {
+        bIsLedgeClimbing = true;
+        Ar << TargetLocation;
+    }
+
+    bOutSuccess = true;
+    return true;
 }
