@@ -23,6 +23,9 @@ class NL_GAS_API ANLHUD : public AHUD
 public:
 	void Initialize(APlayerController* PC, APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS, UNLCharacterComponent* NLC);
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnNativeInitialized();
+
 protected:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UNLUserWidget> OverlayWidgetClass;
@@ -36,6 +39,9 @@ protected:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	void GetPlayerAimPoint(FVector& OutLocation, FRotator& OutRotation) const;
+
+private:
+	bool bInitialized = false;
 
 public:
 	UOverlayWidgetController* GetOverlayWidgetController(APlayerController* PC, APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS, UNLCharacterComponent* NLC);

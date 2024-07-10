@@ -148,6 +148,11 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE FVector GetLedgeClimbTargetLocation() const { return LedgeClimbData.TargetLocation; }
 
+private:
+	bool bHasValidController = false;
+	bool bHasValidPlayerState = false;
+	bool bAbilityActorInfoInitialized = false;
+
 protected:
 	TObjectPtr<UNLCharacterMovementComponent> NLCharacterMovementComponent;
 

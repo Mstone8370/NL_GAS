@@ -10,6 +10,11 @@
 
 void ANLHUD::Initialize(APlayerController* PC, APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS, UNLCharacterComponent* NLC)
 {
+    if (bInitialized)
+    {
+        return;
+    }
+
     check(OverlayWidgetClass);
     check(OverlayWidgetControllerClass);
 
@@ -20,6 +25,10 @@ void ANLHUD::Initialize(APlayerController* PC, APlayerState* PS, UAbilitySystemC
     WidgetController->BroadcastInitialValues();
 
     OverlayWidget->AddToViewport();
+
+    OnNativeInitialized();
+
+    bInitialized = true;
 }
 
 void ANLHUD::GetPlayerAimPoint(FVector& OutLocation, FRotator& OutRotation) const

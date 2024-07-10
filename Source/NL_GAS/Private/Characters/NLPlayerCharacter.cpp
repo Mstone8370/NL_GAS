@@ -146,14 +146,6 @@ void ANLPlayerCharacter::InitAbilityActorInfo()
 
     AbilitySystemComponent->RegisterGameplayTagEvent(Ability_Weapon_Secondary, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ANLPlayerCharacter::OnGameplayTagCountChanged);
     AbilitySystemComponent->RegisterGameplayTagEvent(Ability_Block_Sprint, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ANLPlayerCharacter::OnGameplayTagCountChanged);
-
-    if (ANLPlayerController* PC = Cast<ANLPlayerController>(GetController()))
-    {
-        if (ANLHUD* HUD = Cast<ANLHUD>(PC->GetHUD()))
-        {
-            HUD->Initialize(PC, PS, AbilitySystemComponent, AttributeSet, NLCharacterComponent);
-        }
-    }
 }
 
 void ANLPlayerCharacter::Tick(float DeltaSeconds)
@@ -182,6 +174,7 @@ void ANLPlayerCharacter::OnRep_PlayerState()
     Super::OnRep_PlayerState();
 
     // On Client
+
     InitAbilityActorInfo();
 
     NLCharacterComponent->ValidateStartupWeapons();
@@ -192,7 +185,17 @@ void ANLPlayerCharacter::OnRep_Controller()
     Super::OnRep_Controller();
 
     // On Client
-    NLPlayerController = Cast<ANLPlayerController>(GetController());
+
+    if (ANLPlayerController* PC = GetNLPC())
+    {
+        if (ANLHUD* HUD = Cast<ANLHUD>(PC->GetHUD()))
+        {
+            if (GetPlayerState())
+            {
+                HUD->Initialize(PC, GetPlayerState(), AbilitySystemComponent, AttributeSet, NLCharacterComponent);
+            }
+        }
+    }
 }
 
 bool ANLPlayerCharacter::CanSwapWeaponSlot_Implementation(int32 NewSlot)
