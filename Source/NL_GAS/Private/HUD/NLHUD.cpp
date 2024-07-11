@@ -10,14 +10,14 @@
 
 void ANLHUD::Initialize(APlayerController* PC, APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS, UNLCharacterComponent* NLC)
 {
-    if (bInitialized)
-    {
-        return;
-    }
-
     check(OverlayWidgetClass);
     check(OverlayWidgetControllerClass);
 
+    if (bNativeInitialized)
+    {
+        return;
+    }
+    
     OverlayWidget = CreateWidget<UNLUserWidget>(GetWorld(), OverlayWidgetClass);
     UOverlayWidgetController* WidgetController = GetOverlayWidgetController(PC, PS, ASC, AS, NLC);
 
@@ -28,7 +28,18 @@ void ANLHUD::Initialize(APlayerController* PC, APlayerState* PS, UAbilitySystemC
 
     OnNativeInitialized();
 
-    bInitialized = true;
+    bNativeInitialized = true;
+}
+
+void ANLHUD::BeginPlay()
+{
+    Super::BeginPlay();
+
+    if (bNativeInitialized)
+    {
+        // BeginPlay 이전에 Initialize 함수가 호출될수도 있음.
+        OnNativeInitialized();
+    }
 }
 
 void ANLHUD::GetPlayerAimPoint(FVector& OutLocation, FRotator& OutRotation) const

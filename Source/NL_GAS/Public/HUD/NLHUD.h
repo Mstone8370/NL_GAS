@@ -27,6 +27,8 @@ public:
 	void OnNativeInitialized();
 
 protected:
+	virtual void BeginPlay() override;
+
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UNLUserWidget> OverlayWidgetClass;
 	UPROPERTY(EditDefaultsOnly)
@@ -40,8 +42,8 @@ protected:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	void GetPlayerAimPoint(FVector& OutLocation, FRotator& OutRotation) const;
 
-private:
-	bool bInitialized = false;
+	UPROPERTY(BlueprintReadOnly)
+	bool bNativeInitialized = false;
 
 public:
 	UOverlayWidgetController* GetOverlayWidgetController(APlayerController* PC, APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS, UNLCharacterComponent* NLC);

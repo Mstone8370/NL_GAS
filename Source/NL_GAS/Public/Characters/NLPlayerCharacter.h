@@ -67,6 +67,15 @@ public:
 	virtual void OnRep_PlayerState() override;
 	virtual void OnRep_Controller() override;
 
+	void TryInitializeHUD();
+
+	void TryRequestStartupWeapons();
+
+	bool bRequestedStartupWeapons = false;
+
+	UFUNCTION(Server, Reliable)
+	void Server_RequestStartupWeapons();
+
 	//~Begin PlayerInterface
 	virtual bool CanSwapWeaponSlot_Implementation(int32 NewSlot) override;
 	virtual void TrySwapWeaponSlot_Implementation(int32 NewSlot) override;
@@ -147,11 +156,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE FVector GetLedgeClimbTargetLocation() const { return LedgeClimbData.TargetLocation; }
-
-private:
-	bool bHasValidController = false;
-	bool bHasValidPlayerState = false;
-	bool bAbilityActorInfoInitialized = false;
 
 protected:
 	TObjectPtr<UNLCharacterMovementComponent> NLCharacterMovementComponent;

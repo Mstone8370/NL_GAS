@@ -163,10 +163,15 @@ void ANLPlayerCharacter::PossessedBy(AController* NewController)
     // On Server
     InitAbilityActorInfo();
     
+    TryInitializeHUD();
+    
     AddStartupAbilities();
-
-    NLCharacterComponent->AddStartupWeapons();
-    NLCharacterComponent->ValidateStartupWeapons();
+    
+    if (GetNetMode() == NM_ListenServer || GetNetMode() == NM_Standalone)
+    {
+        NLCharacterComponent->AddStartupWeapons();
+        NLCharacterComponent->ValidateStartupWeapons();
+    }
 }
 
 void ANLPlayerCharacter::OnRep_PlayerState()
@@ -178,6 +183,9 @@ void ANLPlayerCharacter::OnRep_PlayerState()
     InitAbilityActorInfo();
 
     NLCharacterComponent->ValidateStartupWeapons();
+
+    TryInitializeHUD();
+    TryRequestStartupWeapons();
 }
 
 void ANLPlayerCharacter::OnRep_Controller()
@@ -186,16 +194,40 @@ void ANLPlayerCharacter::OnRep_Controller()
 
     // On Client
 
-    if (ANLPlayerController* PC = GetNLPC())
+    TryInitializeHUD();
+    TryRequestStartupWeapons();
+}
+
+void ANLPlayerCharacter::TryInitializeHUD()
+{
+    if (GetNLPC() && GetPlayerState())
     {
-        if (ANLHUD* HUD = Cast<ANLHUD>(PC->GetHUD()))
+        if (ANLHUD* HUD = Cast<ANLHUD>(GetNLPC()->GetHUD()))
         {
-            if (GetPlayerState())
-            {
-                HUD->Initialize(PC, GetPlayerState(), AbilitySystemComponent, AttributeSet, NLCharacterComponent);
-            }
+            HUD->Initialize(
+                GetNLPC(),
+                GetPlayerState(),
+                AbilitySystemComponent,
+                AttributeSet,
+                NLCharacterComponent
+            );
         }
     }
+}
+
+void ANLPlayerCharacter::TryRequestStartupWeapons()
+{
+    if (GetNLPC() && GetPlayerState() && !bRequestedStartupWeapons)
+    {
+        Server_RequestStartupWeapons();
+        bRequestedStartupWeapons = true;
+    }
+}
+
+void ANLPlayerCharacter::Server_RequestStartupWeapons_Implementation()
+{
+    NLCharacterComponent->AddStartupWeapons();
+    NLCharacterComponent->ValidateStartupWeapons();
 }
 
 bool ANLPlayerCharacter::CanSwapWeaponSlot_Implementation(int32 NewSlot)
