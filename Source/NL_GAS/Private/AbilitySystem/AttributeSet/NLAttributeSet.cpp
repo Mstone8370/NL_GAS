@@ -14,6 +14,7 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "NLGameplayTags.h"
 #include "Components/HitboxComponent.h"
+#include "Interface/CombatInterface.h"
 
 void UNLAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -108,6 +109,15 @@ void UNLAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
         }
 
         SetHealth(FMath::Max(GetHealth() - LocalIncomingDamage, 0.f));
+
+        if (GetHealth() <= 0.f)
+        {
+            if (Params.TargetAvatarActor->Implements<UCombatInterface>())
+            {
+                ICombatInterface* CI = Cast<ICombatInterface>(Params.TargetAvatarActor);
+                CI->OnDead();
+            }
+        }
 
         if (Params.SourceAvatarActor != Params.TargetAvatarActor && SourceNLPC)
         {

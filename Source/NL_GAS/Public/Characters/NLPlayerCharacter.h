@@ -91,6 +91,7 @@ public:
 	//~Begin CombatInterface
 	virtual bool CanAttack_Implementation() override;
 	virtual void AddAimPunch_Implementation(const FTaggedAimPunch& AimPunchData, FVector HitDirection, bool bIsCriticalHit) override;
+	virtual void OnDead() override;
 	//~End CombatInterface
 
 	//~Begin Crouch functions override
@@ -239,6 +240,8 @@ protected:
 	bool bIsWeaponLowered = false;
 
 	FTimerHandle WeaponRaiseTimer;
+
+	virtual void OnDead_Internal(bool bSimulated = false) override;
 
 public:
 	float GetCrouchedHalfHeightDelta();

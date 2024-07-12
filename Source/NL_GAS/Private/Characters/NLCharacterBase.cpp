@@ -7,6 +7,7 @@
 #include "Components/NLCharacterComponent.h"
 #include "Components/DamageTextWidgetComponent.h"
 #include "NLFunctionLibrary.h"
+#include "Net/UnrealNetwork.h"
 
 ANLCharacterBase::ANLCharacterBase(const FObjectInitializer& ObjectInitializer)
     : Super(ObjectInitializer)
@@ -14,6 +15,13 @@ ANLCharacterBase::ANLCharacterBase(const FObjectInitializer& ObjectInitializer)
     PrimaryActorTick.bCanEverTick = false;
 
     NLCharacterComponent = CreateDefaultSubobject<UNLCharacterComponent>(FName("NLCharacterComponent"));
+}
+
+void ANLCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    DOREPLIFETIME_CONDITION_NOTIFY(ANLCharacterBase, bIsDead, COND_None, REPNOTIFY_OnChanged);
 }
 
 void ANLCharacterBase::BeginPlay()
@@ -50,6 +58,11 @@ void ANLCharacterBase::ShowDamageText_Implementation(float Value, bool bIsCritic
     LastDamageText->UpdateValue(Value, bIsCriticalHit);
 }
 
+void ANLCharacterBase::OnDead()
+{
+    OnDead_Internal();
+}
+
 void ANLCharacterBase::InitAbilityActorInfo() {}
 
 void ANLCharacterBase::AddStartupAbilities()
@@ -79,4 +92,23 @@ void ANLCharacterBase::InitDefaultAttribute()
 
         AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
     }
+}
+
+void ANLCharacterBase::OnRep_IsDead()
+{
+    if (GetLocalRole() == ROLE_SimulatedProxy)
+    {
+        OnDead_Internal(true);
+    }
+    else
+    {
+        OnDead_Internal(false);
+    }
+}
+
+void ANLCharacterBase::OnDead_Internal(bool bSimulated)
+{
+    bIsDead = true;
+
+    UE_LOG(LogTemp, Warning, TEXT("OnDead. Simulated: %d"), bSimulated);
 }

@@ -24,6 +24,8 @@ class NL_GAS_API ANLCharacterBase : public ACharacter, public IAbilitySystemInte
 public:
 	ANLCharacterBase(const FObjectInitializer& ObjectInitializer);
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -35,6 +37,7 @@ public:
 	//~Begin CombatInterface
 	virtual void OnWeaponAdded(AWeaponActor* Weapon) override;
 	virtual void ShowDamageText_Implementation(float Value, bool bIsCriticalHit) override;
+	virtual void OnDead() override;
 	//~End CombatInterface
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "DamageText")
@@ -67,8 +70,18 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TSubclassOf<UGameplayEffect> DefaultAttribute;
 
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_IsDead)
+	bool bIsDead = false;
+
+	UFUNCTION()
+	void OnRep_IsDead();
+
+	virtual void OnDead_Internal(bool bSimulated = false);
+
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Ability")
 	TMap<FGameplayTag, TSubclassOf<UGameplayAbility>> StartupAbilities;
 
+public:
+	bool IsDead() const { return bIsDead; }
 };

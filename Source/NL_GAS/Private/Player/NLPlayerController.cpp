@@ -71,6 +71,16 @@ void ANLPlayerController::PostProcessInput(const float DeltaTime, const bool bGa
 {
     Super::PostProcessInput(DeltaTime, bGamePaused);
 
+    if (!InputEnabled())
+    {
+        if (GetNLAbilitySystemComponent())
+        {
+            GetNLAbilitySystemComponent()->ClearAbilityInput();
+        }
+        RotationInput = FRotator::ZeroRotator;
+        return;
+    }
+
     if (GetNLAbilitySystemComponent())
     {
         GetNLAbilitySystemComponent()->ProcessAbilityInput(DeltaTime, bGamePaused);
@@ -93,6 +103,11 @@ void ANLPlayerController::PostProcessInput(const float DeltaTime, const bool bGa
 
 void ANLPlayerController::Move(const FInputActionValue& Value)
 {
+    if (!InputEnabled())
+    {
+        return;
+    }
+
     const FVector VectorValue = Value.Get<FVector>();
     MoveInputDirection += VectorValue;
     const FRotator MovementRotation = FRotator(0.f, GetControlRotation().Yaw, 0.f);
@@ -111,21 +126,41 @@ void ANLPlayerController::Look(const FInputActionValue& Value)
 
 void ANLPlayerController::Jump()
 {
+    if (!InputEnabled())
+    {
+        return;
+    }
+
     GetCharacter()->Jump();
 }
 
 void ANLPlayerController::Crouch()
 {
+    if (!InputEnabled())
+    {
+        return;
+    }
+
     GetCharacter()->Crouch();
 }
 
 void ANLPlayerController::UnCrouch()
 {
+    if (!InputEnabled())
+    {
+        return;
+    }
+
     GetCharacter()->UnCrouch();
 }
 
 void ANLPlayerController::CrouchToggle()
 {
+    if (!InputEnabled())
+    {
+        return;
+    }
+
     if (GetCharacter()->bIsCrouched)
     {
         GetCharacter()->UnCrouch();

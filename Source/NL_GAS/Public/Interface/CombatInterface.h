@@ -35,4 +35,6 @@ public:
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void AddAimPunch(const FTaggedAimPunch& AimPunchData, FVector HitDirection, bool bIsCriticalHit);
+
+	virtual void OnDead() = 0; // TODO: »ç¸Á Á¤º¸?
 };
