@@ -319,15 +319,6 @@ void ANLPlayerCharacter::AddAimPunch_Implementation(const FTaggedAimPunch& AimPu
     ControlShakeManager->AddShake(AimPunchData.Duration, AimPunchData.ControlShakeCurve, ShakeMagnitude);
 }
 
-void ANLPlayerCharacter::OnDead()
-{
-    Super::OnDead();
-
-    // CombatInterface를 사용하기 위해서 캐릭터에서 먼저 처리하기로 했음.
-    // 서버와 클라이언트 모두 작업을 처리해야하며, 시뮬레이티드 프록시도 마찬가지.
-    // 플레이어 컨트롤러는 클라이언트에서 입력 막기.
-}
-
 bool ANLPlayerCharacter::CanCrouch() const
 {
     return !bIsCrouched && GetCharacterMovement() && GetCharacterMovement()->CanEverCrouch() && GetRootComponent() && !GetRootComponent()->IsSimulatingPhysics();
@@ -812,9 +803,19 @@ void ANLPlayerCharacter::OnRep_IsSliding()
     }
 }
 
-void ANLPlayerCharacter::OnDead_Internal(bool bSimulated)
+void ANLPlayerCharacter::OnDead_Internal(const FDeathInfo& Info, bool bSimulated)
 {
-    Super::OnDead_Internal(bSimulated);
+    Super::OnDead_Internal(Info, bSimulated);
+
+    if (!Info.bIsDead)
+    {
+        return;
+    }
+
+    if (!bSimulated)
+    {
+        GetNLPC()->DisableInput(nullptr);
+    }
 }
 
 float ANLPlayerCharacter::GetCrouchedHalfHeightDelta()

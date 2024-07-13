@@ -52,11 +52,22 @@ void UNLAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
     ANLPlayerController* SourceNLPC = Cast<ANLPlayerController>(Params.SourceController);
     ANLPlayerController* TargetNLPC = Cast<ANLPlayerController>(Params.TargetController);
 
+    ICombatInterface* SourceCI = Cast<ICombatInterface>(Params.SourceAvatarActor);
+    ICombatInterface* TargetCI = Cast<ICombatInterface>(Params.TargetAvatarActor);
+
     if (Data.EvaluatedData.Attribute == GetIncomingDamageAttribute())
     {
         float LocalIncomingDamage = GetIncomingDamage();
         SetIncomingDamage(0.f);
         LocalIncomingDamage = FMath::Floor(LocalIncomingDamage);
+        if (LocalIncomingDamage <= 0.f)
+        {
+            return;
+        }
+        if (TargetCI && TargetCI->IsDead())
+        {
+            return;
+        }
 
         FGameplayTag DamageType = FGameplayTag();
         if (NLContext->DamageType.Get())
@@ -112,10 +123,13 @@ void UNLAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 
         if (GetHealth() <= 0.f)
         {
-            if (Params.TargetAvatarActor->Implements<UCombatInterface>())
+            FDeathInfo Info;
+            Info.bIsDead = true;
+            Info.SourceActor = Params.SourceAvatarActor;
+
+            if (TargetCI)
             {
-                ICombatInterface* CI = Cast<ICombatInterface>(Params.TargetAvatarActor);
-                CI->OnDead();
+                TargetCI->OnDead(Info);
             }
         }
 

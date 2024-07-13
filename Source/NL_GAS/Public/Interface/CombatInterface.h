@@ -9,6 +9,29 @@
 class AWeaponActor;
 struct FTaggedAimPunch;
 
+USTRUCT(BlueprintType)
+struct FDeathInfo
+{
+	GENERATED_BODY(BlueprintReadOnly)
+
+	UPROPERTY(BlueprintReadOnly)
+	bool bIsDead = false;
+
+	UPROPERTY(BlueprintReadOnly)
+	TWeakObjectPtr<AActor> SourceActor;
+
+	virtual bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess);
+};
+
+template<>
+struct TStructOpsTypeTraits< FDeathInfo > : public TStructOpsTypeTraitsBase2< FDeathInfo >
+{
+	enum
+	{
+		WithNetSerializer = true
+	};
+};
+
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
 class UCombatInterface : public UInterface
@@ -36,5 +59,7 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void AddAimPunch(const FTaggedAimPunch& AimPunchData, FVector HitDirection, bool bIsCriticalHit);
 
-	virtual void OnDead() = 0; // TODO: »ç¸Á Á¤º¸?
+	virtual void OnDead(const FDeathInfo& Info) = 0;
+
+	virtual bool IsDead() const = 0;
 };

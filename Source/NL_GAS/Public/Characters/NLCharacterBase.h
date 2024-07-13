@@ -37,7 +37,8 @@ public:
 	//~Begin CombatInterface
 	virtual void OnWeaponAdded(AWeaponActor* Weapon) override;
 	virtual void ShowDamageText_Implementation(float Value, bool bIsCriticalHit) override;
-	virtual void OnDead() override;
+	virtual void OnDead(const FDeathInfo& Info) override;
+	virtual bool IsDead() const { return DeathInfo.bIsDead; }
 	//~End CombatInterface
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "DamageText")
@@ -50,6 +51,9 @@ public:
 	TObjectPtr<UDamageTextWidgetComponent> LastDamageText;
 
 	FORCEINLINE UAttributeSet* GetAttributeSet() const { return AttributeSet; }
+
+	virtual void EnableRagdoll();
+	virtual void DisableRagdoll();
 
 protected:
 	UPROPERTY()
@@ -70,18 +74,19 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TSubclassOf<UGameplayEffect> DefaultAttribute;
 
-	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_IsDead)
-	bool bIsDead = false;
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_DeathInfo)
+	FDeathInfo DeathInfo;
 
 	UFUNCTION()
-	void OnRep_IsDead();
+	void OnRep_DeathInfo();
 
-	virtual void OnDead_Internal(bool bSimulated = false);
+	virtual void OnDead_Internal(const FDeathInfo& Info, bool bSimulated = false);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnDead_BP(const FDeathInfo& Info, bool bSimulated = false);
 
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Ability")
 	TMap<FGameplayTag, TSubclassOf<UGameplayAbility>> StartupAbilities;
 
-public:
-	bool IsDead() const { return bIsDead; }
 };

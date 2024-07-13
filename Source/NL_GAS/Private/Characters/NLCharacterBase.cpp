@@ -21,7 +21,7 @@ void ANLCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-    DOREPLIFETIME_CONDITION_NOTIFY(ANLCharacterBase, bIsDead, COND_None, REPNOTIFY_OnChanged);
+    DOREPLIFETIME_CONDITION_NOTIFY(ANLCharacterBase, DeathInfo, COND_None, REPNOTIFY_OnChanged);
 }
 
 void ANLCharacterBase::BeginPlay()
@@ -58,9 +58,24 @@ void ANLCharacterBase::ShowDamageText_Implementation(float Value, bool bIsCritic
     LastDamageText->UpdateValue(Value, bIsCriticalHit);
 }
 
-void ANLCharacterBase::OnDead()
+void ANLCharacterBase::OnDead(const FDeathInfo& Info)
 {
-    OnDead_Internal();
+    if (!DeathInfo.bIsDead && Info.bIsDead)
+    {
+        OnDead_Internal(Info);
+    }
+}
+
+void ANLCharacterBase::EnableRagdoll()
+{
+    GetMesh()->SetSimulatePhysics(true);
+    GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+}
+
+void ANLCharacterBase::DisableRagdoll()
+{
+    GetMesh()->SetSimulatePhysics(false);
+    GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void ANLCharacterBase::InitAbilityActorInfo() {}
@@ -94,21 +109,28 @@ void ANLCharacterBase::InitDefaultAttribute()
     }
 }
 
-void ANLCharacterBase::OnRep_IsDead()
+void ANLCharacterBase::OnRep_DeathInfo()
 {
+    if (!DeathInfo.bIsDead)
+    {
+        return;
+    }
+
     if (GetLocalRole() == ROLE_SimulatedProxy)
     {
-        OnDead_Internal(true);
+        OnDead_Internal(DeathInfo, true);
     }
     else
     {
-        OnDead_Internal(false);
+        OnDead_Internal(DeathInfo, false);
     }
 }
 
-void ANLCharacterBase::OnDead_Internal(bool bSimulated)
+void ANLCharacterBase::OnDead_Internal(const FDeathInfo& Info, bool bSimulated)
 {
-    bIsDead = true;
+    DeathInfo = Info;
 
-    UE_LOG(LogTemp, Warning, TEXT("OnDead. Simulated: %d"), bSimulated);
+    EnableRagdoll();
+
+    OnDead_BP(Info, bSimulated);
 }
