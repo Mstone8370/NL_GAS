@@ -31,19 +31,7 @@ void ANLPlayerController::SetupInputComponent()
     CurrentLookSensitivity = LookSensitivity;
 
     // Add IMCs
-    if (ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(Player))
-    {
-        if (UEnhancedInputLocalPlayerSubsystem* InputSystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
-        {
-            for (const TSoftObjectPtr<UInputMappingContext>& IMC : StartupIMC)
-            {
-                if (!IMC.IsNull())
-                {
-                    InputSystem->AddMappingContext(IMC.LoadSynchronous(), 0);
-                }
-            }
-        }
-    }
+    AddIMC(DefaultIMC);
 
     // Bind Actions
     UNLEnhancedInputComponent* NLInputComponent = Cast<UNLEnhancedInputComponent>(InputComponent);
@@ -58,6 +46,7 @@ void ANLPlayerController::SetupInputComponent()
     NLInputComponent->BindActionByTag(IC, Input_Default_CrouchHold, ETriggerEvent::Triggered, this, &ANLPlayerController::Crouch);
     NLInputComponent->BindActionByTag(IC, Input_Default_CrouchHold, ETriggerEvent::Completed, this, &ANLPlayerController::UnCrouch);
     NLInputComponent->BindActionByTag(IC, Input_Default_CrouchToggle, ETriggerEvent::Triggered, this, &ANLPlayerController::CrouchToggle);
+    NLInputComponent->BindActionByTag(IC, Input_DeathCam_Respawn, ETriggerEvent::Triggered, this, &ANLPlayerController::Respawn);
 
     NLInputComponent->BindAbilityActions(
         IC,
@@ -99,6 +88,80 @@ void ANLPlayerController::PostProcessInput(const float DeltaTime, const bool bGa
         }
     }
     MoveInputDirection = FVector::ZeroVector;
+}
+
+void ANLPlayerController::AddIMC(TArray<TSoftObjectPtr<UInputMappingContext>>& IMCs)
+{
+    if (ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(Player))
+    {
+        if (UEnhancedInputLocalPlayerSubsystem* InputSystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
+        {
+            for (const TSoftObjectPtr<UInputMappingContext>& IMC : DefaultIMC)
+            {
+                AddIMC(IMC, InputSystem);
+            }
+        }
+    }
+}
+
+void ANLPlayerController::AddIMC(TSoftObjectPtr<UInputMappingContext> IMC, UEnhancedInputLocalPlayerSubsystem* InputSystem)
+{
+    UInputMappingContext* IMCObject = IMC.LoadSynchronous();
+    if (!IMCObject)
+    {
+        return;
+    }
+
+    if (!InputSystem)
+    {
+        if (ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(Player))
+        {
+            InputSystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
+        }
+    }
+    if (!InputSystem)
+    {
+        return;
+    }
+
+    InputSystem->AddMappingContext(IMCObject, 0);
+}
+
+void ANLPlayerController::RemoveIMC(TArray<TSoftObjectPtr<UInputMappingContext>>& IMCs)
+{
+    if (ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(Player))
+    {
+        if (UEnhancedInputLocalPlayerSubsystem* InputSystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
+        {
+            for (const TSoftObjectPtr<UInputMappingContext>& IMC : DefaultIMC)
+            {
+                RemoveIMC(IMC, InputSystem);
+            }
+        }
+    }
+}
+
+void ANLPlayerController::RemoveIMC(TSoftObjectPtr<UInputMappingContext> IMC, UEnhancedInputLocalPlayerSubsystem* InputSystem)
+{
+    UInputMappingContext* IMCObject = IMC.LoadSynchronous();
+    if (!IMCObject)
+    {
+        return;
+    }
+
+    if (!InputSystem)
+    {
+        if (ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(Player))
+        {
+            InputSystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
+        }
+    }
+    if (!InputSystem)
+    {
+        return;
+    }
+
+    InputSystem->RemoveMappingContext(IMCObject);
 }
 
 void ANLPlayerController::Move(const FInputActionValue& Value)
@@ -187,6 +250,11 @@ void ANLPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
     }
 }
 
+void ANLPlayerController::Respawn()
+{
+    UE_LOG(LogTemp, Warning, TEXT("Respawn requested"));
+}
+
 UNLAbilitySystemComponent* ANLPlayerController::GetNLAbilitySystemComponent()
 {
     if (!LNAbilitySystemComponent)
@@ -212,11 +280,28 @@ ANLPlayerCharacter* ANLPlayerController::GetNLPlayerCharacter()
     return Cast<ANLPlayerCharacter>(GetCharacter());
 }
 
+ANLHUD* ANLPlayerController::GetNLHUD()
+{
+    if (!NLHUD)
+    {
+        NLHUD = Cast<ANLHUD>(GetHUD());
+    }
+    return NLHUD;
+}
+
+void ANLPlayerController::InitHUD(APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS, UNLCharacterComponent* NLC)
+{
+    if (GetNLHUD())
+    {
+        GetNLHUD()->Initialize(this, PS, ASC, AS, NLC);
+    }
+}
+
 void ANLPlayerController::Client_ShowDamageCauseIndicator_Implementation(float InDamage, bool bInIsCriticalHit, AActor* DamagedActor)
 {
-    if (ANLHUD* NLHUD = Cast<ANLHUD>(GetHUD()))
+    if (GetNLHUD())
     {
-        NLHUD->ShowDamageCauseIndicator(InDamage, bInIsCriticalHit, DamagedActor);
+        GetNLHUD()->ShowDamageCauseIndicator(InDamage, bInIsCriticalHit, DamagedActor);
     }
 
     if (DamagedActor->Implements<UCombatInterface>())
@@ -260,4 +345,15 @@ void ANLPlayerController::OnTakenDamage(const FHitResult* InHitResult, FVector D
     }
 
     Client_TakenDamage(DamageOrigin, HitDirection, bIsCriticalHit, DamageType);
+}
+
+void ANLPlayerController::OnDead()
+{
+    RemoveIMC(DefaultIMC);
+    AddIMC(DeathIMC);
+
+    if (GetNLHUD())
+    {
+        GetNLHUD()->OnCharacterDead();
+    }
 }

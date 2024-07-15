@@ -17,6 +17,7 @@ UE_DEFINE_GAMEPLAY_TAG(Input_Default_Interaction, "Input.Default.Interaction");
 UE_DEFINE_GAMEPLAY_TAG(Input_Weapon_PrimaryAction, "Input.Weapon.PrimaryAction");
 UE_DEFINE_GAMEPLAY_TAG(Input_Weapon_SecondaryAction, "Input.Weapon.SecondaryAction");
 UE_DEFINE_GAMEPLAY_TAG(Input_Weapon_Reload, "Input.Weapon.Reload");
+UE_DEFINE_GAMEPLAY_TAG(Input_DeathCam_Respawn, "Input.DeathCam.Respawn");
 
 UE_DEFINE_GAMEPLAY_TAG(Input_Block_Ability, "Input.Block.Ability");
 

@@ -77,10 +77,16 @@ protected:
 
 	void UnBindWeaponDelegate(AWeaponActor* Weapon);
 
+	void AttachWeaponToSocket(AWeaponActor* Weapon);
+
+	void AttachWeaponToHand(AWeaponActor* Weapon);
+
 private:
 	bool bStartupWeaponInitFinished;
 
 	TArray<AWeaponActor*> InitializedStartupWeapons;
+
+	TMap<FName, AWeaponActor*> WeaponSlotSocketMap;
 
 public:	
 	ANLCharacterBase* GetOwningCharacter() const;

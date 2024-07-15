@@ -23,6 +23,7 @@ UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Default_WeaponSlot_3);
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Weapon_PrimaryAction);
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Weapon_SecondaryAction);
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Weapon_Reload);
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_DeathCam_Respawn);
 
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Block_Ability);
 

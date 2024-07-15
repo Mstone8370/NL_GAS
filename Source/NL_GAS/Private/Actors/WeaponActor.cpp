@@ -131,8 +131,8 @@ void AWeaponActor::SetWeaponState(bool bInIsEuipped)
 		WeaponMeshComponent->bOwnerNoSee = true;
 		WeaponMeshComponent->SetSimulatePhysics(false);
 		WeaponMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		WeaponMeshComponent->CastShadow = 0;
-		SetActorHiddenInGame(true);
+		WeaponMeshComponent->CastShadow = 1;
+		SetActorHiddenInGame(false);
 	}
 	else
 	{

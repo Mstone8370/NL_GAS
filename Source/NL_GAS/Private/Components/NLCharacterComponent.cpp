@@ -24,6 +24,10 @@ UNLCharacterComponent::UNLCharacterComponent()
     PrimaryComponentTick.bCanEverTick = false;
 
     SetIsReplicatedByDefault(true);
+
+    WeaponSlotSocketMap.Add(FName("weapon_slot_1"), nullptr);
+    WeaponSlotSocketMap.Add(FName("weapon_slot_2"), nullptr);
+    WeaponSlotSocketMap.Add(FName("weapon_slot_3"), nullptr);
 }
 
 void UNLCharacterComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -71,9 +75,8 @@ void UNLCharacterComponent::AddStartupWeapons()
         );
 
         Weapon->InitializeWeapon(WeaponTag);
-        FAttachmentTransformRules AttachRule = FAttachmentTransformRules::SnapToTargetNotIncludingScale;
-        AttachRule.RotationRule = EAttachmentRule::KeepRelative;
-        Weapon->AttachToComponent(GetOwningPlayer()->GetMesh(), AttachRule, FName("weapon_r"));
+        
+        AttachWeaponToSocket(Weapon);
 
         Weapon->FinishSpawning(SpawnTransform);
         WeaponActorSlot.Add(Weapon);
@@ -109,8 +112,8 @@ void UNLCharacterComponent::UpdateOwningCharacterMesh(AWeaponActor* OldWeaponAct
     // Hide Previous Weapon
     if (IsValid(OldWeaponActor))
     {
-        OldWeaponActor->SetActorHiddenInGame(true);
-        OldWeaponActor->WeaponMeshComponent->CastShadow = 0;
+        OldWeaponActor->SetActorHiddenInGame(false);
+        OldWeaponActor->WeaponMeshComponent->CastShadow = 1;
     }
 
     // Show Current Weapon
@@ -160,8 +163,9 @@ void UNLCharacterComponent::OnWeaponHolstered()
     {
         GetNLASC()->WeaponHolstered(PrevWeapon);
         PrevWeapon->Holstered();
+        AttachWeaponToSocket(PrevWeapon);
     }
-    const AWeaponActor* ChangedWeapon = GetWeaponActorAtSlot(WeaponSwapPendingSlot);
+    AWeaponActor* ChangedWeapon = GetWeaponActorAtSlot(WeaponSwapPendingSlot);
 
     CurrentWeaponSlot = WeaponSwapPendingSlot;
 
@@ -171,6 +175,7 @@ void UNLCharacterComponent::OnWeaponHolstered()
         ChangedWeapon->GetArmsAnimLayerClass()
     );
     UpdateOwningCharacterMesh();
+    AttachWeaponToHand(ChangedWeapon);
 
     // Draw New Weapon
     const bool bDrawFirst = !ChangedWeapon->IsEverDrawn();
@@ -208,6 +213,52 @@ void UNLCharacterComponent::BindWeaponDelegate(AWeaponActor* Weapon)
 void UNLCharacterComponent::UnBindWeaponDelegate(AWeaponActor* Weapon)
 {
     Weapon->BulletNumChanged.RemoveAll(this);
+}
+
+void UNLCharacterComponent::AttachWeaponToSocket(AWeaponActor* Weapon)
+{
+    FName TargetSocketName = NAME_None;
+    for (TPair<FName, AWeaponActor*>& Item : WeaponSlotSocketMap)
+    {
+        if (Item.Value == nullptr)
+        {
+            TargetSocketName = Item.Key;
+            break;
+        }
+    }
+    if (TargetSocketName.IsNone())
+    {
+        return;
+    }
+
+    WeaponSlotSocketMap[TargetSocketName] = Weapon;
+
+    FAttachmentTransformRules AttachRule = FAttachmentTransformRules::SnapToTargetNotIncludingScale;
+    AttachRule.RotationRule = EAttachmentRule::KeepRelative;
+    Weapon->AttachToComponent(GetOwningPlayer()->GetMesh(), AttachRule, TargetSocketName);
+}
+
+void UNLCharacterComponent::AttachWeaponToHand(AWeaponActor* Weapon)
+{
+    FName TargetSocketName = NAME_None;
+    for (TPair<FName, AWeaponActor*>& Item : WeaponSlotSocketMap)
+    {
+        if (Item.Value == Weapon)
+        {
+            TargetSocketName = Item.Key;
+            break;
+        }
+    }
+    if (TargetSocketName.IsNone())
+    {
+        return;
+    }
+
+    WeaponSlotSocketMap[TargetSocketName] = nullptr;
+
+    FAttachmentTransformRules AttachRule = FAttachmentTransformRules::SnapToTargetNotIncludingScale;
+    AttachRule.RotationRule = EAttachmentRule::KeepRelative;
+    Weapon->AttachToComponent(GetOwningPlayer()->GetMesh(), AttachRule, FName("weapon_r"));
 }
 
 ANLCharacterBase* UNLCharacterComponent::GetOwningCharacter() const

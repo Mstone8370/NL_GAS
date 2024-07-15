@@ -50,4 +50,7 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void ShowDamageCauseIndicator(float Damage, bool bIsCriticalHit, AActor* DamagedActor);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnCharacterDead();
 };

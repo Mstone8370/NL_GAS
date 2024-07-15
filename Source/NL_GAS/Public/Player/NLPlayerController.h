@@ -10,9 +10,14 @@
 class UInputConfig;
 class UInputMappingContext;
 class UNLAbilitySystemComponent;
+class UAbilitySystemComponent;
+class UAttributeSet;
 class ANLPlayerState;
 class ANLPlayerCharacter;
+class UNLCharacterComponent;
 class UAimPunchData;
+class ANLHUD;
+class UEnhancedInputLocalPlayerSubsystem;
 struct FInputActionValue;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnTakenDamageSignature, FVector);
@@ -30,6 +35,12 @@ protected:
 
 	virtual void PostProcessInput(const float DeltaTime, const bool bGamePaused) override;
 
+	void AddIMC(TArray<TSoftObjectPtr<UInputMappingContext>>& IMCs);
+	void AddIMC(TSoftObjectPtr<UInputMappingContext> IMC, UEnhancedInputLocalPlayerSubsystem* InputSystem = nullptr);
+
+	void RemoveIMC(TArray<TSoftObjectPtr<UInputMappingContext>>& IMCs);
+	void RemoveIMC(TSoftObjectPtr<UInputMappingContext> IMC, UEnhancedInputLocalPlayerSubsystem* InputSystem = nullptr);
+
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 	void Jump();
@@ -40,17 +51,25 @@ protected:
 	void AbilityInputTagPressed(FGameplayTag InputTag);
 	void AbilityInputTagReleased(FGameplayTag InputTag);
 
+	void Respawn();
+
 public:
 	UNLAbilitySystemComponent* GetNLAbilitySystemComponent();
 	ANLPlayerState* GetNLPlayerState();
 	ANLPlayerCharacter* GetNLPlayerCharacter();
+	ANLHUD* GetNLHUD();
+
+	void InitHUD(APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS, UNLCharacterComponent* NLC);
 
 	FORCEINLINE bool IsListenServerController() const { return bIsListenServerController; }
 
 	FOnTakenDamageSignature OnTakenDamageDelegate;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
-	TArray<TSoftObjectPtr<UInputMappingContext>> StartupIMC;
+	TArray<TSoftObjectPtr<UInputMappingContext>> DefaultIMC;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TSoftObjectPtr<UInputMappingContext> DeathIMC;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TSoftObjectPtr<UInputConfig> InputConfig;
@@ -62,9 +81,17 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	float LookSensitivity = 1.f;
 
+	UPROPERTY(BlueprintReadOnly)
 	TObjectPtr<UNLAbilitySystemComponent> LNAbilitySystemComponent;
+
+	UPROPERTY(BlueprintReadOnly)
 	TObjectPtr<ANLPlayerState> NLPlayerState;
+
+	UPROPERTY(BlueprintReadOnly)
 	TObjectPtr<ANLPlayerCharacter> NLPlayerCharacter;
+
+	UPROPERTY(BlueprintReadOnly)
+	TObjectPtr<ANLHUD> NLHUD;
 
 	bool bIsListenServerController = false;
 
@@ -86,4 +113,6 @@ public:
 	void OnCausedDamage(float InDamage, bool bInIsCriticalHit, AActor* DamagedActor);
 
 	void OnTakenDamage(const FHitResult* InHitResult, FVector DamageOrigin, bool bIsCriticalHit, const FGameplayTag& DamageType);
+
+	void OnDead();
 };

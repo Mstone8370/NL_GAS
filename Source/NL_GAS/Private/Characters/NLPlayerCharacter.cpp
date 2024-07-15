@@ -10,7 +10,6 @@
 #include "Components/CapsuleComponent.h"
 #include "Player/NLPlayerState.h"
 #include "Player/NLPlayerController.h"
-#include "HUD/NLHUD.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystem/NLAbilitySystemComponent.h"
 #include "Net/UnrealNetwork.h"
@@ -202,16 +201,12 @@ void ANLPlayerCharacter::TryInitializeHUD()
 {
     if (GetNLPC() && GetPlayerState())
     {
-        if (ANLHUD* HUD = Cast<ANLHUD>(GetNLPC()->GetHUD()))
-        {
-            HUD->Initialize(
-                GetNLPC(),
-                GetPlayerState(),
-                AbilitySystemComponent,
-                AttributeSet,
-                NLCharacterComponent
-            );
-        }
+        GetNLPC()->InitHUD(
+            GetPlayerState(),
+            AbilitySystemComponent,
+            AttributeSet,
+            NLCharacterComponent
+        );
     }
 }
 
@@ -814,7 +809,7 @@ void ANLPlayerCharacter::OnDead_Internal(const FDeathInfo& Info, bool bSimulated
 
     if (!bSimulated)
     {
-        GetNLPC()->DisableInput(nullptr);
+        GetNLPC()->OnDead();
     }
 }
 
