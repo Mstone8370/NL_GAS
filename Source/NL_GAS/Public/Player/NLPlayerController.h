@@ -21,6 +21,8 @@ class UEnhancedInputLocalPlayerSubsystem;
 struct FInputActionValue;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnTakenDamageSignature, FVector);
+DECLARE_EVENT_ThreeParams(ANLPlayerController, FPlayerDeathSignature, AController*, AController*, FGameplayTag);
+DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnReceivedKillLogSignature, FString, FString, FGameplayTag);
 
 /**
  * 
@@ -64,6 +66,10 @@ public:
 	FORCEINLINE bool IsListenServerController() const { return bIsListenServerController; }
 
 	FOnTakenDamageSignature OnTakenDamageDelegate;
+
+	FPlayerDeathSignature PlayerDeathEvent;
+
+	FOnReceivedKillLogSignature OnReceivedKillLog;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TArray<TSoftObjectPtr<UInputMappingContext>> DefaultIMC;
@@ -114,5 +120,8 @@ public:
 
 	void OnTakenDamage(const FHitResult* InHitResult, FVector DamageOrigin, bool bIsCriticalHit, const FGameplayTag& DamageType);
 
-	void OnDead();
+	void OnDead(AController* SourceController, FGameplayTag DamageType);
+
+	UFUNCTION(Client, Unreliable)
+	void AddKillLog(APawn* SourcePawn, APawn* TargetPawn, FGameplayTag DamageType);
 };

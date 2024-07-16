@@ -3,6 +3,8 @@
 
 #include "Interface/CombatInterface.h"
 
+#include "GameplayTagContainer.h"
+
 // Add default functionality here for any ICombatInterface functions that are not pure virtual.
 
 bool FDeathInfo::NetSerialize(FArchive& Ar, UPackageMap* Map, bool& bOutSuccess)
@@ -22,7 +24,17 @@ bool FDeathInfo::NetSerialize(FArchive& Ar, UPackageMap* Map, bool& bOutSuccess)
     if (Flags & (1 << 0))
     {
         bIsDead = true;
+
         Ar << SourceActor;
+
+        if (Ar.IsLoading())
+        {
+            if (!DamageType.IsValid())
+            {
+                DamageType = TSharedPtr<FGameplayTag>(new FGameplayTag());
+            }
+        }
+        DamageType->NetSerialize(Ar, Map, bOutSuccess);
     }
 
     bOutSuccess = true;

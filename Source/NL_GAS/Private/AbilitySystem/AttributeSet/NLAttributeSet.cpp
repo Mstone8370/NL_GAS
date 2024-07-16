@@ -70,7 +70,7 @@ void UNLAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
         }
 
         FGameplayTag DamageType = FGameplayTag();
-        if (NLContext->DamageType.Get())
+        if (NLContext->DamageType.IsValid())
         {
             DamageType = *NLContext->DamageType.Get();
         }
@@ -126,6 +126,11 @@ void UNLAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
             FDeathInfo Info;
             Info.bIsDead = true;
             Info.SourceActor = Params.SourceAvatarActor;
+            Info.DamageType = NLContext->DamageType;
+            if (!Info.DamageType.IsValid())
+            {
+                Info.DamageType = TSharedPtr<FGameplayTag>(new FGameplayTag());
+            }
 
             if (TargetCI)
             {

@@ -34,10 +34,14 @@ protected:
 	UPROPERTY()
 	TObjectPtr<UAttributeSet> AttributeSet;
 
+	FString PlayerName;
+
 public:
 	//~ Begin AbilitySystemInterface
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	//~ End AbilitySystemInterface
 
 	FORCEINLINE UAttributeSet* GetAttributeSet() const { return AttributeSet; }
+
+	virtual FString GetPlayerNameCustom() const override;
 };

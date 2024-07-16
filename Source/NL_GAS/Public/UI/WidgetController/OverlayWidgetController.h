@@ -12,6 +12,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FCurrentWeaponUpdatedSignature, con
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FBulletNumUpdatedSignature, const int32, BulletNum);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAttributeUpdatedSignature, float, Value);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDirectionalDamageTakenSignature, FVector, DamageOrigin);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FReceivedKillLogSignature, const FString, SourceName, const FString, TargetName, const FGameplayTag, DamageType);
 
 /**
  * 
@@ -44,6 +45,9 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FDirectionalDamageTakenSignature DamageTaken;
 
+	UPROPERTY(BlueprintAssignable)
+	FReceivedKillLogSignature ReceivedKillLog;
+
 protected:
 	UFUNCTION()
 	void OnWeaponSlotChanged(const TArray<FGameplayTag>& WeaponTagSlot);
@@ -56,4 +60,7 @@ protected:
 
 	UFUNCTION()
 	void OnTakenDamage(FVector DamageOrigin);
+
+	UFUNCTION()
+	void OnReceivedKillLog(const FString SourceName, const FString TargetName, const FGameplayTag DamageType);
 };

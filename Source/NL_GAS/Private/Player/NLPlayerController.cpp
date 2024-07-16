@@ -347,7 +347,7 @@ void ANLPlayerController::OnTakenDamage(const FHitResult* InHitResult, FVector D
     Client_TakenDamage(DamageOrigin, HitDirection, bIsCriticalHit, DamageType);
 }
 
-void ANLPlayerController::OnDead()
+void ANLPlayerController::OnDead(AController* SourceController, FGameplayTag DamageType)
 {
     RemoveIMC(DefaultIMC);
     AddIMC(DeathIMC);
@@ -356,4 +356,32 @@ void ANLPlayerController::OnDead()
     {
         GetNLHUD()->OnCharacterDead();
     }
+
+    if (HasAuthority())
+    {
+        PlayerDeathEvent.Broadcast(SourceController, this, DamageType);
+    }
+}
+
+void ANLPlayerController::AddKillLog_Implementation(APawn* SourcePawn, APawn* TargetPawn, FGameplayTag DamageType)
+{
+    FString SourceName = "None";
+    FString TargetName = "None";
+    if (SourcePawn)
+    {
+        if (APlayerState* SourcePS = SourcePawn->GetPlayerState<APlayerState>())
+        {
+            SourceName = SourcePS->GetPlayerName();
+        }
+    }
+    if (TargetPawn)
+    {
+        if (APlayerState* TargetPS = TargetPawn->GetPlayerState<APlayerState>())
+        {
+            TargetName = TargetPS->GetPlayerName();
+        }
+    }
+    
+    OnReceivedKillLog.Broadcast(SourceName, TargetName, DamageType);
+    UE_LOG(LogTemp, Warning, TEXT("%s [%s] %s"), *SourceName, *DamageType.ToString(), *TargetName);
 }

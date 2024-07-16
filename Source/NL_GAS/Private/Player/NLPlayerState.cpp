@@ -24,6 +24,8 @@ ANLPlayerState::ANLPlayerState()
 
     AttributeSet = CreateDefaultSubobject<UNLAttributeSet>("AttributeSet");
 
+    bUseCustomPlayerNames = true;
+
     // ÃÊ´ç 10¹ø
     NetUpdateFrequency = 10.f;
 }
@@ -37,4 +39,9 @@ void ANLPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 UAbilitySystemComponent* ANLPlayerState::GetAbilitySystemComponent() const
 {
     return AbilitySystemComponent;
+}
+
+FString ANLPlayerState::GetPlayerNameCustom() const
+{
+    return Super::GetPlayerNameCustom();
 }

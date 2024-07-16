@@ -809,7 +809,12 @@ void ANLPlayerCharacter::OnDead_Internal(const FDeathInfo& Info, bool bSimulated
 
     if (!bSimulated)
     {
-        GetNLPC()->OnDead();
+        FGameplayTag DamageType = FGameplayTag();
+        if (Info.DamageType.IsValid())
+        {
+            DamageType = *Info.DamageType.Get();
+        }
+        GetNLPC()->OnDead(Info.SourceActor->GetInstigatorController(), DamageType);
     }
 }
 

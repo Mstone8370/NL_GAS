@@ -8,11 +8,12 @@
 
 class AWeaponActor;
 struct FTaggedAimPunch;
+struct FGameplayTag;
 
 USTRUCT(BlueprintType)
 struct FDeathInfo
 {
-	GENERATED_BODY(BlueprintReadOnly)
+	GENERATED_BODY()
 
 	UPROPERTY(BlueprintReadOnly)
 	bool bIsDead = false;
@@ -20,7 +21,9 @@ struct FDeathInfo
 	UPROPERTY(BlueprintReadOnly)
 	TWeakObjectPtr<AActor> SourceActor;
 
-	virtual bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess);
+	TSharedPtr<FGameplayTag> DamageType;
+
+	bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess);
 };
 
 template<>
@@ -28,7 +31,8 @@ struct TStructOpsTypeTraits< FDeathInfo > : public TStructOpsTypeTraitsBase2< FD
 {
 	enum
 	{
-		WithNetSerializer = true
+		WithNetSerializer = true,
+		WithCopy = true
 	};
 };
 

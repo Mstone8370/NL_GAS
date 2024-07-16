@@ -14,4 +14,10 @@ class NL_GAS_API ANLGameMode : public AGameMode
 {
 	GENERATED_BODY()
 
+public:
+	virtual void PostLogin(APlayerController* NewPlayer) override;
+
+protected:
+	UFUNCTION()
+	virtual void OnPlayerDead(AController* SourceController, AController* TargetController, FGameplayTag DamageType);
 };
