@@ -33,10 +33,22 @@ void UOverlayWidgetController::BindEvents()
             OnTakenDamage(HitDirection);
         }
     );
-    GetNLPC()->OnReceivedKillLog.AddLambda(
-        [this](FString SourceName, FString TargetName, FGameplayTag DamageType)
+    GetNLPC()->OnPlayerDeath.AddLambda(
+        [this](AActor* SourceActor, AActor* TargetActor, FGameplayTag DamageType)
         {
-            OnReceivedKillLog(SourceName, TargetName, DamageType);
+            PlayerDeath.Broadcast();
+        }
+    );
+    GetNLPC()->OnReceivedKillLog.AddLambda(
+        [this](AActor* SourceActor, AActor* TargetActor, FGameplayTag DamageType)
+        {
+            ReceivedKillLog.Broadcast(SourceActor, TargetActor, DamageType);
+        }
+    );
+    GetNLPC()->OnRespawnable.AddLambda(
+        [this]()
+        {
+            Respawnable.Broadcast();
         }
     );
 }
@@ -70,9 +82,4 @@ void UOverlayWidgetController::OnCurrentWeaponBulletNumChanged(int32 NewBulletNu
 void UOverlayWidgetController::OnTakenDamage(FVector DamageOrigin)
 {
     DamageTaken.Broadcast(DamageOrigin);
-}
-
-void UOverlayWidgetController::OnReceivedKillLog(const FString SourceName, const FString TargetName, const FGameplayTag DamageType)
-{
-    ReceivedKillLog.Broadcast(SourceName, TargetName, DamageType);
 }

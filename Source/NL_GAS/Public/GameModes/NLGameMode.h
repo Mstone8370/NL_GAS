@@ -17,7 +17,14 @@ class NL_GAS_API ANLGameMode : public AGameMode
 public:
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	float PlayerRespawnTime = 3.f;
+
 protected:
 	UFUNCTION()
-	virtual void OnPlayerDead(AController* SourceController, AController* TargetController, FGameplayTag DamageType);
+	virtual void OnPlayerDead(AActor* SourceActor, AActor* TargetActor, FGameplayTag DamageType);
+
+	virtual void SetRespawnTime(AActor* TargetActor);
+
+	virtual void MulticastKillLog(AActor* SourceActor, AActor* TargetActor, FGameplayTag DamageType);
 };

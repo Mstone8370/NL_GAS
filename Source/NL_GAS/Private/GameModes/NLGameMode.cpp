@@ -11,22 +11,30 @@ void ANLGameMode::PostLogin(APlayerController* NewPlayer)
 
     if (ANLPlayerController* NLPC = Cast<ANLPlayerController>(NewPlayer))
     {
-        NLPC->PlayerDeathEvent.AddUObject(this, &ANLGameMode::OnPlayerDead);
+        NLPC->OnPlayerDeath.AddUObject(this, &ANLGameMode::OnPlayerDead);
     }
 }
 
-void ANLGameMode::OnPlayerDead(AController* SourceController, AController* TargetController, FGameplayTag DamageType)
+void ANLGameMode::OnPlayerDead(AActor* SourceActor, AActor* TargetActor, FGameplayTag DamageType)
 {
-    APawn* SourcePawn = nullptr;
-    if (SourceController)
+    MulticastKillLog(SourceActor, TargetActor, DamageType);
+
+    SetRespawnTime(TargetActor);
+}
+
+void ANLGameMode::SetRespawnTime(AActor* TargetActor)
+{
+    if (APawn* TargetPawn = Cast<APawn>(TargetActor))
     {
-        SourcePawn = SourceController->GetPawn();
+        if (ANLPlayerController* NLPC = Cast<ANLPlayerController>(TargetPawn->GetController()))
+        {
+            NLPC->SetRespawnTime(PlayerRespawnTime);
+        }
     }
-    APawn* TargetPawn = nullptr;
-    if (SourceController)
-    {
-        TargetPawn = TargetController->GetPawn();
-    }
+}
+
+void ANLGameMode::MulticastKillLog(AActor* SourceActor, AActor* TargetActor, FGameplayTag DamageType)
+{
     int32 PCNum = GetWorld()->GetNumPlayerControllers();
     for (int32 i = 0; i < PCNum; i++)
     {
@@ -34,7 +42,7 @@ void ANLGameMode::OnPlayerDead(AController* SourceController, AController* Targe
         APlayerController* PC = It->Get();
         if (ANLPlayerController* NLPC = Cast<ANLPlayerController>(PC))
         {
-            NLPC->AddKillLog(SourcePawn, TargetPawn, DamageType);
+            NLPC->AddKillLog(SourceActor, TargetActor, DamageType);
         }
     }
 }

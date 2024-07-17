@@ -12,7 +12,9 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FCurrentWeaponUpdatedSignature, con
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FBulletNumUpdatedSignature, const int32, BulletNum);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAttributeUpdatedSignature, float, Value);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDirectionalDamageTakenSignature, FVector, DamageOrigin);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FReceivedKillLogSignature, const FString, SourceName, const FString, TargetName, const FGameplayTag, DamageType);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPlayerDeathSignature);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FReceivedKillLogSignature, const AActor*, SourceActor, const AActor*, TargetActor, const FGameplayTag, DamageType);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FRespawnableSingature);
 
 /**
  * 
@@ -46,7 +48,13 @@ public:
 	FDirectionalDamageTakenSignature DamageTaken;
 
 	UPROPERTY(BlueprintAssignable)
+	FPlayerDeathSignature PlayerDeath;
+
+	UPROPERTY(BlueprintAssignable)
 	FReceivedKillLogSignature ReceivedKillLog;
+
+	UPROPERTY(BlueprintAssignable)
+	FRespawnableSingature Respawnable;
 
 protected:
 	UFUNCTION()
@@ -60,7 +68,4 @@ protected:
 
 	UFUNCTION()
 	void OnTakenDamage(FVector DamageOrigin);
-
-	UFUNCTION()
-	void OnReceivedKillLog(const FString SourceName, const FString TargetName, const FGameplayTag DamageType);
 };

@@ -814,7 +814,7 @@ void ANLPlayerCharacter::OnDead_Internal(const FDeathInfo& Info, bool bSimulated
         {
             DamageType = *Info.DamageType.Get();
         }
-        GetNLPC()->OnDead(Info.SourceActor->GetInstigatorController(), DamageType);
+        GetNLPC()->OnDead(Info.SourceActor.Get(), DamageType);
     }
 }
 

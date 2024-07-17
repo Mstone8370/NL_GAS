@@ -21,8 +21,9 @@ class UEnhancedInputLocalPlayerSubsystem;
 struct FInputActionValue;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnTakenDamageSignature, FVector);
-DECLARE_EVENT_ThreeParams(ANLPlayerController, FPlayerDeathSignature, AController*, AController*, FGameplayTag);
-DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnReceivedKillLogSignature, FString, FString, FGameplayTag);
+DECLARE_EVENT_ThreeParams(ANLPlayerController, FOnPlayerDeathSignature, AActor* /*SourceActor*/, AActor* /*TargetActor*/, FGameplayTag /*DamageType*/);
+DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnReceivedKillLogSignature, AActor* /*SourceActor*/, AActor* /*TargetActor*/, FGameplayTag /*DamageType*/);
+DECLARE_MULTICAST_DELEGATE(FOnRespawnableSignature);
 
 /**
  * 
@@ -67,9 +68,11 @@ public:
 
 	FOnTakenDamageSignature OnTakenDamageDelegate;
 
-	FPlayerDeathSignature PlayerDeathEvent;
+	FOnPlayerDeathSignature OnPlayerDeath;
 
 	FOnReceivedKillLogSignature OnReceivedKillLog;
+
+	FOnRespawnableSignature OnRespawnable;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TArray<TSoftObjectPtr<UInputMappingContext>> DefaultIMC;
@@ -111,6 +114,11 @@ protected:
 	UFUNCTION(Client, Reliable)
 	void Client_TakenDamage(FVector DamageOrigin, FVector HitDirection, bool bIsCriticalHit, FGameplayTag DamageType);
 
+	FTimerHandle RespawnTimerHandle;
+
+	UFUNCTION(Client, Reliable)
+	void Client_OnRespawnable();
+
 public:
 	float GetBaseLookSensitivity() const { return LookSensitivity; }
 
@@ -120,8 +128,10 @@ public:
 
 	void OnTakenDamage(const FHitResult* InHitResult, FVector DamageOrigin, bool bIsCriticalHit, const FGameplayTag& DamageType);
 
-	void OnDead(AController* SourceController, FGameplayTag DamageType);
+	void OnDead(AActor* SourceActor, FGameplayTag DamageType);
 
 	UFUNCTION(Client, Unreliable)
-	void AddKillLog(APawn* SourcePawn, APawn* TargetPawn, FGameplayTag DamageType);
+	void AddKillLog(AActor* SourceActor, AActor* TargetActor, FGameplayTag DamageType);
+
+	void SetRespawnTime(float RespawnTime);
 };

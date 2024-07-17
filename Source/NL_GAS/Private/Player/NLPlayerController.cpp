@@ -326,6 +326,13 @@ void ANLPlayerController::Client_TakenDamage_Implementation(FVector DamageOrigin
     }
 }
 
+void ANLPlayerController::Client_OnRespawnable_Implementation()
+{
+    AddIMC(DeathIMC);
+
+    OnRespawnable.Broadcast();
+}
+
 void ANLPlayerController::SetLookSensitivity(float InLookSensitivity)
 {
     CurrentLookSensitivity = InLookSensitivity;
@@ -347,41 +354,24 @@ void ANLPlayerController::OnTakenDamage(const FHitResult* InHitResult, FVector D
     Client_TakenDamage(DamageOrigin, HitDirection, bIsCriticalHit, DamageType);
 }
 
-void ANLPlayerController::OnDead(AController* SourceController, FGameplayTag DamageType)
+void ANLPlayerController::OnDead(AActor* SourceActor, FGameplayTag DamageType)
 {
     RemoveIMC(DefaultIMC);
-    AddIMC(DeathIMC);
 
     if (GetNLHUD())
     {
         GetNLHUD()->OnCharacterDead();
     }
 
-    if (HasAuthority())
-    {
-        PlayerDeathEvent.Broadcast(SourceController, this, DamageType);
-    }
+    OnPlayerDeath.Broadcast(SourceActor, GetPawn(), DamageType);
 }
 
-void ANLPlayerController::AddKillLog_Implementation(APawn* SourcePawn, APawn* TargetPawn, FGameplayTag DamageType)
+void ANLPlayerController::SetRespawnTime(float RespawnTime)
 {
-    FString SourceName = "None";
-    FString TargetName = "None";
-    if (SourcePawn)
-    {
-        if (APlayerState* SourcePS = SourcePawn->GetPlayerState<APlayerState>())
-        {
-            SourceName = SourcePS->GetPlayerName();
-        }
-    }
-    if (TargetPawn)
-    {
-        if (APlayerState* TargetPS = TargetPawn->GetPlayerState<APlayerState>())
-        {
-            TargetName = TargetPS->GetPlayerName();
-        }
-    }
-    
-    OnReceivedKillLog.Broadcast(SourceName, TargetName, DamageType);
-    UE_LOG(LogTemp, Warning, TEXT("%s [%s] %s"), *SourceName, *DamageType.ToString(), *TargetName);
+    GetWorldTimerManager().SetTimer(RespawnTimerHandle, this, &ANLPlayerController::Client_OnRespawnable, RespawnTime, false);
+}
+
+void ANLPlayerController::AddKillLog_Implementation(AActor* SourceActor, AActor* TargetActor, FGameplayTag DamageType)
+{
+    OnReceivedKillLog.Broadcast(SourceActor, TargetActor, DamageType);
 }
