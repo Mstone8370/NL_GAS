@@ -15,6 +15,7 @@
 #include "Data/NLDataTableRows.h"
 #include "Components/HitboxComponent.h"
 #include "Engine/ObjectLibrary.h"
+#include "GameFramework/PlayerState.h"
 
 const FWeaponInfo* UNLFunctionLibrary::GetWeaponInfoByTag(const UObject* WorldContextObject, const FGameplayTag& WeaponTag)
 {
@@ -168,4 +169,16 @@ bool UNLFunctionLibrary::AssetExists(FString FullPath)
         }
     }
     return false;
+}
+
+FString UNLFunctionLibrary::GetPlayerName(AActor* Actor)
+{
+    if (APawn* Pawn = Cast<APawn>(Actor))
+    {
+        if (APlayerState* PS = Pawn->GetPlayerState())
+        {
+            return PS->GetPlayerNameCustom();
+        }
+    }
+    return GetNameSafe(Actor);
 }

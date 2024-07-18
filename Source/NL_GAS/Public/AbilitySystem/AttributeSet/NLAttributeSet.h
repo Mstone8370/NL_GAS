@@ -88,4 +88,6 @@ public:
 
 protected:
 	void SetEffectContextParams(const FGameplayEffectModCallbackData& Data, FEffectContextParams& OutParams) const;
+
+	void HandleDamage(FEffectContextParams& Params);
 };

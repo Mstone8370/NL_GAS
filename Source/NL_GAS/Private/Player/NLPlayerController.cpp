@@ -333,6 +333,11 @@ void ANLPlayerController::Client_OnRespawnable_Implementation()
     OnRespawnable.Broadcast();
 }
 
+void ANLPlayerController::Client_OnKilled_Implementation(AActor* TargetActor)
+{
+    OnKill.Broadcast(TargetActor);
+}
+
 void ANLPlayerController::SetLookSensitivity(float InLookSensitivity)
 {
     CurrentLookSensitivity = InLookSensitivity;
@@ -352,6 +357,11 @@ void ANLPlayerController::OnTakenDamage(const FHitResult* InHitResult, FVector D
     }
 
     Client_TakenDamage(DamageOrigin, HitDirection, bIsCriticalHit, DamageType);
+}
+
+void ANLPlayerController::OnKilled(AActor* TargetActor)
+{
+    Client_OnKilled(TargetActor);
 }
 
 void ANLPlayerController::OnDead(AActor* SourceActor, FGameplayTag DamageType)

@@ -36,4 +36,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "NLFunctionLibrary")
 	static bool AssetExists(FString FullPath);
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "NLFunctionLibrary")
+	static FString GetPlayerName(AActor* Actor);
 };

@@ -51,6 +51,12 @@ void UOverlayWidgetController::BindEvents()
             Respawnable.Broadcast();
         }
     );
+    GetNLPC()->OnKill.AddLambda(
+        [this](AActor* TargetActor)
+        {
+            Killed.Broadcast(TargetActor);
+        }
+    );
 }
 
 void UOverlayWidgetController::BroadcastInitialValues()

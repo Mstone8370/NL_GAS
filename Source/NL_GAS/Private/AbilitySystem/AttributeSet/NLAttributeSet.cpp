@@ -57,96 +57,7 @@ void UNLAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 
     if (Data.EvaluatedData.Attribute == GetIncomingDamageAttribute())
     {
-        float LocalIncomingDamage = GetIncomingDamage();
-        SetIncomingDamage(0.f);
-        LocalIncomingDamage = FMath::Floor(LocalIncomingDamage);
-        if (LocalIncomingDamage <= 0.f)
-        {
-            return;
-        }
-        if (TargetCI && TargetCI->IsDead())
-        {
-            return;
-        }
-
-        FGameplayTag DamageType = FGameplayTag();
-        if (NLContext->DamageType.IsValid())
-        {
-            DamageType = *NLContext->DamageType.Get();
-        }
-
-        FVector DamageOrigin = FVector::ZeroVector;
-        if (NLContext->HasOrigin())
-        {
-            DamageOrigin = NLContext->GetOrigin();
-        }
-        else
-        {
-            if (SourceNLPC)
-            {
-                DamageOrigin = SourceNLPC->GetPawn()->GetActorLocation();
-            }
-            else if (TargetNLPC)
-            {
-                DamageOrigin = TargetNLPC->GetPawn()->GetActorLocation();
-            }
-        }
-
-        bool bIsCriticalHit = false;
-        if (NLContext->bCanCriticalHit)
-        {
-            if (NLContext->GetHitResult()->GetComponent())
-            {
-                if (UHitboxComponent* Hitbox = Cast<UHitboxComponent>(NLContext->GetHitResult()->GetComponent()))
-                {
-                    bIsCriticalHit = Hitbox->IsWeakHitbox();
-                    if (bIsCriticalHit)
-                    {
-                        LocalIncomingDamage *= Hitbox->GetCriticalHitDamageMultiplier();
-                    }
-                }
-            }
-        }
-
-        if (NLContext->KnockbackMagnitude > 0.f && NLContext->GetHitResult())
-        {
-            FHitResult* HitRes = NLContext->GetHitResult();
-            const FVector KnockbackDirection = (HitRes->TraceEnd - HitRes->TraceStart).GetSafeNormal();
-            const FVector KnockbackForce = KnockbackDirection * NLContext->KnockbackMagnitude;
-            if (ACharacter* TargetCharacter = Cast<ACharacter>(Params.TargetAvatarActor))
-            {
-                TargetCharacter->GetCharacterMovement()->AddImpulse(KnockbackForce, true);
-            }
-        }
-
-        SetHealth(FMath::Max(GetHealth() - LocalIncomingDamage, 0.f));
-
-        if (GetHealth() <= 0.f)
-        {
-            FDeathInfo Info;
-            Info.bIsDead = true;
-            Info.SourceActor = Params.SourceAvatarActor;
-            Info.DamageType = NLContext->DamageType;
-            if (!Info.DamageType.IsValid())
-            {
-                Info.DamageType = TSharedPtr<FGameplayTag>(new FGameplayTag());
-            }
-
-            if (TargetCI)
-            {
-                TargetCI->OnDead(Info);
-            }
-        }
-
-        if (Params.SourceAvatarActor != Params.TargetAvatarActor && SourceNLPC)
-        {
-            SourceNLPC->OnCausedDamage(LocalIncomingDamage, bIsCriticalHit, Params.TargetAvatarActor);
-        }
-
-        if (TargetNLPC)
-        {
-            TargetNLPC->OnTakenDamage(NLContext->GetHitResult(), DamageOrigin, bIsCriticalHit, DamageType);
-        }
+        HandleDamage(Params);
     }
 }
 
@@ -194,6 +105,112 @@ void UNLAttributeSet::SetEffectContextParams(const FGameplayEffectModCallbackDat
             {
                 OutParams.TargetPC = Cast<APlayerController>(OutParams.TargetController);
             }
+        }
+    }
+}
+
+void UNLAttributeSet::HandleDamage(FEffectContextParams& Params)
+{
+    FNLGameplayEffectContext* NLContext = static_cast<FNLGameplayEffectContext*>(Params.ContextHandle.Get());
+    ANLPlayerController* SourceNLPC = Cast<ANLPlayerController>(Params.SourceController);
+    ANLPlayerController* TargetNLPC = Cast<ANLPlayerController>(Params.TargetController);
+
+    ICombatInterface* SourceCI = Cast<ICombatInterface>(Params.SourceAvatarActor);
+    ICombatInterface* TargetCI = Cast<ICombatInterface>(Params.TargetAvatarActor);
+
+    float LocalIncomingDamage = GetIncomingDamage();
+    SetIncomingDamage(0.f);
+    LocalIncomingDamage = FMath::Floor(LocalIncomingDamage);
+    if (LocalIncomingDamage <= 0.f)
+    {
+        return;
+    }
+    if (TargetCI && TargetCI->IsDead())
+    {
+        return;
+    }
+
+    FGameplayTag DamageType = FGameplayTag();
+    if (NLContext->DamageType.IsValid())
+    {
+        DamageType = *NLContext->DamageType.Get();
+    }
+
+    FVector DamageOrigin = FVector::ZeroVector;
+    if (NLContext->HasOrigin())
+    {
+        DamageOrigin = NLContext->GetOrigin();
+    }
+    else
+    {
+        if (SourceNLPC)
+        {
+            DamageOrigin = SourceNLPC->GetPawn()->GetActorLocation();
+        }
+        else if (TargetNLPC)
+        {
+            DamageOrigin = TargetNLPC->GetPawn()->GetActorLocation();
+        }
+    }
+
+    bool bIsCriticalHit = false;
+    if (NLContext->bCanCriticalHit)
+    {
+        if (NLContext->GetHitResult()->GetComponent())
+        {
+            if (UHitboxComponent* Hitbox = Cast<UHitboxComponent>(NLContext->GetHitResult()->GetComponent()))
+            {
+                bIsCriticalHit = Hitbox->IsWeakHitbox();
+                if (bIsCriticalHit)
+                {
+                    LocalIncomingDamage *= Hitbox->GetCriticalHitDamageMultiplier();
+                }
+            }
+        }
+    }
+
+    if (NLContext->KnockbackMagnitude > 0.f && NLContext->GetHitResult())
+    {
+        FHitResult* HitRes = NLContext->GetHitResult();
+        const FVector KnockbackDirection = (HitRes->TraceEnd - HitRes->TraceStart).GetSafeNormal();
+        const FVector KnockbackForce = KnockbackDirection * NLContext->KnockbackMagnitude;
+        if (ACharacter* TargetCharacter = Cast<ACharacter>(Params.TargetAvatarActor))
+        {
+            TargetCharacter->GetCharacterMovement()->AddImpulse(KnockbackForce, true);
+        }
+    }
+
+    SetHealth(FMath::Max(GetHealth() - LocalIncomingDamage, 0.f));
+
+    if (Params.SourceAvatarActor != Params.TargetAvatarActor && SourceNLPC)
+    {
+        SourceNLPC->OnCausedDamage(LocalIncomingDamage, bIsCriticalHit, Params.TargetAvatarActor);
+    }
+
+    if (TargetNLPC)
+    {
+        TargetNLPC->OnTakenDamage(NLContext->GetHitResult(), DamageOrigin, bIsCriticalHit, DamageType);
+    }
+
+    if (GetHealth() <= 0.f)
+    {
+        FDeathInfo Info;
+        Info.bIsDead = true;
+        Info.SourceActor = Params.SourceAvatarActor;
+        Info.DamageType = NLContext->DamageType;
+        if (!Info.DamageType.IsValid())
+        {
+            Info.DamageType = TSharedPtr<FGameplayTag>(new FGameplayTag());
+        }
+
+        if (SourceNLPC)
+        {
+            SourceNLPC->OnKilled(Params.TargetAvatarActor);
+        }
+
+        if (TargetCI)
+        {
+            TargetCI->OnDead(Info);
         }
     }
 }

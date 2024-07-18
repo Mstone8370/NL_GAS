@@ -24,6 +24,7 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnTakenDamageSignature, FVector);
 DECLARE_EVENT_ThreeParams(ANLPlayerController, FOnPlayerDeathSignature, AActor* /*SourceActor*/, AActor* /*TargetActor*/, FGameplayTag /*DamageType*/);
 DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnReceivedKillLogSignature, AActor* /*SourceActor*/, AActor* /*TargetActor*/, FGameplayTag /*DamageType*/);
 DECLARE_MULTICAST_DELEGATE(FOnRespawnableSignature);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnKillSignature, AActor* /*TargetActor*/);
 
 /**
  * 
@@ -74,6 +75,8 @@ public:
 
 	FOnRespawnableSignature OnRespawnable;
 
+	FOnKillSignature OnKill;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TArray<TSoftObjectPtr<UInputMappingContext>> DefaultIMC;
 
@@ -119,6 +122,9 @@ protected:
 	UFUNCTION(Client, Reliable)
 	void Client_OnRespawnable();
 
+	UFUNCTION(Client, Reliable)
+	void Client_OnKilled(AActor* TargetActor);
+
 public:
 	float GetBaseLookSensitivity() const { return LookSensitivity; }
 
@@ -127,6 +133,8 @@ public:
 	void OnCausedDamage(float InDamage, bool bInIsCriticalHit, AActor* DamagedActor);
 
 	void OnTakenDamage(const FHitResult* InHitResult, FVector DamageOrigin, bool bIsCriticalHit, const FGameplayTag& DamageType);
+
+	void OnKilled(AActor* TargetActor);
 
 	void OnDead(AActor* SourceActor, FGameplayTag DamageType);
 
