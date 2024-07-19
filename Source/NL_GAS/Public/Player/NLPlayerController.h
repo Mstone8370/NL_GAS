@@ -119,8 +119,10 @@ protected:
 
 	FTimerHandle RespawnTimerHandle;
 
+	virtual void OnRespawnableState();
+
 	UFUNCTION(Client, Reliable)
-	void Client_OnRespawnable();
+	void Client_OnRespawnableState();
 
 	UFUNCTION(Client, Reliable)
 	void Client_OnKilled(AActor* TargetActor);

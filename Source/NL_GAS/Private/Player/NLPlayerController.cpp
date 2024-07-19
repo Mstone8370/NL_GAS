@@ -326,7 +326,12 @@ void ANLPlayerController::Client_TakenDamage_Implementation(FVector DamageOrigin
     }
 }
 
-void ANLPlayerController::Client_OnRespawnable_Implementation()
+void ANLPlayerController::OnRespawnableState()
+{
+    Client_OnRespawnableState();
+}
+
+void ANLPlayerController::Client_OnRespawnableState_Implementation()
 {
     AddIMC(DeathIMC);
 
@@ -378,7 +383,7 @@ void ANLPlayerController::OnDead(AActor* SourceActor, FGameplayTag DamageType)
 
 void ANLPlayerController::SetRespawnTime(float RespawnTime)
 {
-    GetWorldTimerManager().SetTimer(RespawnTimerHandle, this, &ANLPlayerController::Client_OnRespawnable, RespawnTime, false);
+    GetWorldTimerManager().SetTimer(RespawnTimerHandle, this, &ANLPlayerController::OnRespawnableState, RespawnTime, false);
 }
 
 void ANLPlayerController::AddKillLog_Implementation(AActor* SourceActor, AActor* TargetActor, FGameplayTag DamageType)

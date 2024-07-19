@@ -29,7 +29,6 @@ AWeaponActor::AWeaponActor()
 	WeaponMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(FName("WeaponMesh"));
 	WeaponMeshComponent->SetCollisionObjectType(ECC_WeaponProp);
 	WeaponMeshComponent->SetMassOverrideInKg(NAME_None, 2.f, true);
-	WeaponMeshComponent->bOwnerNoSee = true;
 	SetRootComponent(WeaponMeshComponent);
 }
 
@@ -39,6 +38,7 @@ void AWeaponActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 
 	DOREPLIFETIME_CONDITION(AWeaponActor, WeaponTag, COND_InitialOnly);
 	DOREPLIFETIME_CONDITION_NOTIFY(AWeaponActor, CurrentBulletNum, COND_AutonomousOnly, REPNOTIFY_OnChanged);
+	DOREPLIFETIME_CONDITION_NOTIFY(AWeaponActor, bIsEquipped, COND_None, REPNOTIFY_OnChanged);
 }
 
 void AWeaponActor::BeginPlay()
@@ -131,16 +131,12 @@ void AWeaponActor::SetWeaponState(bool bInIsEuipped)
 		WeaponMeshComponent->bOwnerNoSee = true;
 		WeaponMeshComponent->SetSimulatePhysics(false);
 		WeaponMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		WeaponMeshComponent->CastShadow = 1;
-		SetActorHiddenInGame(false);
 	}
 	else
 	{
 		WeaponMeshComponent->bOwnerNoSee = false;
 		WeaponMeshComponent->SetSimulatePhysics(true);
 		WeaponMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		WeaponMeshComponent->CastShadow = 1;
-		SetActorHiddenInGame(false);
 	}
 }
 
@@ -160,6 +156,11 @@ void AWeaponActor::Drawn()
 	bIsEverDrawn = true;
 
 	CheckReloadState();
+}
+
+void AWeaponActor::OnRep_IsEquipped()
+{
+	SetWeaponState(bIsEquipped);
 }
 
 void AWeaponActor::SetBulletNum_Internal(int32 NewBulletNum)

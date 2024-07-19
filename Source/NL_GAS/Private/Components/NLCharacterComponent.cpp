@@ -28,6 +28,12 @@ UNLCharacterComponent::UNLCharacterComponent()
     WeaponSlotSocketMap.Add(FName("weapon_slot_1"), nullptr);
     WeaponSlotSocketMap.Add(FName("weapon_slot_2"), nullptr);
     WeaponSlotSocketMap.Add(FName("weapon_slot_3"), nullptr);
+
+    WeaponActorSlot.Reset(MaxWeaponSlotSize);
+    for (uint8 i = 0; i < MaxWeaponSlotSize; i++)
+    {
+        WeaponActorSlot.Add(nullptr);
+    }
 }
 
 void UNLCharacterComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -52,7 +58,12 @@ void UNLCharacterComponent::AddStartupWeapons()
     check(OwningPlayer);
 
     int32 StartupWeaponNum = FMath::Min(int32(MaxWeaponSlotSize), PS->StartupWeapons.Num());
-    WeaponActorSlot.Reset(StartupWeaponNum);
+    int32 SlotSize = FMath::Max(StartupWeaponNum, int32(MaxWeaponSlotSize));
+    WeaponActorSlot.Reset(MaxWeaponSlotSize);
+    for (uint8 i = 0; i < MaxWeaponSlotSize; i++)
+    {
+        WeaponActorSlot.Add(nullptr);
+    }
 
     FScopedAbilityListLock ActiveScopeLock(*ASC);
 
@@ -79,7 +90,7 @@ void UNLCharacterComponent::AddStartupWeapons()
         AttachWeaponToSocket(Weapon);
 
         Weapon->FinishSpawning(SpawnTransform);
-        WeaponActorSlot.Add(Weapon);
+        WeaponActorSlot[i] = Weapon;
 
         // Add Weapon Abilities
         GetNLASC()->WeaponAdded(Weapon);
@@ -99,31 +110,24 @@ void UNLCharacterComponent::OnRep_CurrentWeaponSlot(uint8 OldSlot)
     UpdateOwningCharacterMesh(OldWeapon);
 }
 
-void UNLCharacterComponent::OnRep_WeaponActorSlot()
+void UNLCharacterComponent::OnRep_WeaponActorSlot(TArray<AWeaponActor*> OldWeaponActorSlot)
 {
     if (!bStartupWeaponInitFinished)
     {
         ValidateStartupWeapons();
     }
+    else
+    {
+        if (GetOwner()->GetLocalRole() != ROLE_SimulatedProxy)
+        {
+            UpdateWeaponTagSlot();
+            WeaponSlotChanged.Broadcast(WeaponTagSlot);
+        }
+    }
 }
 
 void UNLCharacterComponent::UpdateOwningCharacterMesh(AWeaponActor* OldWeaponActor)
 {
-    // Hide Previous Weapon
-    if (IsValid(OldWeaponActor))
-    {
-        OldWeaponActor->SetActorHiddenInGame(false);
-        OldWeaponActor->WeaponMeshComponent->CastShadow = 1;
-    }
-
-    // Show Current Weapon
-    AWeaponActor* CurrentWeapon = GetCurrentWeaponActor();
-    if (IsValid(CurrentWeapon))
-    {
-        CurrentWeapon->SetActorHiddenInGame(false);
-        CurrentWeapon->WeaponMeshComponent->CastShadow = 1;
-    }
-
     // Change Character Mesh AnimBP
     const FGameplayTag WeaponTag = GetCurrentWeaponTag();
     if (WeaponTag.IsValid())
@@ -298,12 +302,19 @@ UNLAbilitySystemComponent* UNLCharacterComponent::GetNLASC() const
     return nullptr;
 }
 
-void UNLCharacterComponent::UpdateWeapnTagSlot()
+void UNLCharacterComponent::UpdateWeaponTagSlot()
 {
     WeaponTagSlot.Empty();
     for (const AWeaponActor* Weapon : WeaponActorSlot)
     {
-        WeaponTagSlot.Add(Weapon->GetWeaponTag());
+        if (IsValid(Weapon))
+        {
+            WeaponTagSlot.Add(Weapon->GetWeaponTag());
+        }
+        else
+        {
+            WeaponTagSlot.Add(FGameplayTag());
+        }
     }
 }
 
@@ -428,7 +439,7 @@ void UNLCharacterComponent::ValidateStartupWeapons()
                 );
                 GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 1.f, false);
 
-                UpdateWeapnTagSlot();
+                UpdateWeaponTagSlot();
                 WeaponSlotChanged.Broadcast(WeaponTagSlot);
             }
 
@@ -730,5 +741,43 @@ void UNLCharacterComponent::CheckCurrentWeaponReloadState()
     if (GetOwnerRole() == ENetRole::ROLE_Authority && GetCurrentWeaponActor())
     {
         GetCurrentWeaponActor()->CheckReloadState();
+    }
+}
+
+void UNLCharacterComponent::HandleOwnerDeath()
+{
+    DropCurrentWeapon();
+    
+    if (GetOwner()->HasAuthority())
+    {
+        for (uint8 i = 0; i < WeaponActorSlot.Num(); i++)
+        {
+            if (IsValid(WeaponActorSlot[i]))
+            {
+                WeaponActorSlot[i]->Destroy();
+            }
+            WeaponActorSlot[i] = nullptr;
+        }
+        CurrentWeaponSlot = 0;
+    }
+}
+
+void UNLCharacterComponent::DropCurrentWeapon()
+{
+    if (!GetOwner()->HasAuthority())
+    {
+        return;
+    }
+
+    if (AWeaponActor* WeaponActor = GetCurrentWeaponActor())
+    {
+        GetNLASC()->WeaponDropped(WeaponActor);
+        
+        WeaponActor->SetOwner(nullptr);
+        WeaponActor->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+        WeaponActor->SetWeaponState(false);
+        WeaponActorSlot[CurrentWeaponSlot] = nullptr;
+
+        // TODO: Update view mesh
     }
 }

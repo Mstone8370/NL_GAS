@@ -34,7 +34,7 @@ public:
 	FWeaponSwappedSignature WeaponSwapped;
 	FCurrentWeaponBulletNumChangedSignature CurrentWeaponBulletNumChanged;
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TArray<FGameplayTag> WeaponTagSlot;
 
 protected:
@@ -47,11 +47,11 @@ protected:
 	UFUNCTION()
 	void OnRep_CurrentWeaponSlot(uint8 OldSlot);
 
-	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_WeaponActorSlot)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_WeaponActorSlot)
 	TArray<AWeaponActor*> WeaponActorSlot;
 
 	UFUNCTION()
-	void OnRep_WeaponActorSlot();
+	void OnRep_WeaponActorSlot(TArray<AWeaponActor*> OldWeaponActorSlot);
 
 	// 현재 들고있는 무기 정보로 무기의 Hidden 상태와 메시의 애니메이션 업데이트
 	void UpdateOwningCharacterMesh(AWeaponActor* OldWeaponActor = nullptr);
@@ -99,7 +99,7 @@ public:
 
 	UNLAbilitySystemComponent* GetNLASC() const;
 
-	void UpdateWeapnTagSlot();
+	void UpdateWeaponTagSlot();
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	int32 GetWeaponSlotSize() const;
@@ -160,4 +160,9 @@ public:
 	void RaiseWeapon();
 
 	void CheckCurrentWeaponReloadState();
+
+	void HandleOwnerDeath();
+
+	UFUNCTION(BlueprintCallable)
+	void DropCurrentWeapon();
 };

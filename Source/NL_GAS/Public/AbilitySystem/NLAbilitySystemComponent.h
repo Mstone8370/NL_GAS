@@ -28,6 +28,8 @@ public:
 
 	void WeaponAdded(AWeaponActor* Weapon);
 
+	void WeaponDropped(AWeaponActor* Weapon);
+
 	void WeaponHolstered(const AWeaponActor* Weapon);
 
 	void WeaponDrawn(const AWeaponActor* Weapon);

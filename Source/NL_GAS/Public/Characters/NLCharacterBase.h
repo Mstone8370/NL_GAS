@@ -82,6 +82,14 @@ protected:
 
 	virtual void OnDead_Internal(const FDeathInfo& Info, bool bSimulated = false);
 
+	FTimerHandle DeathRagdollTimerHandle;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float DeathRagdollTime = 3.f;
+
+	UFUNCTION()
+	virtual void OnDeathRagdollTimeEnded();
+
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnDead_BP(const FDeathInfo& Info, bool bSimulated = false);
 

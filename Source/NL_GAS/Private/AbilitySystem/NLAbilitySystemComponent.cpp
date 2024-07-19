@@ -187,6 +187,16 @@ void UNLAbilitySystemComponent::WeaponAdded(AWeaponActor* Weapon)
 	}
 }
 
+void UNLAbilitySystemComponent::WeaponDropped(AWeaponActor* Weapon)
+{
+	if (GetOwnerRole() == ROLE_Authority)
+	{
+		ClearAbility(Weapon->PrimaryAbilitySpecHandle);
+		ClearAbility(Weapon->SecondaryAbilitySpecHandle);
+		ClearAbility(Weapon->ReloadAbilitySpecHandle);
+	}
+}
+
 void UNLAbilitySystemComponent::WeaponHolstered(const AWeaponActor* Weapon)
 {
 	if (GetOwnerRole() == ROLE_Authority)

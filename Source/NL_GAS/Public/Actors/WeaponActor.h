@@ -80,7 +80,11 @@ protected:
 
 	bool bIsEverDrawn;
 
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_IsEquipped)
 	bool bIsEquipped;
+
+	UFUNCTION()
+	void OnRep_IsEquipped();
 
 	bool bIsTacticalReload;
 

@@ -76,6 +76,14 @@ void ANLCharacterBase::DisableRagdoll()
 {
     GetMesh()->SetSimulatePhysics(false);
     GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    
+    if (ACharacter* DefaultCharacter = GetClass()->GetDefaultObject<ACharacter>())
+    {
+        FVector DefaultLocation = DefaultCharacter->GetMesh()->GetRelativeLocation();
+        FRotator DefaultRotation = DefaultCharacter->GetMesh()->GetRelativeRotation();
+        GetMesh()->SetRelativeLocation(DefaultLocation);
+        GetMesh()->SetRelativeRotation(DefaultRotation);
+    }
 }
 
 void ANLCharacterBase::InitAbilityActorInfo() {}
@@ -116,14 +124,7 @@ void ANLCharacterBase::OnRep_DeathInfo()
         return;
     }
 
-    if (GetLocalRole() == ROLE_SimulatedProxy)
-    {
-        OnDead_Internal(DeathInfo, true);
-    }
-    else
-    {
-        OnDead_Internal(DeathInfo, false);
-    }
+    OnDead_Internal(DeathInfo, GetLocalRole() == ROLE_SimulatedProxy);
 }
 
 void ANLCharacterBase::OnDead_Internal(const FDeathInfo& Info, bool bSimulated)
@@ -131,6 +132,21 @@ void ANLCharacterBase::OnDead_Internal(const FDeathInfo& Info, bool bSimulated)
     DeathInfo = Info;
 
     EnableRagdoll();
+    GetWorldTimerManager().SetTimer(DeathRagdollTimerHandle, this, &ANLCharacterBase::OnDeathRagdollTimeEnded, DeathRagdollTime, false);
+
+    if (NLCharacterComponent)
+    {
+        NLCharacterComponent->HandleOwnerDeath();
+    }
 
     OnDead_BP(Info, bSimulated);
+}
+
+void ANLCharacterBase::OnDeathRagdollTimeEnded()
+{
+    GetMesh()->SetVisibility(false);
+
+    DisableRagdoll();
+
+    SetActorLocation(FVector(0.f, 0.f, 0.f));
 }
