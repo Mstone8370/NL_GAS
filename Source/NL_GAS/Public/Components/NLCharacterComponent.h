@@ -53,7 +53,10 @@ protected:
 	UFUNCTION()
 	void OnRep_WeaponActorSlot(TArray<AWeaponActor*> OldWeaponActorSlot);
 
-	// 현재 들고있는 무기 정보로 무기의 Hidden 상태와 메시의 애니메이션 업데이트
+	// 현재 들고있는 무기 정보로 뷰 메시와 3인칭 캐릭터 메시 업데이트
+	void UpdateMeshes(AWeaponActor* OldWeaponActor = nullptr, bool bIsSimulated = false);
+
+	// 현재 들고있는 무기 정보로 3인칭 캐릭터 메시의 애니메이션 업데이트
 	void UpdateOwningCharacterMesh(AWeaponActor* OldWeaponActor = nullptr);
 
 	UPROPERTY(BlueprintReadOnly)

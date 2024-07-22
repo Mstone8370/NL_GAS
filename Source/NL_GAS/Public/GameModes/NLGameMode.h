@@ -27,4 +27,6 @@ protected:
 	virtual void SetRespawnTime(AActor* TargetActor);
 
 	virtual void MulticastKillLog(AActor* SourceActor, AActor* TargetActor, FGameplayTag DamageType);
+
+	virtual void RespawnPlayer(APlayerController* PC);
 };

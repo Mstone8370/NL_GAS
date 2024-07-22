@@ -191,6 +191,10 @@ void UNLAbilitySystemComponent::WeaponDropped(AWeaponActor* Weapon)
 {
 	if (GetOwnerRole() == ROLE_Authority)
 	{
+		CancelAbilityHandle(Weapon->PrimaryAbilitySpecHandle);
+		CancelAbilityHandle(Weapon->SecondaryAbilitySpecHandle);
+		CancelAbilityHandle(Weapon->ReloadAbilitySpecHandle);
+
 		ClearAbility(Weapon->PrimaryAbilitySpecHandle);
 		ClearAbility(Weapon->SecondaryAbilitySpecHandle);
 		ClearAbility(Weapon->ReloadAbilitySpecHandle);

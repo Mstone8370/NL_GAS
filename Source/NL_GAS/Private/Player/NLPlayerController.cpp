@@ -253,6 +253,7 @@ void ANLPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 void ANLPlayerController::Respawn()
 {
     UE_LOG(LogTemp, Warning, TEXT("Respawn requested"));
+    Server_RespawnRequested(this);
 }
 
 UNLAbilitySystemComponent* ANLPlayerController::GetNLAbilitySystemComponent()
@@ -367,6 +368,11 @@ void ANLPlayerController::OnTakenDamage(const FHitResult* InHitResult, FVector D
 void ANLPlayerController::OnKilled(AActor* TargetActor)
 {
     Client_OnKilled(TargetActor);
+}
+
+void ANLPlayerController::Server_RespawnRequested_Implementation(APlayerController* PC)
+{
+    OnRequestRespawn.ExecuteIfBound(this);
 }
 
 void ANLPlayerController::OnDead(AActor* SourceActor, FGameplayTag DamageType)

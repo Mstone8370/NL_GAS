@@ -25,6 +25,7 @@ DECLARE_EVENT_ThreeParams(ANLPlayerController, FOnPlayerDeathSignature, AActor* 
 DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnReceivedKillLogSignature, AActor* /*SourceActor*/, AActor* /*TargetActor*/, FGameplayTag /*DamageType*/);
 DECLARE_MULTICAST_DELEGATE(FOnRespawnableSignature);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnKillSignature, AActor* /*TargetActor*/);
+DECLARE_DELEGATE_OneParam(FOnRequestRespawn, APlayerController* /*PC*/);
 
 /**
  * 
@@ -77,6 +78,8 @@ public:
 
 	FOnKillSignature OnKill;
 
+	FOnRequestRespawn OnRequestRespawn;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TArray<TSoftObjectPtr<UInputMappingContext>> DefaultIMC;
 
@@ -126,6 +129,9 @@ protected:
 
 	UFUNCTION(Client, Reliable)
 	void Client_OnKilled(AActor* TargetActor);
+
+	UFUNCTION(Server, Reliable)
+	void Server_RespawnRequested(APlayerController* PC);
 
 public:
 	float GetBaseLookSensitivity() const { return LookSensitivity; }

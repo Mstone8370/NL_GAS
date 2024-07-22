@@ -864,10 +864,16 @@ void ANLPlayerCharacter::UpdateViewWeaponAndAnimLayer(USkeletalMesh* NewWeaponMe
         ViewWeaponMesh->HideBoneByName(FName("gun_sight_attach"), EPhysBodyOp::PBO_None);
         ViewWeaponMesh->HideBoneByName(FName("gun_muzzle_attach"), EPhysBodyOp::PBO_None);
     }
+    else
+    {
+        ViewWeaponMesh->SetSkeletalMesh(nullptr);
+    }
+
     if (WeaponAnimInstanceClass)
     {
         ViewWeaponMesh->SetAnimInstanceClass(WeaponAnimInstanceClass);
     }
+
     if (NewAnimLayerClass)
     {
         ArmMesh->LinkAnimClassLayers(NewAnimLayerClass);

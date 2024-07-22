@@ -137,6 +137,9 @@ void AWeaponActor::SetWeaponState(bool bInIsEuipped)
 		WeaponMeshComponent->bOwnerNoSee = false;
 		WeaponMeshComponent->SetSimulatePhysics(true);
 		WeaponMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+
+		bIsEverDrawn = false;
+		ReloadState = EReloadState::None;
 	}
 }
 

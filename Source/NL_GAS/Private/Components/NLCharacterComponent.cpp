@@ -107,7 +107,7 @@ void UNLCharacterComponent::OnRep_CurrentWeaponSlot(uint8 OldSlot)
     }
 
     AWeaponActor* OldWeapon = GetWeaponActorAtSlot(OldSlot);
-    UpdateOwningCharacterMesh(OldWeapon);
+    UpdateMeshes(OldWeapon, true);
 }
 
 void UNLCharacterComponent::OnRep_WeaponActorSlot(TArray<AWeaponActor*> OldWeaponActorSlot)
@@ -123,7 +123,29 @@ void UNLCharacterComponent::OnRep_WeaponActorSlot(TArray<AWeaponActor*> OldWeapo
             UpdateWeaponTagSlot();
             WeaponSlotChanged.Broadcast(WeaponTagSlot);
         }
+
+        UpdateMeshes(nullptr, GetOwner()->GetLocalRole() == ROLE_SimulatedProxy);
     }
+}
+
+void UNLCharacterComponent::UpdateMeshes(AWeaponActor* OldWeaponActor, bool bIsSimulated)
+{
+    if (!bIsSimulated)
+    {
+        const FGameplayTag WeaponTag = GetCurrentWeaponTag();
+        if (WeaponTag.IsValid())
+        {
+            if (const FWeaponInfo* Info = UNLFunctionLibrary::GetWeaponInfoByTag(this, WeaponTag))
+            {
+                GetOwningPlayer()->UpdateViewWeaponAndAnimLayer(
+                    Info->ViewModelMesh.LoadSynchronous(),
+                    Info->WeaponAnimBP,
+                    Info->ArmsAnimLayerClass
+                );
+            }
+        }
+    }
+    UpdateOwningCharacterMesh(OldWeaponActor);
 }
 
 void UNLCharacterComponent::UpdateOwningCharacterMesh(AWeaponActor* OldWeaponActor)
@@ -173,12 +195,7 @@ void UNLCharacterComponent::OnWeaponHolstered()
 
     CurrentWeaponSlot = WeaponSwapPendingSlot;
 
-    GetOwningPlayer()->UpdateViewWeaponAndAnimLayer(
-        ChangedWeapon->GetViewWeaponMesh(),
-        ChangedWeapon->GetWeaponAnimInstanceClass(),
-        ChangedWeapon->GetArmsAnimLayerClass()
-    );
-    UpdateOwningCharacterMesh();
+    UpdateMeshes();
     AttachWeaponToHand(ChangedWeapon);
 
     // Draw New Weapon
@@ -360,7 +377,7 @@ const FGameplayTag UNLCharacterComponent::GetWeaponTagAtSlot(uint8 Slot) const
     {
         return GetWeaponActorAtSlot(Slot)->GetWeaponTag();
     }
-    return FGameplayTag();
+    return Weapon_Unarmed;
 }
 
 const FGameplayTag UNLCharacterComponent::GetCurrentWeaponTag() const
@@ -778,6 +795,6 @@ void UNLCharacterComponent::DropCurrentWeapon()
         WeaponActor->SetWeaponState(false);
         WeaponActorSlot[CurrentWeaponSlot] = nullptr;
 
-        // TODO: Update view mesh
+        UpdateMeshes();
     }
 }

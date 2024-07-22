@@ -12,6 +12,7 @@ void ANLGameMode::PostLogin(APlayerController* NewPlayer)
     if (ANLPlayerController* NLPC = Cast<ANLPlayerController>(NewPlayer))
     {
         NLPC->OnPlayerDeath.AddUObject(this, &ANLGameMode::OnPlayerDead);
+        NLPC->OnRequestRespawn.BindUObject(this, &ANLGameMode::RespawnPlayer);
     }
 }
 
@@ -45,4 +46,9 @@ void ANLGameMode::MulticastKillLog(AActor* SourceActor, AActor* TargetActor, FGa
             NLPC->AddKillLog(SourceActor, TargetActor, DamageType);
         }
     }
+}
+
+void ANLGameMode::RespawnPlayer(APlayerController* PC)
+{
+    UE_LOG(LogTemp, Warning, TEXT("Respawn received: %s"), *GetNameSafe(PC));
 }
