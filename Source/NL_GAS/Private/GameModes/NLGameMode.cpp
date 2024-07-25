@@ -4,6 +4,11 @@
 #include "GameModes/NLGameMode.h"
 
 #include "Player/NLPlayerController.h"
+#include "GameFramework/Character.h"
+#include "Components/CapsuleComponent.h"
+#include "Kismet/GameplayStatics.h"
+
+#include "Actors/Volumes/RespawnArea.h"
 
 void ANLGameMode::PostLogin(APlayerController* NewPlayer)
 {
@@ -51,4 +56,49 @@ void ANLGameMode::MulticastKillLog(AActor* SourceActor, AActor* TargetActor, FGa
 void ANLGameMode::RespawnPlayer(APlayerController* PC)
 {
     UE_LOG(LogTemp, Warning, TEXT("Respawn received: %s"), *GetNameSafe(PC));
+
+    float HalfHeight = 0.f;
+    float Radius = 0.f;
+    if (APawn* PCPawn = PC->GetPawn())
+    {
+        if (ACharacter* DefaultCharacter = Cast<ACharacter>(PCPawn->GetClass()->GetDefaultObject()))
+        {
+            DefaultCharacter->GetCapsuleComponent()->GetScaledCapsuleSize(Radius, HalfHeight);
+        }
+    }
+
+    TArray<AActor*> RespawnAreas;
+    UGameplayStatics::GetAllActorsOfClass(this, ARespawnArea::StaticClass(), RespawnAreas);
+
+    // Shuffle Array from UKismetArrayLibrary::GenericArray_Shuffle
+    int32 LastIndex = RespawnAreas.Num() - 1;
+    for (int32 i = 0; i <= LastIndex; ++i)
+    {
+        int32 Index = FMath::RandRange(i, LastIndex);
+        if (i != Index)
+        {
+            Swap(RespawnAreas[i], RespawnAreas[Index]);
+        }
+    }
+
+    FVector RespawnLocation = FVector::ZeroVector;
+    for (AActor* Actor : RespawnAreas)
+    {
+        if (ARespawnArea* RespawnArea = Cast<ARespawnArea>(Actor))
+        {
+            if (RespawnArea->GetRespawnableLocation(HalfHeight, Radius, RespawnLocation))
+            {
+                break;
+            }
+        }
+    }
+
+    if (APawn* PCPawn = PC->GetPawn())
+    {
+        PCPawn->SetActorLocation(RespawnLocation);
+    }
+    if (ANLPlayerController* NLPC = Cast<ANLPlayerController>(PC))
+    {
+        NLPC->OnRespawned();
+    }
 }

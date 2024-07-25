@@ -133,6 +133,9 @@ protected:
 	UFUNCTION(Server, Reliable)
 	void Server_RespawnRequested(APlayerController* PC);
 
+	UFUNCTION(Client, Reliable)
+	void Client_OnRespawned();
+
 public:
 	float GetBaseLookSensitivity() const { return LookSensitivity; }
 
@@ -150,4 +153,6 @@ public:
 	void AddKillLog(AActor* SourceActor, AActor* TargetActor, FGameplayTag DamageType);
 
 	void SetRespawnTime(float RespawnTime);
+
+	void OnRespawned();
 };

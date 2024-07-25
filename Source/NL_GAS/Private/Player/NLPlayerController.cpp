@@ -375,6 +375,19 @@ void ANLPlayerController::Server_RespawnRequested_Implementation(APlayerControll
     OnRequestRespawn.ExecuteIfBound(this);
 }
 
+void ANLPlayerController::Client_OnRespawned_Implementation()
+{
+    RemoveIMC(DeathIMC);
+    AddIMC(DefaultIMC);
+
+    if (GetNLHUD())
+    {
+        // GetNLHUD()->OnCharacterRespawn();
+    }
+
+    SetViewTarget(GetPawn());
+}
+
 void ANLPlayerController::OnDead(AActor* SourceActor, FGameplayTag DamageType)
 {
     RemoveIMC(DefaultIMC);
@@ -390,6 +403,16 @@ void ANLPlayerController::OnDead(AActor* SourceActor, FGameplayTag DamageType)
 void ANLPlayerController::SetRespawnTime(float RespawnTime)
 {
     GetWorldTimerManager().SetTimer(RespawnTimerHandle, this, &ANLPlayerController::OnRespawnableState, RespawnTime, false);
+}
+
+void ANLPlayerController::OnRespawned()
+{
+    if (GetNLPlayerCharacter())
+    {
+        GetNLPlayerCharacter()->OnRespawned();
+    }
+
+    Client_OnRespawned();
 }
 
 void ANLPlayerController::AddKillLog_Implementation(AActor* SourceActor, AActor* TargetActor, FGameplayTag DamageType)

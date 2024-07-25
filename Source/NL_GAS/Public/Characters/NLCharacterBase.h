@@ -55,6 +55,8 @@ public:
 	virtual void EnableRagdoll();
 	virtual void DisableRagdoll();
 
+	virtual void OnRespawned();
+
 protected:
 	UPROPERTY()
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
@@ -78,7 +80,7 @@ protected:
 	FDeathInfo DeathInfo;
 
 	UFUNCTION()
-	void OnRep_DeathInfo();
+	void OnRep_DeathInfo(FDeathInfo OldDeathInfo);
 
 	virtual void OnDead_Internal(const FDeathInfo& Info, bool bSimulated = false);
 
@@ -92,6 +94,11 @@ protected:
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnDead_BP(const FDeathInfo& Info, bool bSimulated = false);
+
+	virtual void OnRespawned_Internal(bool bSimulated = false);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnRespawned_BP(bool bSimulated = false);
 
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Ability")

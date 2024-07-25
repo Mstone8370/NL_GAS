@@ -23,6 +23,18 @@ struct FDeathInfo
 
 	TSharedPtr<FGameplayTag> DamageType;
 
+	FDeathInfo()
+	{
+		bIsDead = false;
+		SourceActor = nullptr;
+		DamageType = nullptr;
+	}
+
+	FDeathInfo(bool bInIsDead) : FDeathInfo()
+	{
+		bIsDead = bInIsDead;
+	}
+
 	bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess);
 };
 

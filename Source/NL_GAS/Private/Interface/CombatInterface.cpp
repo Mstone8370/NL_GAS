@@ -21,10 +21,9 @@ bool FDeathInfo::NetSerialize(FArchive& Ar, UPackageMap* Map, bool& bOutSuccess)
 
     Ar.SerializeBits(&Flags, 2);
 
-    if (Flags & (1 << 0))
+    bIsDead = Flags & (1 << 0);
+    if (bIsDead)
     {
-        bIsDead = true;
-
         Ar << SourceActor;
 
         if (Ar.IsLoading())

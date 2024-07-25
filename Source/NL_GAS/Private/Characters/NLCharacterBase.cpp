@@ -14,6 +14,8 @@ ANLCharacterBase::ANLCharacterBase(const FObjectInitializer& ObjectInitializer)
 {
     PrimaryActorTick.bCanEverTick = false;
 
+    bReplicates = true;
+
     NLCharacterComponent = CreateDefaultSubobject<UNLCharacterComponent>(FName("NLCharacterComponent"));
 }
 
@@ -86,6 +88,13 @@ void ANLCharacterBase::DisableRagdoll()
     }
 }
 
+void ANLCharacterBase::OnRespawned()
+{
+    // On Server
+    
+    OnRespawned_Internal();
+}
+
 void ANLCharacterBase::InitAbilityActorInfo() {}
 
 void ANLCharacterBase::AddStartupAbilities()
@@ -117,14 +126,22 @@ void ANLCharacterBase::InitDefaultAttribute()
     }
 }
 
-void ANLCharacterBase::OnRep_DeathInfo()
+void ANLCharacterBase::OnRep_DeathInfo(FDeathInfo OldDeathInfo)
 {
-    if (!DeathInfo.bIsDead)
+    if (DeathInfo.bIsDead == OldDeathInfo.bIsDead)
     {
         return;
     }
 
-    OnDead_Internal(DeathInfo, GetLocalRole() == ROLE_SimulatedProxy);
+    if (DeathInfo.bIsDead)
+    {
+        OnDead_Internal(DeathInfo, GetLocalRole() == ROLE_SimulatedProxy);
+    }
+    else
+    {
+        OnRespawned_Internal(GetLocalRole() == ROLE_SimulatedProxy);
+        UE_LOG(LogTemp, Warning, TEXT("Client Respawn"));
+    }
 }
 
 void ANLCharacterBase::OnDead_Internal(const FDeathInfo& Info, bool bSimulated)
@@ -149,4 +166,25 @@ void ANLCharacterBase::OnDeathRagdollTimeEnded()
     DisableRagdoll();
 
     SetActorLocation(FVector(0.f, 0.f, 0.f));
+}
+
+void ANLCharacterBase::OnRespawned_Internal(bool bSimulated)
+{
+    DeathInfo.bIsDead = false;
+    DeathInfo.SourceActor.Reset();
+    DeathInfo.DamageType.Reset();
+
+    ForceNetUpdate();
+
+    GetMesh()->SetVisibility(true);
+
+    if (ACharacter* DefaultCharacter = Cast<ACharacter>(GetClass()->GetDefaultObject()))
+    {
+        const FVector MeshLocation = DefaultCharacter->GetMesh()->GetRelativeLocation();
+        const FRotator MeshRotation = DefaultCharacter->GetMesh()->GetRelativeRotation();
+
+        GetMesh()->SetRelativeLocationAndRotation(MeshLocation, MeshRotation);
+    }
+
+    OnRespawned_BP(bSimulated);
 }
