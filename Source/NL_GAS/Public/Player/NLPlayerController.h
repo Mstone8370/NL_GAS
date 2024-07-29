@@ -21,11 +21,12 @@ class UEnhancedInputLocalPlayerSubsystem;
 struct FInputActionValue;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnTakenDamageSignature, FVector);
-DECLARE_EVENT_ThreeParams(ANLPlayerController, FOnPlayerDeathSignature, AActor* /*SourceActor*/, AActor* /*TargetActor*/, FGameplayTag /*DamageType*/);
 DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnReceivedKillLogSignature, AActor* /*SourceActor*/, AActor* /*TargetActor*/, FGameplayTag /*DamageType*/);
 DECLARE_MULTICAST_DELEGATE(FOnRespawnableSignature);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnKillSignature, AActor* /*TargetActor*/);
 DECLARE_DELEGATE_OneParam(FOnRequestRespawn, APlayerController* /*PC*/);
+DECLARE_EVENT_ThreeParams(ANLPlayerController, FOnPlayerDeathSignature, AActor* /*SourceActor*/, AActor* /*TargetActor*/, FGameplayTag /*DamageType*/);
+DECLARE_EVENT(ANLPlayerController, FOnPlayerRespawnSignature);
 
 /**
  * 
@@ -70,8 +71,6 @@ public:
 
 	FOnTakenDamageSignature OnTakenDamageDelegate;
 
-	FOnPlayerDeathSignature OnPlayerDeath;
-
 	FOnReceivedKillLogSignature OnReceivedKillLog;
 
 	FOnRespawnableSignature OnRespawnable;
@@ -79,6 +78,10 @@ public:
 	FOnKillSignature OnKill;
 
 	FOnRequestRespawn OnRequestRespawn;
+
+	FOnPlayerDeathSignature OnPlayerDeath;
+
+	FOnPlayerRespawnSignature OnPlayerRespawn;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TArray<TSoftObjectPtr<UInputMappingContext>> DefaultIMC;

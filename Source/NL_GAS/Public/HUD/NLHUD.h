@@ -53,4 +53,7 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnCharacterDead();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnCharacterRespawn();
 };

@@ -16,6 +16,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPlayerDeathSignature);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FReceivedKillLogSignature, const AActor*, SourceActor, const AActor*, TargetActor, const FGameplayTag, DamageType);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FRespawnableSingature);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FKilled, AActor*, TargetActor);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPlayerRespawnSignature);
 
 /**
  * 
@@ -59,6 +60,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FKilled Killed;
+
+	UPROPERTY(BlueprintAssignable)
+	FPlayerRespawnSignature PlayerRespawn;
 
 protected:
 	UFUNCTION()

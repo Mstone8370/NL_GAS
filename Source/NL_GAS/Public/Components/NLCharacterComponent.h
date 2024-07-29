@@ -84,11 +84,15 @@ protected:
 
 	void AttachWeaponToHand(AWeaponActor* Weapon);
 
+	void ClearWeapons();
+
 private:
 	bool bStartupWeaponInitFinished;
 
+	UPROPERTY()
 	TArray<AWeaponActor*> InitializedStartupWeapons;
 
+	UPROPERTY()
 	TMap<FName, AWeaponActor*> WeaponSlotSocketMap;
 
 public:	

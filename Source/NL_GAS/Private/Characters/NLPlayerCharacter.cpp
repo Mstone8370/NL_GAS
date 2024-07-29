@@ -165,8 +165,8 @@ void ANLPlayerCharacter::PossessedBy(AController* NewController)
     TryInitializeHUD();
     
     AddStartupAbilities();
-    
-    if (GetNetMode() == NM_ListenServer || GetNetMode() == NM_Standalone)
+
+    if (NewController->IsLocalPlayerController())
     {
         NLCharacterComponent->AddStartupWeapons();
         NLCharacterComponent->ValidateStartupWeapons();
@@ -815,6 +815,19 @@ void ANLPlayerCharacter::OnDead_Internal(const FDeathInfo& Info, bool bSimulated
             DamageType = *Info.DamageType.Get();
         }
         GetNLPC()->OnDead(Info.SourceActor.Get(), DamageType);
+    }
+
+    bRequestedStartupWeapons = false;
+}
+
+void ANLPlayerCharacter::OnRespawned_Internal(bool bSimulated)
+{
+    Super::OnRespawned_Internal(bSimulated);
+
+    if (HasAuthority())
+    {
+        NLCharacterComponent->AddStartupWeapons();
+        NLCharacterComponent->ValidateStartupWeapons();
     }
 }
 

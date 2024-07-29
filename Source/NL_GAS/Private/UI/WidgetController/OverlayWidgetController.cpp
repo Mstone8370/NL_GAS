@@ -57,6 +57,12 @@ void UOverlayWidgetController::BindEvents()
             Killed.Broadcast(TargetActor);
         }
     );
+    GetNLPC()->OnPlayerRespawn.AddLambda(
+        [this]()
+        {
+            PlayerRespawn.Broadcast();
+        }
+    );
 }
 
 void UOverlayWidgetController::BroadcastInitialValues()

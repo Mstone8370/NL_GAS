@@ -170,11 +170,7 @@ void ANLCharacterBase::OnDeathRagdollTimeEnded()
 
 void ANLCharacterBase::OnRespawned_Internal(bool bSimulated)
 {
-    DeathInfo.bIsDead = false;
-    DeathInfo.SourceActor.Reset();
-    DeathInfo.DamageType.Reset();
-
-    ForceNetUpdate();
+    DeathInfo = FDeathInfo(false);
 
     GetMesh()->SetVisibility(true);
 

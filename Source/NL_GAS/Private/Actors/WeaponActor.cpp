@@ -140,6 +140,7 @@ void AWeaponActor::SetWeaponState(bool bInIsEuipped)
 
 		bIsEverDrawn = false;
 		ReloadState = EReloadState::None;
+		BulletNumChanged.Clear();
 	}
 }
 

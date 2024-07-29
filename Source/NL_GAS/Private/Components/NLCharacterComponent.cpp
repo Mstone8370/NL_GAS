@@ -30,10 +30,7 @@ UNLCharacterComponent::UNLCharacterComponent()
     WeaponSlotSocketMap.Add(FName("weapon_slot_3"), nullptr);
 
     WeaponActorSlot.Reset(MaxWeaponSlotSize);
-    for (uint8 i = 0; i < MaxWeaponSlotSize; i++)
-    {
-        WeaponActorSlot.Add(nullptr);
-    }
+    WeaponActorSlot.Init(nullptr, MaxWeaponSlotSize);
 }
 
 void UNLCharacterComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -57,16 +54,12 @@ void UNLCharacterComponent::AddStartupWeapons()
     check(ASC);
     check(OwningPlayer);
 
-    int32 StartupWeaponNum = FMath::Min(int32(MaxWeaponSlotSize), PS->StartupWeapons.Num());
-    int32 SlotSize = FMath::Max(StartupWeaponNum, int32(MaxWeaponSlotSize));
     WeaponActorSlot.Reset(MaxWeaponSlotSize);
-    for (uint8 i = 0; i < MaxWeaponSlotSize; i++)
-    {
-        WeaponActorSlot.Add(nullptr);
-    }
+    WeaponActorSlot.Init(nullptr, MaxWeaponSlotSize);
 
     FScopedAbilityListLock ActiveScopeLock(*ASC);
 
+    const int32 StartupWeaponNum = FMath::Min(int32(MaxWeaponSlotSize), PS->StartupWeapons.Num());
     for (int32 i = 0; i < StartupWeaponNum; i++)
     {
         const FGameplayTag& WeaponTag = PS->StartupWeapons[i];
@@ -272,6 +265,7 @@ void UNLCharacterComponent::AttachWeaponToHand(AWeaponActor* Weapon)
     }
     if (TargetSocketName.IsNone())
     {
+        UE_LOG(LogTemp, Error, TEXT("Error: No available socket for attachment."));
         return;
     }
 
@@ -280,6 +274,33 @@ void UNLCharacterComponent::AttachWeaponToHand(AWeaponActor* Weapon)
     FAttachmentTransformRules AttachRule = FAttachmentTransformRules::SnapToTargetNotIncludingScale;
     AttachRule.RotationRule = EAttachmentRule::KeepRelative;
     Weapon->AttachToComponent(GetOwningPlayer()->GetMesh(), AttachRule, FName("weapon_r"));
+}
+
+void UNLCharacterComponent::ClearWeapons()
+{
+    bStartupWeaponInitFinished = false;
+    /**
+    * 리스폰할때 0번 슬롯 무기를 들게 하려면 CurrentWeaponSlot이 0이면 안되므로 다른 값을 넣어야함
+    * 근데 이 변수 타입이 uint라서 음수는 안되니 마지막 인덱스를 넘는 값으로 지정함.
+    */
+    CurrentWeaponSlot = MaxWeaponSlotSize;
+
+    for (TPair<FName, AWeaponActor*>& Item : WeaponSlotSocketMap)
+    {
+        Item.Value = nullptr;
+    }
+
+    if (GetOwnerRole() == ENetRole::ROLE_Authority)
+    {
+        for (uint8 i = 0; i < WeaponActorSlot.Num(); i++)
+        {
+            if (IsValid(WeaponActorSlot[i]))
+            {
+                WeaponActorSlot[i]->Destroy();
+            }
+            WeaponActorSlot[i] = nullptr;
+        }
+    }
 }
 
 ANLCharacterBase* UNLCharacterComponent::GetOwningCharacter() const
@@ -418,8 +439,8 @@ void UNLCharacterComponent::ValidateStartupWeapons()
         return;
     }
 
-    int32 StartupWeaponNum = FMath::Min(int32(MaxWeaponSlotSize), GetOwningPlayerState()->StartupWeapons.Num());
-    if (WeaponActorSlot.Num() == StartupWeaponNum && InitializedStartupWeapons.Num() == StartupWeaponNum)
+    const int32 StartupWeaponNum = FMath::Min(int32(MaxWeaponSlotSize), PS->StartupWeapons.Num());
+    if (InitializedStartupWeapons.Num() == StartupWeaponNum)
     {
         bool bAllInitalizedAndValid = true;
         for (int32 i = 0; i < StartupWeaponNum; i++)
@@ -439,11 +460,13 @@ void UNLCharacterComponent::ValidateStartupWeapons()
             {
                 // Update Simulated Character Mesh
                 // 나중에 접속한 클라이언트 입장에서도 기존에 접속했던 플레이어들의 무기 정보에 맞게 업데이트
+                CurrentWeaponSlot = 1;
                 UpdateOwningCharacterMesh();
             }
             else if (GetOwningPlayer()->GetNLPC()) // 클라이언트면 클라이언트에서 어빌리티 활성화 하게 함.
             {
                 UAbilitySystemComponent* ASC = GetASC();
+                /*
                 FTimerHandle TimerHandle;
                 FTimerDelegate TimerDelegate;
                 TimerDelegate.BindLambda(
@@ -455,6 +478,9 @@ void UNLCharacterComponent::ValidateStartupWeapons()
                     }
                 );
                 GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 1.f, false);
+                */
+                FGameplayTagContainer TagContainer(Ability_WeaponChange_1);
+                ASC->TryActivateAbilitiesByTag(TagContainer);
 
                 UpdateWeaponTagSlot();
                 WeaponSlotChanged.Broadcast(WeaponTagSlot);
@@ -765,36 +791,30 @@ void UNLCharacterComponent::HandleOwnerDeath()
 {
     DropCurrentWeapon();
     
-    if (GetOwner()->HasAuthority())
-    {
-        for (uint8 i = 0; i < WeaponActorSlot.Num(); i++)
-        {
-            if (IsValid(WeaponActorSlot[i]))
-            {
-                WeaponActorSlot[i]->Destroy();
-            }
-            WeaponActorSlot[i] = nullptr;
-        }
-        CurrentWeaponSlot = 0;
-    }
+    ClearWeapons();
 }
 
 void UNLCharacterComponent::DropCurrentWeapon()
 {
-    if (!GetOwner()->HasAuthority())
+    AWeaponActor* WeaponActor = GetCurrentWeaponActor();
+    if (!IsValid(WeaponActor))
     {
         return;
     }
 
-    if (AWeaponActor* WeaponActor = GetCurrentWeaponActor())
+    if (GetOwnerRole() == ENetRole::ROLE_Authority)
     {
         GetNLASC()->WeaponDropped(WeaponActor);
-        
+
         WeaponActor->SetOwner(nullptr);
         WeaponActor->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
         WeaponActor->SetWeaponState(false);
         WeaponActorSlot[CurrentWeaponSlot] = nullptr;
 
         UpdateMeshes();
+    }
+    else
+    {
+        // WeaponActorSlot[CurrentWeaponSlot] = nullptr;
     }
 }

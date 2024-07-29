@@ -382,10 +382,12 @@ void ANLPlayerController::Client_OnRespawned_Implementation()
 
     if (GetNLHUD())
     {
-        // GetNLHUD()->OnCharacterRespawn();
+        GetNLHUD()->OnCharacterRespawn();
     }
 
     SetViewTarget(GetPawn());
+
+    OnPlayerRespawn.Broadcast();
 }
 
 void ANLPlayerController::OnDead(AActor* SourceActor, FGameplayTag DamageType)
