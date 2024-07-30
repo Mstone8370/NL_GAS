@@ -114,7 +114,6 @@ void UNLCharacterComponent::OnRep_WeaponActorSlot(TArray<AWeaponActor*> OldWeapo
         if (GetOwner()->GetLocalRole() != ROLE_SimulatedProxy)
         {
             UpdateWeaponTagSlot();
-            WeaponSlotChanged.Broadcast(WeaponTagSlot);
 
             if (!IsValid(GetCurrentWeaponActor()))
             {
@@ -384,9 +383,10 @@ void UNLCharacterComponent::UpdateWeaponTagSlot()
         }
         else
         {
-            WeaponTagSlot.Add(FGameplayTag());
+            WeaponTagSlot.Add(FGameplayTag::EmptyTag);
         }
     }
+    WeaponSlotChanged.Broadcast(WeaponTagSlot);
 }
 
 int32 UNLCharacterComponent::GetWeaponSlotSize() const
@@ -509,7 +509,6 @@ void UNLCharacterComponent::ValidateStartupWeapons()
                 ASC->TryActivateAbilitiesByTag(TagContainer);
 
                 UpdateWeaponTagSlot();
-                WeaponSlotChanged.Broadcast(WeaponTagSlot);
             }
 
             // Clear up validation data
@@ -838,6 +837,8 @@ void UNLCharacterComponent::DropCurrentWeapon()
         WeaponActorSlot[CurrentWeaponSlot] = nullptr;
 
         UpdateMeshes();
+
+        UpdateWeaponTagSlot(); // for authorized player
 
         OnCurrentWeaponDropped();
     }
