@@ -172,6 +172,11 @@ void ANLCharacterBase::OnRespawned_Internal(bool bSimulated)
 {
     DeathInfo = FDeathInfo(false);
 
+    if (HasAuthority())
+    {
+        InitDefaultAttribute();
+    }
+
     GetMesh()->SetVisibility(true);
 
     if (ACharacter* DefaultCharacter = Cast<ACharacter>(GetClass()->GetDefaultObject()))

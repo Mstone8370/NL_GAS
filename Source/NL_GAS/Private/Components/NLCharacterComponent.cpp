@@ -445,11 +445,17 @@ void UNLCharacterComponent::ValidateStartupWeapons()
         bool bAllInitalizedAndValid = true;
         for (int32 i = 0; i < StartupWeaponNum; i++)
         {
-            const AWeaponActor* InitializedWeapon = InitializedStartupWeapons[i];
+            AWeaponActor* InitializedWeapon = InitializedStartupWeapons[i];
             if (!InitializedWeapon->IsInitialized() || !WeaponActorSlot.Contains(InitializedWeapon))
             {
                 bAllInitalizedAndValid = false;
                 break;
+            }
+
+            const FName AttachedSocketName = InitializedWeapon->GetAttachParentSocketName();
+            if (WeaponSlotSocketMap.Contains(AttachedSocketName))
+            {
+                WeaponSlotSocketMap[AttachedSocketName] = InitializedWeapon;
             }
         }
 
@@ -460,25 +466,12 @@ void UNLCharacterComponent::ValidateStartupWeapons()
             {
                 // Update Simulated Character Mesh
                 // 나중에 접속한 클라이언트 입장에서도 기존에 접속했던 플레이어들의 무기 정보에 맞게 업데이트
-                CurrentWeaponSlot = 1;
+                CurrentWeaponSlot = 0;
                 UpdateOwningCharacterMesh();
             }
             else if (GetOwningPlayer()->GetNLPC()) // 클라이언트면 클라이언트에서 어빌리티 활성화 하게 함.
             {
                 UAbilitySystemComponent* ASC = GetASC();
-                /*
-                FTimerHandle TimerHandle;
-                FTimerDelegate TimerDelegate;
-                TimerDelegate.BindLambda(
-                    [ASC]()
-                    {
-                        // Try Activate ChangeWeapon Ability
-                        FGameplayTagContainer TagContainer(Ability_WeaponChange_1);
-                        ASC->TryActivateAbilitiesByTag(TagContainer);
-                    }
-                );
-                GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 1.f, false);
-                */
                 FGameplayTagContainer TagContainer(Ability_WeaponChange_1);
                 ASC->TryActivateAbilitiesByTag(TagContainer);
 
