@@ -128,6 +128,8 @@ public:
 
 	void Holstered();
 
+	void Dropped();
+
 	bool CommitWeaponCost();
 
 	FORCEINLINE bool CanReload() const { return CurrentBulletNum < MagSize || ReloadState < EReloadState::None; }

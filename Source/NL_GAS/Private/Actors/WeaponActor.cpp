@@ -28,6 +28,7 @@ AWeaponActor::AWeaponActor()
 
 	WeaponMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(FName("WeaponMesh"));
 	WeaponMeshComponent->SetCollisionObjectType(ECC_WeaponProp);
+	WeaponMeshComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
 	WeaponMeshComponent->SetMassOverrideInKg(NAME_None, 2.f, true);
 	SetRootComponent(WeaponMeshComponent);
 }
@@ -176,6 +177,11 @@ void AWeaponActor::SetBulletNum_Internal(int32 NewBulletNum)
 void AWeaponActor::Holstered()
 {
 
+}
+
+void AWeaponActor::Dropped()
+{
+	WeaponMeshComponent->AddImpulse(GetActorRightVector() * 200.f, NAME_None, true);
 }
 
 bool AWeaponActor::CommitWeaponCost()

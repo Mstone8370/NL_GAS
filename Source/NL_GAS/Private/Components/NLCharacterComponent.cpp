@@ -333,6 +333,8 @@ void UNLCharacterComponent::OnCurrentWeaponDropped()
         GetWorld()->GetTimerManager().ClearTimer(DrawTimerHandle);
         OnWeaponDrawn();
     }
+
+    TrySwapWeaponSlot_Next();
 }
 
 ANLCharacterBase* UNLCharacterComponent::GetOwningCharacter() const
@@ -559,7 +561,7 @@ void UNLCharacterComponent::TrySwapWeaponSlot(int32 NewWeaponSlot)
 
     if (!IsValid(GetCurrentWeaponActor()))
     {
-        // Start up
+        // Start up or weapon drop
         OnWeaponHolstered();
         return;
     }
@@ -594,6 +596,20 @@ void UNLCharacterComponent::TrySwapWeaponSlot(int32 NewWeaponSlot)
     FTimerDelegate TimerDelegate;
     TimerDelegate.BindUObject(this, &UNLCharacterComponent::OnWeaponHolstered);
     PlayCurrentWeaponMontageAndSetCallback(Montage_Weapon_Holster, HolsterTimerHandle, TimerDelegate);
+}
+
+void UNLCharacterComponent::TrySwapWeaponSlot_Next(bool bPrev)
+{
+    for (int32 i = 1; i < MaxWeaponSlotSize; i++)
+    {
+        const int32 Offset = bPrev ? -i : i;
+        const int32 NewSlotNum = ((int32)(CurrentWeaponSlot + MaxWeaponSlotSize) + Offset) % MaxWeaponSlotSize;
+        if (CanSwapWeaponSlot(NewSlotNum))
+        {
+            TrySwapWeaponSlot(NewSlotNum);
+            return;
+        }
+    }
 }
 
 bool UNLCharacterComponent::CanAttack() const
@@ -834,6 +850,7 @@ void UNLCharacterComponent::DropCurrentWeapon()
         WeaponActor->SetOwner(nullptr);
         WeaponActor->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
         WeaponActor->SetWeaponState(false);
+        WeaponActor->Dropped();
         WeaponActorSlot[CurrentWeaponSlot] = nullptr;
 
         UpdateMeshes();

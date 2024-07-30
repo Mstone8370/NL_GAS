@@ -13,6 +13,8 @@ UE_DEFINE_GAMEPLAY_TAG(Input_Default_Melee, "Input.Default.Melee");
 UE_DEFINE_GAMEPLAY_TAG(Input_Default_WeaponSlot_1, "Input.Default.WeaponSlot.1");
 UE_DEFINE_GAMEPLAY_TAG(Input_Default_WeaponSlot_2, "Input.Default.WeaponSlot.2");
 UE_DEFINE_GAMEPLAY_TAG(Input_Default_WeaponSlot_3, "Input.Default.WeaponSlot.3");
+UE_DEFINE_GAMEPLAY_TAG(Input_Default_WeaponSlot_Prev, "Input.Default.WeaponSlot.Prev");
+UE_DEFINE_GAMEPLAY_TAG(Input_Default_WeaponSlot_Next, "Input.Default.WeaponSlot.Next");
 UE_DEFINE_GAMEPLAY_TAG(Input_Default_Interaction, "Input.Default.Interaction");
 UE_DEFINE_GAMEPLAY_TAG(Input_Weapon_PrimaryAction, "Input.Weapon.PrimaryAction");
 UE_DEFINE_GAMEPLAY_TAG(Input_Weapon_SecondaryAction, "Input.Weapon.SecondaryAction");
@@ -28,6 +30,8 @@ UE_DEFINE_GAMEPLAY_TAG(Ability_Weapon_Reload, "Ability.Weapon.Reload");
 UE_DEFINE_GAMEPLAY_TAG(Ability_WeaponChange_1, "Ability.WeaponChange.1");
 UE_DEFINE_GAMEPLAY_TAG(Ability_WeaponChange_2, "Ability.WeaponChange.2");
 UE_DEFINE_GAMEPLAY_TAG(Ability_WeaponChange_3, "Ability.WeaponChange.3");
+UE_DEFINE_GAMEPLAY_TAG(Ability_WeaponChange_Prev, "Ability.WeaponChange.Prev");
+UE_DEFINE_GAMEPLAY_TAG(Ability_WeaponChange_Next, "Ability.WeaponChange.Next");
 UE_DEFINE_GAMEPLAY_TAG(Ability_Melee, "Ability.Melee");
 UE_DEFINE_GAMEPLAY_TAG(Ability_Sprint, "Ability.Sprint");
 

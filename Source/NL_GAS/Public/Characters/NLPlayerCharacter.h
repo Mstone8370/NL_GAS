@@ -79,6 +79,7 @@ public:
 	//~Begin PlayerInterface
 	virtual bool CanSwapWeaponSlot_Implementation(int32 NewSlot) override;
 	virtual void TrySwapWeaponSlot_Implementation(int32 NewSlot) override;
+	virtual void TrySwapWeaponSlot_Next_Implementation(bool bPrev) override;
 	virtual void GetWeaponHandIKLocation_Implementation(FName LeftIKSocketName, FName RightIKSocketName, FVector& OutLeftIKLocation, FVector& OutRightIKLocation) const;
 	virtual float PlayCurrentWeaponMontage_Implementation(const FGameplayTag& MontageTag) override;
 	virtual void WeaponFired_Implementation(TSubclassOf<UCameraShakeBase> CameraShakeBaseClass) override;

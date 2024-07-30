@@ -30,6 +30,9 @@ public:
 	void TrySwapWeaponSlot(int32 NewSlot);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	void TrySwapWeaponSlot_Next(bool bPrev);
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void GetWeaponHandIKLocation(FName LeftIKSocketName, FName RightIKSocketName, FVector& OutLeftIKLocation, FVector& OutRightIKLocation) const;
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)

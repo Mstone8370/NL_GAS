@@ -139,6 +139,8 @@ public:
 
 	void TrySwapWeaponSlot(int32 NewWeaponSlot);
 
+	void TrySwapWeaponSlot_Next(bool bPrev = false);
+
 	bool CanAttack() const;
 
 	bool CommitWeaponCost(bool& bIsLast);

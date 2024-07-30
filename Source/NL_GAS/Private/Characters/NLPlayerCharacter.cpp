@@ -235,6 +235,11 @@ void ANLPlayerCharacter::TrySwapWeaponSlot_Implementation(int32 NewSlot)
     return NLCharacterComponent->TrySwapWeaponSlot(NewSlot);
 }
 
+void ANLPlayerCharacter::TrySwapWeaponSlot_Next_Implementation(bool bPrev)
+{
+    return NLCharacterComponent->TrySwapWeaponSlot_Next(bPrev);
+}
+
 void ANLPlayerCharacter::GetWeaponHandIKLocation_Implementation(FName LeftIKSocketName, FName RightIKSocketName, FVector& OutLeftIKLocation, FVector& OutRightIKLocation) const
 {
     OutLeftIKLocation = FVector::ZeroVector;
