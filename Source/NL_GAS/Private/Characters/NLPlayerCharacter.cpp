@@ -815,6 +815,19 @@ void ANLPlayerCharacter::OnDead_Internal(const FDeathInfo& Info, bool bSimulated
             DamageType = *Info.DamageType.Get();
         }
         GetNLPC()->OnDead(Info.SourceActor.Get(), DamageType);
+
+        if (GetLocalViewingPlayerController())
+        {
+            ArmMesh->SetVisibility(false, true);
+            ViewWeaponMesh->SetVisibility(false, true);
+        }
+    }
+
+    if (NLCharacterMovementComponent)
+    {
+        NLCharacterMovementComponent->bWantsToCrouch = false;
+        NLCharacterMovementComponent->bWantsToSprint = false;
+        bPressedJump = false;
     }
 
     bRequestedStartupWeapons = false;
@@ -828,6 +841,12 @@ void ANLPlayerCharacter::OnRespawned_Internal(bool bSimulated)
     {
         NLCharacterComponent->AddStartupWeapons();
         NLCharacterComponent->ValidateStartupWeapons();
+    }
+
+    if (!bSimulated && GetLocalViewingPlayerController())
+    {
+        ArmMesh->SetVisibility(true, true);
+        ViewWeaponMesh->SetVisibility(true, true);
     }
 }
 

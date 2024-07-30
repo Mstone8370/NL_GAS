@@ -86,6 +86,8 @@ protected:
 
 	void ClearWeapons();
 
+	void OnCurrentWeaponDropped(); // for local controlled player
+
 private:
 	bool bStartupWeaponInitFinished;
 

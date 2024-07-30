@@ -168,7 +168,7 @@ void UNLAbilitySystemComponent::AddAbilities(const TMap<FGameplayTag, TSubclassO
 
 void UNLAbilitySystemComponent::WeaponAdded(AWeaponActor* Weapon)
 {
-	if (GetOwnerRole() == ROLE_Authority)
+	if (IsValid(Weapon) && GetOwnerRole() == ROLE_Authority)
 	{
 		FGameplayAbilitySpec PrimaryAbilitySpec = FGameplayAbilitySpec(Weapon->PrimaryAbilityClass, 1);
 		PrimaryAbilitySpec.DynamicAbilityTags.AddTag(Input_Weapon_PrimaryAction);
@@ -189,7 +189,7 @@ void UNLAbilitySystemComponent::WeaponAdded(AWeaponActor* Weapon)
 
 void UNLAbilitySystemComponent::WeaponDropped(AWeaponActor* Weapon)
 {
-	if (GetOwnerRole() == ROLE_Authority)
+	if (IsValid(Weapon) && GetOwnerRole() == ROLE_Authority)
 	{
 		CancelAbilityHandle(Weapon->PrimaryAbilitySpecHandle);
 		CancelAbilityHandle(Weapon->SecondaryAbilitySpecHandle);
@@ -203,7 +203,7 @@ void UNLAbilitySystemComponent::WeaponDropped(AWeaponActor* Weapon)
 
 void UNLAbilitySystemComponent::WeaponHolstered(const AWeaponActor* Weapon)
 {
-	if (GetOwnerRole() == ROLE_Authority)
+	if (IsValid(Weapon) && GetOwnerRole() == ROLE_Authority)
 	{
 		FScopedAbilityListLock ActiveScopeLock(*this);
 
@@ -227,7 +227,7 @@ void UNLAbilitySystemComponent::WeaponHolstered(const AWeaponActor* Weapon)
 
 void UNLAbilitySystemComponent::WeaponDrawn(const AWeaponActor* Weapon)
 {
-	if (GetOwnerRole() == ROLE_Authority)
+	if (IsValid(Weapon) && GetOwnerRole() == ROLE_Authority)
 	{
 		FScopedAbilityListLock ActiveScopeLock(*this);
 

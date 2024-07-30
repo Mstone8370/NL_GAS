@@ -8,6 +8,8 @@
 #include "Components/DamageTextWidgetComponent.h"
 #include "NLFunctionLibrary.h"
 #include "Net/UnrealNetwork.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Components/CapsuleComponent.h"
 
 ANLCharacterBase::ANLCharacterBase(const FObjectInitializer& ObjectInitializer)
     : Super(ObjectInitializer)
@@ -151,12 +153,20 @@ void ANLCharacterBase::OnDead_Internal(const FDeathInfo& Info, bool bSimulated)
     EnableRagdoll();
     GetWorldTimerManager().SetTimer(DeathRagdollTimerHandle, this, &ANLCharacterBase::OnDeathRagdollTimeEnded, DeathRagdollTime, false);
 
+    GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
     if (NLCharacterComponent)
     {
         NLCharacterComponent->HandleOwnerDeath();
     }
 
-    OnDead_BP(Info, bSimulated);
+    if (GetCharacterMovement())
+    {
+        GetCharacterMovement()->bWantsToCrouch = false;
+        GetCharacterMovement()->DisableMovement();
+    }
+
+    BP_SpawnDeathCamAndSetViewTarget(Info.SourceActor.Get());
 }
 
 void ANLCharacterBase::OnDeathRagdollTimeEnded()
@@ -177,6 +187,8 @@ void ANLCharacterBase::OnRespawned_Internal(bool bSimulated)
         InitDefaultAttribute();
     }
 
+    GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+
     GetMesh()->SetVisibility(true);
 
     if (ACharacter* DefaultCharacter = Cast<ACharacter>(GetClass()->GetDefaultObject()))
@@ -185,7 +197,12 @@ void ANLCharacterBase::OnRespawned_Internal(bool bSimulated)
         const FRotator MeshRotation = DefaultCharacter->GetMesh()->GetRelativeRotation();
 
         GetMesh()->SetRelativeLocationAndRotation(MeshLocation, MeshRotation);
+
+        GetCapsuleComponent()->SetCollisionEnabled(DefaultCharacter->GetCapsuleComponent()->GetCollisionEnabled());
     }
 
-    OnRespawned_BP(bSimulated);
+    if (GetCharacterMovement())
+    {
+        GetCharacterMovement()->SetMovementMode(GetCharacterMovement()->DefaultLandMovementMode);
+    }
 }

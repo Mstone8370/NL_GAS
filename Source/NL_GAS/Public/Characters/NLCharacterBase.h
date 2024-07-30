@@ -93,12 +93,9 @@ protected:
 	virtual void OnDeathRagdollTimeEnded();
 
 	UFUNCTION(BlueprintImplementableEvent)
-	void OnDead_BP(const FDeathInfo& Info, bool bSimulated = false);
+	void BP_SpawnDeathCamAndSetViewTarget(const AActor* SourceActor);
 
 	virtual void OnRespawned_Internal(bool bSimulated = false);
-
-	UFUNCTION(BlueprintImplementableEvent)
-	void OnRespawned_BP(bool bSimulated = false);
 
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Ability")

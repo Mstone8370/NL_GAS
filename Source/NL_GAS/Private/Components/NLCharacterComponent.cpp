@@ -115,6 +115,12 @@ void UNLCharacterComponent::OnRep_WeaponActorSlot(TArray<AWeaponActor*> OldWeapo
         {
             UpdateWeaponTagSlot();
             WeaponSlotChanged.Broadcast(WeaponTagSlot);
+
+            if (!IsValid(GetCurrentWeaponActor()))
+            {
+                // Current Weapon Dropped
+                OnCurrentWeaponDropped();
+            }
         }
 
         UpdateMeshes(nullptr, GetOwner()->GetLocalRole() == ROLE_SimulatedProxy);
@@ -184,20 +190,23 @@ void UNLCharacterComponent::OnWeaponHolstered()
         PrevWeapon->Holstered();
         AttachWeaponToSocket(PrevWeapon);
     }
-    AWeaponActor* ChangedWeapon = GetWeaponActorAtSlot(WeaponSwapPendingSlot);
 
     CurrentWeaponSlot = WeaponSwapPendingSlot;
 
     UpdateMeshes();
-    AttachWeaponToHand(ChangedWeapon);
 
-    // Draw New Weapon
-    const bool bDrawFirst = !ChangedWeapon->IsEverDrawn();
-    const FGameplayTag& CurrentWeaponTag = GetCurrentWeaponTag();
-    const FGameplayTag MontageTag = bDrawFirst ? Montage_Weapon_DrawFirst : Montage_Weapon_Draw;
-    FTimerDelegate TimerDelegate;
-    TimerDelegate.BindUObject(this, &UNLCharacterComponent::OnWeaponDrawn);
-    PlayCurrentWeaponMontageAndSetCallback(MontageTag, DrawTimerHandle, TimerDelegate);
+    if (AWeaponActor* ChangedWeapon = GetWeaponActorAtSlot(WeaponSwapPendingSlot))
+    {
+        AttachWeaponToHand(ChangedWeapon);
+
+        // Draw New Weapon
+        const bool bDrawFirst = !ChangedWeapon->IsEverDrawn();
+        const FGameplayTag& CurrentWeaponTag = GetCurrentWeaponTag();
+        const FGameplayTag MontageTag = bDrawFirst ? Montage_Weapon_DrawFirst : Montage_Weapon_Draw;
+        FTimerDelegate TimerDelegate;
+        TimerDelegate.BindUObject(this, &UNLCharacterComponent::OnWeaponDrawn);
+        PlayCurrentWeaponMontageAndSetCallback(MontageTag, DrawTimerHandle, TimerDelegate);
+    }
 }
 
 void UNLCharacterComponent::OnWeaponDrawn()
@@ -206,9 +215,13 @@ void UNLCharacterComponent::OnWeaponDrawn()
     GetWorld()->GetTimerManager().ClearTimer(DrawTimerHandle);
 
     GetASC()->SetLooseGameplayTagCount(Ability_Block_Weapon, 0);
-    GetNLASC()->WeaponDrawn(GetCurrentWeaponActor());
 
-    GetCurrentWeaponActor()->Drawn();
+    if (GetCurrentWeaponActor())
+    {
+        GetNLASC()->WeaponDrawn(GetCurrentWeaponActor());
+
+        GetCurrentWeaponActor()->Drawn();
+    }
 }
 
 void UNLCharacterComponent::OnWeaponBulletNumChanged(const AWeaponActor* Weapon, int32 NewBulletNum)
@@ -300,6 +313,26 @@ void UNLCharacterComponent::ClearWeapons()
             }
             WeaponActorSlot[i] = nullptr;
         }
+    }
+}
+
+void UNLCharacterComponent::OnCurrentWeaponDropped()
+{
+    if (GetOwningPlayer())
+    {
+        GetOwningPlayer()->StopWeaponAnimMontage();
+        GetOwningPlayer()->StopArmsAnimMontage();
+    }
+
+    if (GetWorld()->GetTimerManager().IsTimerActive(HolsterTimerHandle))
+    {
+        GetWorld()->GetTimerManager().ClearTimer(HolsterTimerHandle);
+        OnWeaponHolstered();
+    }
+    if (GetWorld()->GetTimerManager().IsTimerActive(DrawTimerHandle))
+    {
+        GetWorld()->GetTimerManager().ClearTimer(DrawTimerHandle);
+        OnWeaponDrawn();
     }
 }
 
@@ -805,9 +838,7 @@ void UNLCharacterComponent::DropCurrentWeapon()
         WeaponActorSlot[CurrentWeaponSlot] = nullptr;
 
         UpdateMeshes();
-    }
-    else
-    {
-        // WeaponActorSlot[CurrentWeaponSlot] = nullptr;
+
+        OnCurrentWeaponDropped();
     }
 }
