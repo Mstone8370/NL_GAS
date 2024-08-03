@@ -3,6 +3,7 @@
 
 #include "HUD/NLHUD.h"
 
+#include "Player/NLPlayerController.h"
 #include "Blueprint/UserWidget.h"
 #include "UI/UserWidget/NLUserWidget.h"
 #include "UI/WidgetController/NLWidgetController.h"
@@ -48,9 +49,16 @@ void ANLHUD::GetPlayerAimPoint(FVector& OutLocation, FRotator& OutRotation) cons
     OutRotation = FRotator::ZeroRotator;
     if (APlayerController* PC = GetOwningPlayerController())
     {
-        FRotator ViewRotator;
-        GetOwningPlayerController()->GetPlayerViewPoint(OutLocation, ViewRotator);
-        OutRotation = GetOwningPlayerController()->GetControlRotation();
+        if (ANLPlayerController* NLPC = Cast<ANLPlayerController>(PC))
+        {
+            NLPC->GetPlayerAimPoint(OutLocation, OutRotation);
+        }
+        else
+        {
+            FRotator ViewRotator;
+            GetOwningPlayerController()->GetPlayerViewPoint(OutLocation, ViewRotator);
+            OutRotation = GetOwningPlayerController()->GetControlRotation();
+        }
     }
 }
 

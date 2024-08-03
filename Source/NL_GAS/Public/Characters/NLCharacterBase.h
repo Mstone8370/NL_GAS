@@ -101,4 +101,7 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Ability")
 	TMap<FGameplayTag, TSubclassOf<UGameplayAbility>> StartupAbilities;
 
+public:
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	virtual void GetAimPoint(FVector& OutViewLocation, FRotator& OutViewRotation) const;
 };

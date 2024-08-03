@@ -349,6 +349,13 @@ void ANLPlayerController::SetLookSensitivity(float InLookSensitivity)
     CurrentLookSensitivity = InLookSensitivity;
 }
 
+void ANLPlayerController::GetPlayerAimPoint(FVector& ViewLocation, FRotator& ViewRotation) const
+{
+    FRotator ViewRot;
+    GetPlayerViewPoint(ViewLocation, ViewRot);
+    ViewRotation = GetControlRotation();
+}
+
 void ANLPlayerController::OnCausedDamage(float InDamage, bool bInIsCriticalHit, AActor* DamagedActor)
 {
     Client_ShowDamageCauseIndicator(InDamage, bInIsCriticalHit, DamagedActor);

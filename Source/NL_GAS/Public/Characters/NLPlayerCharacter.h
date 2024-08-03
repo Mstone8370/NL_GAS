@@ -91,9 +91,6 @@ public:
 	virtual void OnPickupableRangeExit_Implementation() override;
 	//~End PlayerInterface
 
-private:
-	int32 PickupableInRangeCount = 0;
-
 public:
 	//~Begin CombatInterface
 	virtual bool CanAttack_Implementation() override;
@@ -170,6 +167,16 @@ protected:
 	TObjectPtr<ANLPlayerController> NLPlayerController;
 
 	TObjectPtr<UNLAbilitySystemComponent> NLAbilitySystemComponent;
+
+	int32 PickupableInRangeCount = 0;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float PickupableSeekLength = 170.f;
+
+	void SeekPickupable();
+
+	UPROPERTY()
+	TObjectPtr<AActor> PickupableActor = nullptr;
 
 	void OnViewportResized(FViewport* InViewport, uint32 arg);
 
@@ -255,6 +262,8 @@ public:
 	float GetCrouchedHalfHeightDelta();
 
 	FORCEINLINE float GetLookPitch() const { return LookPitch; }
+
+	virtual void GetAimPoint(FVector& OutViewLocation, FRotator& OutViewRotation) const override;
 
 	bool IsListenServerControlledCharacter();
 

@@ -23,6 +23,7 @@
 #include "Components/NLViewSkeletalMeshComponent.h"
 #include "Data/NLDataTableRows.h"
 #include "Data/AimPunchData.h"
+#include "Interface/Pickupable.h"
 
 ANLPlayerCharacter::ANLPlayerCharacter(const FObjectInitializer& ObjectInitializer)
     : Super(ObjectInitializer.SetDefaultSubobjectClass<UNLCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))  // CharacterMovementComponent의 클래스를 NLCharacterMovementComponent로 변경
@@ -153,6 +154,7 @@ void ANLPlayerCharacter::Tick(float DeltaSeconds)
 
     InterpolateCrouch(DeltaSeconds);
     TiltCamera(DeltaSeconds);
+    SeekPickupable();
 }
 
 void ANLPlayerCharacter::PossessedBy(AController* NewController)
@@ -571,6 +573,35 @@ void ANLPlayerCharacter::OnEndLedgeClimb()
     }
 }
 
+void ANLPlayerCharacter::SeekPickupable()
+{
+    if (PickupableInRangeCount < 1)
+    {
+        return;
+    }
+
+    FVector ViewLocation = FVector::ZeroVector;
+    FRotator ViewRotation = FRotator::ZeroRotator;
+    GetAimPoint(ViewLocation, ViewRotation);
+
+    FHitResult HitRes;
+
+    FCollisionQueryParams Params;
+    Params.AddIgnoredActor(this);
+    Params.bTraceComplex = false;
+
+    const FVector Start = ViewLocation;
+    const FVector End = Start + ViewRotation.Vector() * PickupableSeekLength;
+
+    GetWorld()->LineTraceSingleByChannel(HitRes, Start, End, ECC_Visibility, Params);
+
+    if (HitRes.bBlockingHit && HitRes.GetActor() && HitRes.GetActor()->Implements<UPickupable>())
+    {
+        PickupableActor = HitRes.GetActor();
+        UE_LOG(LogTemp, Warning, TEXT("Pickupable: %s"), *GetNameSafe(PickupableActor));
+    }
+}
+
 void ANLPlayerCharacter::OnViewportResized(FViewport* InViewport, uint32 arg)
 {
     /**
@@ -875,6 +906,22 @@ float ANLPlayerCharacter::GetCrouchedHalfHeightDelta()
         CrouchedHalfHeightDelta = FMath::Abs(DefaultHalfHeight - CrouchedHalfHeight);
     }
     return CrouchedHalfHeightDelta;
+}
+
+void ANLPlayerCharacter::GetAimPoint(FVector& OutViewLocation, FRotator& OutViewRotation) const
+{
+    Super::GetAimPoint(OutViewLocation, OutViewRotation);
+
+    if (NLPlayerController)
+    {
+        NLPlayerController->GetPlayerAimPoint(OutViewLocation, OutViewRotation);
+    }
+    else if (GetController())
+    {
+        FRotator ViewRotator;
+        GetController()->GetPlayerViewPoint(OutViewLocation, ViewRotator);
+        OutViewRotation = GetController()->GetControlRotation();
+    }
 }
 
 bool ANLPlayerCharacter::IsListenServerControlledCharacter()

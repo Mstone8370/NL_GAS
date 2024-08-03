@@ -206,3 +206,9 @@ void ANLCharacterBase::OnRespawned_Internal(bool bSimulated)
         GetCharacterMovement()->SetMovementMode(GetCharacterMovement()->DefaultLandMovementMode);
     }
 }
+
+void ANLCharacterBase::GetAimPoint(FVector& OutViewLocation, FRotator& OutViewRotation) const
+{
+    OutViewLocation = GetActorLocation();
+    OutViewRotation = GetActorRotation();
+}

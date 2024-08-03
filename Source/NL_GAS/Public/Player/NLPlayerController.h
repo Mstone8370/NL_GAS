@@ -144,6 +144,9 @@ public:
 
 	void SetLookSensitivity(float InLookSensitivity);
 
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	void GetPlayerAimPoint(FVector& OutViewLocation, FRotator& OutViewRotation) const;
+
 	void OnCausedDamage(float InDamage, bool bInIsCriticalHit, AActor* DamagedActor);
 
 	void OnTakenDamage(const FHitResult* InHitResult, FVector DamageOrigin, bool bIsCriticalHit, const FGameplayTag& DamageType);
