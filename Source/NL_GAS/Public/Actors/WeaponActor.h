@@ -7,9 +7,11 @@
 #include "Data/WeaponInfo.h"
 #include "GameplayTagContainer.h"
 #include "GameplayAbilitySpec.h"
+#include "Interface/Pickupable.h"
 #include "WeaponActor.generated.h"
 
 class UGameplayAbility;
+class USphereComponent;
 
 UENUM(BlueprintType)
 enum EReloadState : uint8
@@ -24,7 +26,7 @@ enum EReloadState : uint8
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FBulletNumChangedSignature, const AWeaponActor*, Weapon, int32, NewBulletNum);
 
 UCLASS(Blueprintable, BlueprintType)
-class NL_GAS_API AWeaponActor : public AActor
+class NL_GAS_API AWeaponActor : public AActor, public IPickupable
 {
 	GENERATED_BODY()
 	
@@ -35,6 +37,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UStaticMeshComponent> WeaponMeshComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<USphereComponent> PickUpCollision;
 
 	TSubclassOf<UGameplayAbility> PrimaryAbilityClass;
 	FGameplayAbilitySpecHandle PrimaryAbilitySpecHandle;
@@ -96,9 +101,21 @@ protected:
 
 	FGameplayTag IronsightADSFOVTag;
 
+	UFUNCTION()
+	void OnPickUpCollisionBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	
+	UFUNCTION()
+	void OnPickUpCollisionEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
 public:
 	UFUNCTION(BlueprintCallable)
 	void InitializeWeapon(const FGameplayTag& InWeaponTag, bool bForceInit = false);
+	
+	//~Begin Pickupable interface
+	virtual bool CanPickedUp_Implementation() override;
+	virtual void OnPickedUp_Implementation() override;
+	virtual void OnDropped_Implementation() override;
+	//~End Pickupable interface
 
 	FORCEINLINE bool IsEquipped() const { return bIsEquipped; }
 

@@ -298,6 +298,16 @@ bool ANLPlayerCharacter::CommitWeaponCost_Implementation(bool& bIsLast)
     return NLCharacterComponent->CommitWeaponCost(bIsLast);
 }
 
+void ANLPlayerCharacter::OnPickupableRangeEnter_Implementation()
+{
+    PickupableInRangeCount++;
+}
+
+void ANLPlayerCharacter::OnPickupableRangeExit_Implementation()
+{
+    PickupableInRangeCount = FMath::Max(0, PickupableInRangeCount - 1);
+}
+
 bool ANLPlayerCharacter::CanAttack_Implementation()
 {
     return !bIsWeaponLowered && NLCharacterComponent->CanAttack();

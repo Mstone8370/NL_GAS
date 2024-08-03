@@ -846,11 +846,8 @@ void UNLCharacterComponent::DropCurrentWeapon()
     if (GetOwnerRole() == ENetRole::ROLE_Authority)
     {
         GetNLASC()->WeaponDropped(WeaponActor);
-
-        WeaponActor->SetOwner(nullptr);
-        WeaponActor->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-        WeaponActor->SetWeaponState(false);
         WeaponActor->Dropped();
+
         WeaponActorSlot[CurrentWeaponSlot] = nullptr;
 
         UpdateMeshes();

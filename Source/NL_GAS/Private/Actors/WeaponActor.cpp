@@ -3,6 +3,7 @@
 
 #include "Actors/WeaponActor.h"
 
+#include "Components/SphereComponent.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Data/WeaponInfo.h"
 #include "NL_GAS/NL_GAS.h"
@@ -13,6 +14,7 @@
 #include "Interface/CombatInterface.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "Interface/PlayerInterface.h"
 
 AWeaponActor::AWeaponActor()
 	: MagSize(0)
@@ -31,6 +33,14 @@ AWeaponActor::AWeaponActor()
 	WeaponMeshComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
 	WeaponMeshComponent->SetMassOverrideInKg(NAME_None, 2.f, true);
 	SetRootComponent(WeaponMeshComponent);
+
+	PickUpCollision = CreateDefaultSubobject<USphereComponent>(FName("PickUpCollision"));
+	PickUpCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	PickUpCollision->SetGenerateOverlapEvents(true);
+	PickUpCollision->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	PickUpCollision->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+	PickUpCollision->SetSphereRadius(200.f, false);
+	PickUpCollision->SetupAttachment(WeaponMeshComponent);
 }
 
 void AWeaponActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -45,6 +55,9 @@ void AWeaponActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 void AWeaponActor::BeginPlay()
 {
 	Super::BeginPlay();
+
+	PickUpCollision->OnComponentBeginOverlap.AddDynamic(this, &AWeaponActor::OnPickUpCollisionBeginOverlap);
+	PickUpCollision->OnComponentEndOverlap.AddDynamic(this, &AWeaponActor::OnPickUpCollisionEndOverlap);
 	
 	InitializeWeapon(WeaponTag);
 }
@@ -132,6 +145,8 @@ void AWeaponActor::SetWeaponState(bool bInIsEuipped)
 		WeaponMeshComponent->bOwnerNoSee = true;
 		WeaponMeshComponent->SetSimulatePhysics(false);
 		WeaponMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		PickUpCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 	}
 	else
 	{
@@ -139,10 +154,51 @@ void AWeaponActor::SetWeaponState(bool bInIsEuipped)
 		WeaponMeshComponent->SetSimulatePhysics(true);
 		WeaponMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
+		PickUpCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+
 		bIsEverDrawn = false;
 		ReloadState = EReloadState::None;
 		BulletNumChanged.Clear();
 	}
+}
+
+void AWeaponActor::OnPickUpCollisionBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (!Execute_CanPickedUp(this))
+	{
+		return;
+	}
+
+	IPlayerInterface::Execute_OnPickupableRangeEnter(OtherActor);
+}
+
+void AWeaponActor::OnPickUpCollisionEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (!Execute_CanPickedUp(this))
+	{
+		return;
+	}
+
+	IPlayerInterface::Execute_OnPickupableRangeExit(OtherActor);
+}
+
+bool AWeaponActor::CanPickedUp_Implementation()
+{
+	return !bIsEquipped;
+}
+
+void AWeaponActor::OnPickedUp_Implementation()
+{
+	SetWeaponState(true);
+}
+
+void AWeaponActor::OnDropped_Implementation()
+{
+	SetOwner(nullptr);
+	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+	SetWeaponState(false);
+
+	WeaponMeshComponent->AddImpulse(GetActorRightVector() * 200.f, NAME_None, true);
 }
 
 const FGameplayTag& AWeaponActor::GetADSFOVTag() const
@@ -181,7 +237,7 @@ void AWeaponActor::Holstered()
 
 void AWeaponActor::Dropped()
 {
-	WeaponMeshComponent->AddImpulse(GetActorRightVector() * 200.f, NAME_None, true);
+	OnDropped_Implementation();
 }
 
 bool AWeaponActor::CommitWeaponCost()
