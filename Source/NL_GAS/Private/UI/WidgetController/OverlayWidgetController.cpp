@@ -63,6 +63,30 @@ void UOverlayWidgetController::BindEvents()
             PlayerRespawn.Broadcast();
         }
     );
+    GetNLPC()->OnInteractionEnabled.AddLambda(
+        [this](AActor* Interactable)
+        {
+            InteractionEnabled.Broadcast(Interactable);
+        }
+    );
+    GetNLPC()->OnInteractionDisabled.AddLambda(
+        [this]()
+        {
+            InteractionDisabled.Broadcast();
+        }
+    );
+    GetNLPC()->OnInteractionBegin.AddLambda(
+        [this]()
+        {
+            InteractionBegin.Broadcast();
+        }
+    );
+    GetNLPC()->OnInteractionEnd.AddLambda(
+        [this]()
+        {
+            InteractionEnd.Broadcast();
+        }
+    );
 }
 
 void UOverlayWidgetController::BroadcastInitialValues()

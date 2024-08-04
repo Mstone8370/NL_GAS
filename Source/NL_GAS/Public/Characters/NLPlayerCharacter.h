@@ -168,15 +168,12 @@ protected:
 
 	TObjectPtr<UNLAbilitySystemComponent> NLAbilitySystemComponent;
 
+	void SeekInteractable();
+
 	int32 PickupableInRangeCount = 0;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	float PickupableSeekLength = 170.f;
-
-	void SeekPickupable();
-
-	UPROPERTY()
-	TObjectPtr<AActor> PickupableActor = nullptr;
+	float InteractableSeekLength = 170.f;
 
 	void OnViewportResized(FViewport* InViewport, uint32 arg);
 

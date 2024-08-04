@@ -27,6 +27,10 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnKillSignature, AActor* /*TargetActor*/);
 DECLARE_DELEGATE_OneParam(FOnRequestRespawn, APlayerController* /*PC*/);
 DECLARE_EVENT_ThreeParams(ANLPlayerController, FOnPlayerDeathSignature, AActor* /*SourceActor*/, AActor* /*TargetActor*/, FGameplayTag /*DamageType*/);
 DECLARE_EVENT(ANLPlayerController, FOnPlayerRespawnSignature);
+DECLARE_EVENT_OneParam(ANLPlayerController, FOnInteractionEnabledSignature, AActor* /*Interactable*/);
+DECLARE_EVENT(ANLPlayerController, FOnInteractionDisabledSignature);
+DECLARE_MULTICAST_DELEGATE(FOnInteractionBeginSignature);
+DECLARE_MULTICAST_DELEGATE(FOnInteractionEndSignature);
 
 /**
  * 
@@ -53,6 +57,9 @@ protected:
 	void Crouch();
 	void UnCrouch();
 	void CrouchToggle();
+	void Interaction();
+	void BeginInteraction();
+	void EndInteraction();
 
 	void AbilityInputTagPressed(FGameplayTag InputTag);
 	void AbilityInputTagReleased(FGameplayTag InputTag);
@@ -82,6 +89,14 @@ public:
 	FOnPlayerDeathSignature OnPlayerDeath;
 
 	FOnPlayerRespawnSignature OnPlayerRespawn;
+
+	FOnInteractionEnabledSignature OnInteractionEnabled;
+
+	FOnInteractionDisabledSignature OnInteractionDisabled;
+
+	FOnInteractionBeginSignature OnInteractionBegin;
+
+	FOnInteractionEndSignature OnInteractionEnd;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TArray<TSoftObjectPtr<UInputMappingContext>> DefaultIMC;
@@ -139,6 +154,9 @@ protected:
 	UFUNCTION(Client, Reliable)
 	void Client_OnRespawned();
 
+	UPROPERTY()
+	TObjectPtr<AActor> InteractableActor;
+
 public:
 	float GetBaseLookSensitivity() const { return LookSensitivity; }
 
@@ -161,4 +179,8 @@ public:
 	void SetRespawnTime(float RespawnTime);
 
 	void OnRespawned();
+
+	void EnableInteraction(AActor* Interactable);
+
+	void DisableInteraction();
 };

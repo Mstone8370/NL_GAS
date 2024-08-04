@@ -17,6 +17,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Data/AimPunchData.h"
+#include "Interface/Pickupable.h"
 
 void ANLPlayerController::SetupInputComponent()
 {
@@ -46,6 +47,9 @@ void ANLPlayerController::SetupInputComponent()
     NLInputComponent->BindActionByTag(IC, Input_Default_CrouchHold, ETriggerEvent::Triggered, this, &ANLPlayerController::Crouch);
     NLInputComponent->BindActionByTag(IC, Input_Default_CrouchHold, ETriggerEvent::Completed, this, &ANLPlayerController::UnCrouch);
     NLInputComponent->BindActionByTag(IC, Input_Default_CrouchToggle, ETriggerEvent::Triggered, this, &ANLPlayerController::CrouchToggle);
+    NLInputComponent->BindActionByTag(IC, Input_Default_Interaction, ETriggerEvent::Triggered, this, &ANLPlayerController::Interaction);
+    NLInputComponent->BindActionByTag(IC, Input_Default_Interaction, ETriggerEvent::Started, this, &ANLPlayerController::BeginInteraction);
+    NLInputComponent->BindActionByTag(IC, Input_Default_Interaction, ETriggerEvent::Canceled, this, &ANLPlayerController::EndInteraction);
     NLInputComponent->BindActionByTag(IC, Input_DeathCam_Respawn, ETriggerEvent::Triggered, this, &ANLPlayerController::Respawn);
 
     NLInputComponent->BindAbilityActions(
@@ -234,6 +238,39 @@ void ANLPlayerController::CrouchToggle()
     }
 }
 
+void ANLPlayerController::Interaction()
+{
+    if (!IsValid(InteractableActor))
+    {
+        return;
+    }
+
+    if (InteractableActor->Implements<UPickupable>())
+    {
+
+    }
+}
+
+void ANLPlayerController::BeginInteraction()
+{
+    if (!IsValid(InteractableActor))
+    {
+        return;
+    }
+
+    OnInteractionBegin.Broadcast();
+}
+
+void ANLPlayerController::EndInteraction()
+{
+    if (!IsValid(InteractableActor))
+    {
+        return;
+    }
+
+    OnInteractionEnd.Broadcast();
+}
+
 void ANLPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)
 {
     if (GetNLAbilitySystemComponent())
@@ -409,6 +446,11 @@ void ANLPlayerController::OnDead(AActor* SourceActor, FGameplayTag DamageType)
     OnPlayerDeath.Broadcast(SourceActor, GetPawn(), DamageType);
 }
 
+void ANLPlayerController::AddKillLog_Implementation(AActor* SourceActor, AActor* TargetActor, FGameplayTag DamageType)
+{
+    OnReceivedKillLog.Broadcast(SourceActor, TargetActor, DamageType);
+}
+
 void ANLPlayerController::SetRespawnTime(float RespawnTime)
 {
     GetWorldTimerManager().SetTimer(RespawnTimerHandle, this, &ANLPlayerController::OnRespawnableState, RespawnTime, false);
@@ -424,7 +466,21 @@ void ANLPlayerController::OnRespawned()
     Client_OnRespawned();
 }
 
-void ANLPlayerController::AddKillLog_Implementation(AActor* SourceActor, AActor* TargetActor, FGameplayTag DamageType)
+void ANLPlayerController::EnableInteraction(AActor* Interactable)
 {
-    OnReceivedKillLog.Broadcast(SourceActor, TargetActor, DamageType);
+    if (!IsValid(Interactable) || (IsValid(InteractableActor) && InteractableActor == Interactable))
+    {
+        return;
+    }
+
+    InteractableActor = Interactable;
+
+    OnInteractionEnabled.Broadcast(Interactable);
+}
+
+void ANLPlayerController::DisableInteraction()
+{
+    InteractableActor = nullptr;
+
+    OnInteractionDisabled.Broadcast();
 }

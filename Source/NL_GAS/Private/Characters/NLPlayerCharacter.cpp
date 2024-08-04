@@ -154,7 +154,7 @@ void ANLPlayerCharacter::Tick(float DeltaSeconds)
 
     InterpolateCrouch(DeltaSeconds);
     TiltCamera(DeltaSeconds);
-    SeekPickupable();
+    SeekInteractable();
 }
 
 void ANLPlayerCharacter::PossessedBy(AController* NewController)
@@ -573,8 +573,12 @@ void ANLPlayerCharacter::OnEndLedgeClimb()
     }
 }
 
-void ANLPlayerCharacter::SeekPickupable()
+void ANLPlayerCharacter::SeekInteractable()
 {
+    if (GetLocalRole() == ROLE_SimulatedProxy || !GetLocalViewingPlayerController() || !GetNLPC())
+    {
+        return;
+    }
     if (PickupableInRangeCount < 1)
     {
         return;
@@ -591,15 +595,20 @@ void ANLPlayerCharacter::SeekPickupable()
     Params.bTraceComplex = false;
 
     const FVector Start = ViewLocation;
-    const FVector End = Start + ViewRotation.Vector() * PickupableSeekLength;
+    const FVector End = Start + ViewRotation.Vector() * InteractableSeekLength;
 
     GetWorld()->LineTraceSingleByChannel(HitRes, Start, End, ECC_Visibility, Params);
 
-    if (HitRes.bBlockingHit && HitRes.GetActor() && HitRes.GetActor()->Implements<UPickupable>())
+    if (HitRes.bBlockingHit && HitRes.GetActor())
     {
-        PickupableActor = HitRes.GetActor();
-        UE_LOG(LogTemp, Warning, TEXT("Pickupable: %s"), *GetNameSafe(PickupableActor));
+        if (PickupableInRangeCount > 0 && HitRes.GetActor()->Implements<UPickupable>())
+        {
+            GetNLPC()->EnableInteraction(HitRes.GetActor());
+            return;
+        }
     }
+
+    GetNLPC()->DisableInteraction();
 }
 
 void ANLPlayerCharacter::OnViewportResized(FViewport* InViewport, uint32 arg)
