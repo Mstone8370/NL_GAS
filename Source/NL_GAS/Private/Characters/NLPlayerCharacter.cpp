@@ -308,6 +308,21 @@ void ANLPlayerCharacter::OnPickupableRangeEnter_Implementation()
 void ANLPlayerCharacter::OnPickupableRangeExit_Implementation()
 {
     PickupableInRangeCount = FMath::Max(0, PickupableInRangeCount - 1);
+
+    if (PickupableInRangeCount == 0)
+    {
+        GetNLPC()->DisableInteraction();
+    }
+}
+
+void ANLPlayerCharacter::Server_PickUp_Implementation(AActor* Pickupable)
+{
+    if (!IsValid(Pickupable) || !Pickupable->Implements<UPickupable>())
+    {
+        return;
+    }
+    
+    NLCharacterComponent->PickUp(Pickupable);
 }
 
 bool ANLPlayerCharacter::CanAttack_Implementation()
@@ -603,9 +618,15 @@ void ANLPlayerCharacter::SeekInteractable()
     {
         if (PickupableInRangeCount > 0 && HitRes.GetActor()->Implements<UPickupable>())
         {
-            GetNLPC()->EnableInteraction(HitRes.GetActor());
+            FString Message = "Pick Up";
+            if (NLCharacterComponent && NLCharacterComponent->IsWeaponSlotFull())
+            {
+                Message = "Exchange";
+            }
+            GetNLPC()->EnableInteraction(HitRes.GetActor(), Message);
             return;
         }
+        // TODO: other interactions
     }
 
     GetNLPC()->DisableInteraction();

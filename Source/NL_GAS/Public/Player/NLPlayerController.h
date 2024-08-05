@@ -27,7 +27,7 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnKillSignature, AActor* /*TargetActor*/);
 DECLARE_DELEGATE_OneParam(FOnRequestRespawn, APlayerController* /*PC*/);
 DECLARE_EVENT_ThreeParams(ANLPlayerController, FOnPlayerDeathSignature, AActor* /*SourceActor*/, AActor* /*TargetActor*/, FGameplayTag /*DamageType*/);
 DECLARE_EVENT(ANLPlayerController, FOnPlayerRespawnSignature);
-DECLARE_EVENT_OneParam(ANLPlayerController, FOnInteractionEnabledSignature, AActor* /*Interactable*/);
+DECLARE_EVENT_TwoParams(ANLPlayerController, FOnInteractionEnabledSignature, AActor* /*Interactable*/, FString /*Message*/);
 DECLARE_EVENT(ANLPlayerController, FOnInteractionDisabledSignature);
 DECLARE_MULTICAST_DELEGATE(FOnInteractionBeginSignature);
 DECLARE_MULTICAST_DELEGATE(FOnInteractionEndSignature);
@@ -180,7 +180,7 @@ public:
 
 	void OnRespawned();
 
-	void EnableInteraction(AActor* Interactable);
+	void EnableInteraction(AActor* Interactable, FString Message);
 
 	void DisableInteraction();
 };

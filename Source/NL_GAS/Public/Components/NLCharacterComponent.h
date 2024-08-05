@@ -86,7 +86,7 @@ protected:
 
 	void ClearWeapons();
 
-	void OnCurrentWeaponDropped(); // for local controlled player
+	void OnCurrentWeaponDropped(bool bSwapSlot = false); // for local controlled player
 
 private:
 	bool bStartupWeaponInitFinished;
@@ -137,7 +137,7 @@ public:
 
 	bool CanSwapWeaponSlot(int32 NewWeaponSlot) const;
 
-	void TrySwapWeaponSlot(int32 NewWeaponSlot);
+	void TrySwapWeaponSlot(int32 NewWeaponSlot, bool bCheckCondition = true, bool bSkipHolsterAnim = false);
 
 	void TrySwapWeaponSlot_Next(bool bPrev = false);
 
@@ -175,5 +175,13 @@ public:
 	void HandleOwnerDeath();
 
 	UFUNCTION(BlueprintCallable)
-	void DropCurrentWeapon();
+	void DropCurrentWeapon(bool bSwapSlot = false);
+
+	void PickUp(AActor* Pickupable);
+
+	void PickUpWeapon(AWeaponActor* WeaponActor);
+
+	bool IsWeaponSlotFull() const;
+
+	bool IsWeaponSlotEmpty() const;
 };

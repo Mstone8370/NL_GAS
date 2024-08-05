@@ -247,7 +247,10 @@ void ANLPlayerController::Interaction()
 
     if (InteractableActor->Implements<UPickupable>())
     {
-
+        if (GetNLPlayerCharacter())
+        {
+            GetNLPlayerCharacter()->Server_PickUp(InteractableActor);
+        }
     }
 }
 
@@ -466,7 +469,7 @@ void ANLPlayerController::OnRespawned()
     Client_OnRespawned();
 }
 
-void ANLPlayerController::EnableInteraction(AActor* Interactable)
+void ANLPlayerController::EnableInteraction(AActor* Interactable, FString Message)
 {
     if (!IsValid(Interactable) || (IsValid(InteractableActor) && InteractableActor == Interactable))
     {
@@ -475,7 +478,7 @@ void ANLPlayerController::EnableInteraction(AActor* Interactable)
 
     InteractableActor = Interactable;
 
-    OnInteractionEnabled.Broadcast(Interactable);
+    OnInteractionEnabled.Broadcast(Interactable, Message);
 }
 
 void ANLPlayerController::DisableInteraction()

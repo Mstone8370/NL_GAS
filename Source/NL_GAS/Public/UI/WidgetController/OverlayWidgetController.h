@@ -17,7 +17,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FReceivedKillLogSignature, const 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FRespawnableSingature);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FKilled, AActor*, TargetActor);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPlayerRespawnSignature);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractionEnabledSignature, AActor*, Interactable);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInteractionEnabledSignature, AActor*, Interactable, FString, Message);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInteractionDisabledSignature);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInteractionBeginSignature);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInteractionEndSignature);

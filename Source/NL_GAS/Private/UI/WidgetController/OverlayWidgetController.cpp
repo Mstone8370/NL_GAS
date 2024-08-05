@@ -64,9 +64,9 @@ void UOverlayWidgetController::BindEvents()
         }
     );
     GetNLPC()->OnInteractionEnabled.AddLambda(
-        [this](AActor* Interactable)
+        [this](AActor* Interactable, FString Message)
         {
-            InteractionEnabled.Broadcast(Interactable);
+            InteractionEnabled.Broadcast(Interactable, Message);
         }
     );
     GetNLPC()->OnInteractionDisabled.AddLambda(

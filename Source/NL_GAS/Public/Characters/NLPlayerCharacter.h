@@ -91,6 +91,9 @@ public:
 	virtual void OnPickupableRangeExit_Implementation() override;
 	//~End PlayerInterface
 
+	UFUNCTION(Server, Reliable)
+	void Server_PickUp(AActor* Pickupable);
+
 public:
 	//~Begin CombatInterface
 	virtual bool CanAttack_Implementation() override;
@@ -173,7 +176,7 @@ protected:
 	int32 PickupableInRangeCount = 0;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	float InteractableSeekLength = 170.f;
+	float InteractableSeekLength = 200.f;
 
 	void OnViewportResized(FViewport* InViewport, uint32 arg);
 

@@ -118,7 +118,14 @@ void UNLCharacterComponent::OnRep_WeaponActorSlot(TArray<AWeaponActor*> OldWeapo
             if (!IsValid(GetCurrentWeaponActor()))
             {
                 // Current Weapon Dropped
+                OnCurrentWeaponDropped(true);
+            }
+            else if (GetCurrentWeaponActor() != OldWeaponActorSlot[CurrentWeaponSlot])
+            {
+                // Weapon exchanged;
                 OnCurrentWeaponDropped();
+
+                // TODO: draw
             }
         }
 
@@ -315,8 +322,10 @@ void UNLCharacterComponent::ClearWeapons()
     }
 }
 
-void UNLCharacterComponent::OnCurrentWeaponDropped()
+void UNLCharacterComponent::OnCurrentWeaponDropped(bool bSwapSlot)
 {
+    // On Server and Client
+
     if (GetOwningPlayer())
     {
         GetOwningPlayer()->StopWeaponAnimMontage();
@@ -334,7 +343,14 @@ void UNLCharacterComponent::OnCurrentWeaponDropped()
         OnWeaponDrawn();
     }
 
-    TrySwapWeaponSlot_Next();
+    if (bSwapSlot)
+    {
+        /**
+        * 이 함수 호출은 어빌리티를 activate하는게 아니라서 서버와 클라이언트간 동기화가 안됨.
+        * 따라서 서버와 클라이언트 모두 호출될 수 있게 해야함.
+        */
+        TrySwapWeaponSlot_Next();
+    }
 }
 
 ANLCharacterBase* UNLCharacterComponent::GetOwningCharacter() const
@@ -537,11 +553,11 @@ bool UNLCharacterComponent::CanSwapWeaponSlot(int32 NewWeaponSlot) const
     return false;
 }
 
-void UNLCharacterComponent::TrySwapWeaponSlot(int32 NewWeaponSlot)
+void UNLCharacterComponent::TrySwapWeaponSlot(int32 NewWeaponSlot, bool bCheckCondition, bool bSkipHolsterAnim)
 {
     // On Server and Client by GameplayAbility
 
-    if (!CanSwapWeaponSlot(NewWeaponSlot))
+    if (bCheckCondition && !CanSwapWeaponSlot(NewWeaponSlot))
     {
         return;
     }
@@ -559,7 +575,7 @@ void UNLCharacterComponent::TrySwapWeaponSlot(int32 NewWeaponSlot)
         GetWeaponActorAtSlot(WeaponSwapPendingSlot)->GetCurrentBulletNum()
     );
 
-    if (!IsValid(GetCurrentWeaponActor()))
+    if (!IsValid(GetCurrentWeaponActor()) || bSkipHolsterAnim)
     {
         // Start up or weapon drop
         OnWeaponHolstered();
@@ -835,7 +851,7 @@ void UNLCharacterComponent::HandleOwnerDeath()
     ClearWeapons();
 }
 
-void UNLCharacterComponent::DropCurrentWeapon()
+void UNLCharacterComponent::DropCurrentWeapon(bool bSwapSlot)
 {
     AWeaponActor* WeaponActor = GetCurrentWeaponActor();
     if (!IsValid(WeaponActor))
@@ -854,6 +870,85 @@ void UNLCharacterComponent::DropCurrentWeapon()
 
         UpdateWeaponTagSlot(); // for authorized player
 
-        OnCurrentWeaponDropped();
+        OnCurrentWeaponDropped(bSwapSlot);
     }
+}
+
+void UNLCharacterComponent::PickUp(AActor* Pickupable)
+{
+    if (!IsValid(Pickupable))
+    {
+        return;
+    }
+
+    // On Server
+
+    if (AWeaponActor* WeaponActor = Cast<AWeaponActor>(Pickupable))
+    {
+        PickUpWeapon(WeaponActor);
+    }
+}
+
+void UNLCharacterComponent::PickUpWeapon(AWeaponActor* WeaponActor)
+{
+    int32 Slot = -1;
+    if (IsWeaponSlotFull())
+    {
+        Slot = CurrentWeaponSlot;
+
+        DropCurrentWeapon();
+    }
+    else
+    {
+        for (int i = 0; i < MaxWeaponSlotSize; i++)
+        {
+            if (!IsValid(GetWeaponActorAtSlot(i)))
+            {
+                Slot = i;
+                break;
+            }
+        }
+        if (Slot < 0)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Error: IsWeaponSlotFull() returns false but all slots are full"));
+            return;
+        }
+    }
+
+    WeaponActor->SetOwner(GetOwningPlayer());
+    WeaponActor->SetWeaponState(true);
+
+    AttachWeaponToSocket(WeaponActor);
+    WeaponActor->SetActorRelativeRotation(FRotator(0.f, -90.f, 0.f));
+
+    WeaponActorSlot[Slot] = WeaponActor;
+    UpdateWeaponTagSlot();
+
+    GetNLASC()->WeaponAdded(WeaponActor);
+
+    TrySwapWeaponSlot(Slot, false, true);
+}
+
+bool UNLCharacterComponent::IsWeaponSlotFull() const
+{
+    for (const AWeaponActor* Weapon : WeaponActorSlot)
+    {
+        if (!IsValid(Weapon))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool UNLCharacterComponent::IsWeaponSlotEmpty() const
+{
+    for (const AWeaponActor* Weapon : WeaponActorSlot)
+    {
+        if (IsValid(Weapon))
+        {
+            return false;
+        }
+    }
+    return true;
 }
