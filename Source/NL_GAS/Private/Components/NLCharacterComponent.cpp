@@ -253,14 +253,19 @@ void UNLCharacterComponent::AttachWeaponToSocket(AWeaponActor* Weapon)
     FName TargetSocketName = NAME_None;
     for (TPair<FName, AWeaponActor*>& Item : WeaponSlotSocketMap)
     {
-        if (Item.Value == nullptr)
+        if (TargetSocketName.IsNone() && Item.Value == nullptr)
         {
             TargetSocketName = Item.Key;
-            break;
+        }
+        if (Item.Value == Weapon)
+        {
+            // 이미 소켓에 어태치 되어있는 상태
+            return;
         }
     }
     if (TargetSocketName.IsNone())
     {
+        UE_LOG(LogTemp, Error, TEXT("Error: No available socket for attachment."));
         return;
     }
 
@@ -282,13 +287,10 @@ void UNLCharacterComponent::AttachWeaponToHand(AWeaponActor* Weapon)
             break;
         }
     }
-    if (TargetSocketName.IsNone())
+    if (!TargetSocketName.IsNone())
     {
-        UE_LOG(LogTemp, Error, TEXT("Error: No available socket for attachment."));
-        return;
+        WeaponSlotSocketMap[TargetSocketName] = nullptr;
     }
-
-    WeaponSlotSocketMap[TargetSocketName] = nullptr;
 
     FAttachmentTransformRules AttachRule = FAttachmentTransformRules::SnapToTargetNotIncludingScale;
     AttachRule.RotationRule = EAttachmentRule::KeepRelative;
@@ -468,9 +470,7 @@ void UNLCharacterComponent::WeaponAdded(AWeaponActor* Weapon)
     }
     else
     {
-        // TODO: New weapon equipped while playing
-        // 이때에도 validation을 해야하는지 생각해봐야함.
-        // startup 무기는 WeaponActorSlot에 레플리케이트 되어도 클라이언트에서 액터가 생성되지 않으면 nullptr임.
+        // Do nothing
     }
 }
 
@@ -915,11 +915,9 @@ void UNLCharacterComponent::PickUpWeapon(AWeaponActor* WeaponActor)
         }
     }
 
-    WeaponActor->SetOwner(GetOwningPlayer());
-    WeaponActor->SetWeaponState(true);
-
     AttachWeaponToSocket(WeaponActor);
-    WeaponActor->SetActorRelativeRotation(FRotator(0.f, -90.f, 0.f));
+    WeaponActor->SetOwner(GetOwningPlayer());
+    IPickupable::Execute_OnPickedUp(WeaponActor);
 
     WeaponActorSlot[Slot] = WeaponActor;
     UpdateWeaponTagSlot();

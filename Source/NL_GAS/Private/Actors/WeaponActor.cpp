@@ -127,13 +127,6 @@ void AWeaponActor::InitializeWeapon(const FGameplayTag& InWeaponTag, bool bForce
 
 	bool bHasOwner = IsValid(GetOwner());
 	SetWeaponState(bHasOwner);
-	if (bHasOwner)
-	{
-		if (GetOwner()->Implements<UCombatInterface>())
-		{
-			Cast<ICombatInterface>(GetOwner())->OnWeaponAdded(this);
-		}
-	}
 }
 
 void AWeaponActor::SetWeaponState(bool bInIsEuipped)
@@ -147,6 +140,11 @@ void AWeaponActor::SetWeaponState(bool bInIsEuipped)
 		WeaponMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 		PickUpCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+
+		if (GetOwner()->Implements<UCombatInterface>())
+		{
+			Cast<ICombatInterface>(GetOwner())->OnWeaponAdded(this);
+		}
 	}
 	else
 	{
@@ -190,6 +188,7 @@ bool AWeaponActor::CanPickedUp_Implementation()
 void AWeaponActor::OnPickedUp_Implementation()
 {
 	SetWeaponState(true);
+	SetActorRelativeRotation(FRotator(0.f, -90.f, 0.f));
 }
 
 void AWeaponActor::OnDropped_Implementation()
