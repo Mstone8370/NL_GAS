@@ -309,7 +309,7 @@ void ANLPlayerCharacter::OnPickupableRangeExit_Implementation()
 {
     PickupableInRangeCount = FMath::Max(0, PickupableInRangeCount - 1);
 
-    if (PickupableInRangeCount == 0)
+    if (PickupableInRangeCount == 0 && GetNLPC())
     {
         GetNLPC()->DisableInteraction();
     }

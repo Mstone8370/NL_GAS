@@ -136,6 +136,7 @@ void AWeaponActor::SetWeaponState(bool bInIsEuipped)
 	if (bIsEquipped)
 	{
 		WeaponMeshComponent->bOwnerNoSee = true;
+		WeaponMeshComponent->MarkRenderStateDirty();
 		WeaponMeshComponent->SetSimulatePhysics(false);
 		WeaponMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
@@ -149,6 +150,7 @@ void AWeaponActor::SetWeaponState(bool bInIsEuipped)
 	else
 	{
 		WeaponMeshComponent->bOwnerNoSee = false;
+		WeaponMeshComponent->MarkRenderStateDirty();
 		WeaponMeshComponent->SetSimulatePhysics(true);
 		WeaponMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 

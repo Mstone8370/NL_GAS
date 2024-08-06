@@ -114,18 +114,51 @@ void UNLCharacterComponent::OnRep_WeaponActorSlot(TArray<AWeaponActor*> OldWeapo
         if (GetOwner()->GetLocalRole() != ROLE_SimulatedProxy)
         {
             UpdateWeaponTagSlot();
+        }
 
-            if (!IsValid(GetCurrentWeaponActor()))
+        for (int i = 0; i < MaxWeaponSlotSize; i++)
+        {
+            if (WeaponActorSlot[i] != OldWeaponActorSlot[i])
             {
-                // Current Weapon Dropped
-                OnCurrentWeaponDropped(true);
-            }
-            else if (GetCurrentWeaponActor() != OldWeaponActorSlot[CurrentWeaponSlot])
-            {
-                // Weapon exchanged;
-                OnCurrentWeaponDropped();
+                AWeaponActor* OldWeapon = OldWeaponActorSlot[i];
+                AWeaponActor* NewWeapon = WeaponActorSlot[i];
+                if (i == CurrentWeaponSlot)
+                {
+                    // 현재 무기 교체했음
+                    if (IsValid(NewWeapon))
+                    {
+                        AttachWeaponToSocket(GetCurrentWeaponActor());
+                        GetCurrentWeaponActor()->SetOwner(GetOwner()); // WeaponActor는 Owner가 아직 레플리케이트되지 않았을수도 있음.
+                        IPickupable::Execute_OnPickedUp(GetCurrentWeaponActor());
 
-                // TODO: draw
+                        if (GetOwner()->GetLocalRole() != ROLE_SimulatedProxy)
+                        {
+                            OnCurrentWeaponDropped(false);
+                            TrySwapWeaponSlot(CurrentWeaponSlot, false, true);
+                        }
+                    }
+                    else
+                    {
+                        // 무기 드롭
+                        if (GetOwner()->GetLocalRole() != ROLE_SimulatedProxy)
+                        {
+                            OnCurrentWeaponDropped(true);
+                        }
+                    }
+                }
+                else if (IsValid(NewWeapon) && OldWeapon == nullptr)
+                {
+                    // 빈 슬롯에 새 무기 추가됨
+                    AttachWeaponToSocket(NewWeapon);
+                    NewWeapon->SetOwner(GetOwner()); // WeaponActor는 Owner가 아직 레플리케이트되지 않았을수도 있음.
+                    IPickupable::Execute_OnPickedUp(NewWeapon);
+
+                    if (GetOwner()->GetLocalRole() != ROLE_SimulatedProxy)
+                    {
+                        OnCurrentWeaponDropped(false);
+                        TrySwapWeaponSlot(i, false, true);
+                    }
+                }
             }
         }
 
@@ -240,7 +273,10 @@ void UNLCharacterComponent::OnWeaponBulletNumChanged(const AWeaponActor* Weapon,
 
 void UNLCharacterComponent::BindWeaponDelegate(AWeaponActor* Weapon)
 {
-    Weapon->BulletNumChanged.AddDynamic(this, &UNLCharacterComponent::OnWeaponBulletNumChanged);
+    if (!Weapon->BulletNumChanged.IsAlreadyBound(this, &UNLCharacterComponent::OnWeaponBulletNumChanged))
+    {
+        Weapon->BulletNumChanged.AddDynamic(this, &UNLCharacterComponent::OnWeaponBulletNumChanged);
+    }
 }
 
 void UNLCharacterComponent::UnBindWeaponDelegate(AWeaponActor* Weapon)
