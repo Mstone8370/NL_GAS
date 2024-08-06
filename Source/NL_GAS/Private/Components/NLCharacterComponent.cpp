@@ -17,28 +17,28 @@
 #include "Kismet/KismetMathLibrary.h"
 
 UNLCharacterComponent::UNLCharacterComponent()
-    : MaxWeaponSlotSize(3)
-    , CurrentWeaponSlot(255)
-    , bStartupWeaponInitFinished(false)
+    : bStartupWeaponInitFinished(false)
 {
     PrimaryComponentTick.bCanEverTick = false;
 
     SetIsReplicatedByDefault(true);
 
+    WeaponSlot.MaxSlotSize = 3;
+    WeaponSlot.CurrentSlot = WeaponSlot.MaxSlotSize;
+
     WeaponSlotSocketMap.Add(FName("weapon_slot_1"), nullptr);
     WeaponSlotSocketMap.Add(FName("weapon_slot_2"), nullptr);
     WeaponSlotSocketMap.Add(FName("weapon_slot_3"), nullptr);
 
-    WeaponActorSlot.Reset(MaxWeaponSlotSize);
-    WeaponActorSlot.Init(nullptr, MaxWeaponSlotSize);
+    WeaponSlot.WeaponActorSlot.Reset(WeaponSlot.MaxSlotSize);
+    WeaponSlot.WeaponActorSlot.Init(nullptr, WeaponSlot.MaxSlotSize);
 }
 
 void UNLCharacterComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-    DOREPLIFETIME_CONDITION_NOTIFY(UNLCharacterComponent, CurrentWeaponSlot, COND_SimulatedOnly, REPNOTIFY_OnChanged);
-    DOREPLIFETIME_CONDITION_NOTIFY(UNLCharacterComponent, WeaponActorSlot, COND_None, REPNOTIFY_OnChanged);
+    DOREPLIFETIME_CONDITION_NOTIFY(UNLCharacterComponent, WeaponSlot, COND_None, REPNOTIFY_OnChanged);
 }
 
 void UNLCharacterComponent::AddStartupWeapons()
@@ -54,12 +54,12 @@ void UNLCharacterComponent::AddStartupWeapons()
     check(ASC);
     check(OwningPlayer);
 
-    WeaponActorSlot.Reset(MaxWeaponSlotSize);
-    WeaponActorSlot.Init(nullptr, MaxWeaponSlotSize);
+    WeaponSlot.WeaponActorSlot.Reset(WeaponSlot.MaxSlotSize);
+    WeaponSlot.WeaponActorSlot.Init(nullptr, WeaponSlot.MaxSlotSize);
 
     FScopedAbilityListLock ActiveScopeLock(*ASC);
 
-    const int32 StartupWeaponNum = FMath::Min(int32(MaxWeaponSlotSize), PS->StartupWeapons.Num());
+    const int32 StartupWeaponNum = FMath::Min(int32(WeaponSlot.MaxSlotSize), PS->StartupWeapons.Num());
     for (int32 i = 0; i < StartupWeaponNum; i++)
     {
         const FGameplayTag& WeaponTag = PS->StartupWeapons[i];
@@ -83,87 +83,73 @@ void UNLCharacterComponent::AddStartupWeapons()
         AttachWeaponToSocket(Weapon);
 
         Weapon->FinishSpawning(SpawnTransform);
-        WeaponActorSlot[i] = Weapon;
+        WeaponSlot.WeaponActorSlot[i] = Weapon;
 
         // Add Weapon Abilities
         GetNLASC()->WeaponAdded(Weapon);
     }
 }
 
-void UNLCharacterComponent::OnRep_CurrentWeaponSlot(uint8 OldSlot)
-{
-    // 레플리케이트 되었다면 Simulated 액터라는 뜻이므로 3인칭 애니메이션과 3인칭 메시 설정.
-    AWeaponActor* Weapon = GetWeaponActorAtSlot(CurrentWeaponSlot);
-    if (!IsValid(Weapon) || !Weapon->IsInitialized())
-    {
-        return;
-    }
-
-    AWeaponActor* OldWeapon = GetWeaponActorAtSlot(OldSlot);
-    UpdateMeshes(OldWeapon, true);
-}
-
-void UNLCharacterComponent::OnRep_WeaponActorSlot(TArray<AWeaponActor*> OldWeaponActorSlot)
+void UNLCharacterComponent::OnRep_WeaponSlot(FWeaponSlot OldSlot)
 {
     if (!bStartupWeaponInitFinished)
     {
         ValidateStartupWeapons();
+        return;
     }
-    else
+
+    TSet<AWeaponActor*> OldSet(OldSlot.WeaponActorSlot);
+    TSet<AWeaponActor*> NewSet(WeaponSlot.WeaponActorSlot);
+
+    TSet<AWeaponActor*> RemovedWeapons;
+    for (AWeaponActor* Wpn : OldSet)
     {
-        if (GetOwner()->GetLocalRole() != ROLE_SimulatedProxy)
+        if (IsValid(Wpn) && !NewSet.Contains(Wpn))
         {
-            UpdateWeaponTagSlot();
+            RemovedWeapons.Add(Wpn);
+            IPickupable::Execute_OnDropped(Wpn);
         }
-
-        for (int i = 0; i < MaxWeaponSlotSize; i++)
-        {
-            if (WeaponActorSlot[i] != OldWeaponActorSlot[i])
-            {
-                AWeaponActor* OldWeapon = OldWeaponActorSlot[i];
-                AWeaponActor* NewWeapon = WeaponActorSlot[i];
-                if (i == CurrentWeaponSlot)
-                {
-                    // 현재 무기 교체했음
-                    if (IsValid(NewWeapon))
-                    {
-                        AttachWeaponToSocket(GetCurrentWeaponActor());
-                        GetCurrentWeaponActor()->SetOwner(GetOwner()); // WeaponActor는 Owner가 아직 레플리케이트되지 않았을수도 있음.
-                        IPickupable::Execute_OnPickedUp(GetCurrentWeaponActor());
-
-                        if (GetOwner()->GetLocalRole() != ROLE_SimulatedProxy)
-                        {
-                            OnCurrentWeaponDropped(false);
-                            TrySwapWeaponSlot(CurrentWeaponSlot, false, true);
-                        }
-                    }
-                    else
-                    {
-                        // 무기 드롭
-                        if (GetOwner()->GetLocalRole() != ROLE_SimulatedProxy)
-                        {
-                            OnCurrentWeaponDropped(true);
-                        }
-                    }
-                }
-                else if (IsValid(NewWeapon) && OldWeapon == nullptr)
-                {
-                    // 빈 슬롯에 새 무기 추가됨
-                    AttachWeaponToSocket(NewWeapon);
-                    NewWeapon->SetOwner(GetOwner()); // WeaponActor는 Owner가 아직 레플리케이트되지 않았을수도 있음.
-                    IPickupable::Execute_OnPickedUp(NewWeapon);
-
-                    if (GetOwner()->GetLocalRole() != ROLE_SimulatedProxy)
-                    {
-                        OnCurrentWeaponDropped(false);
-                        TrySwapWeaponSlot(i, false, true);
-                    }
-                }
-            }
-        }
-
-        UpdateMeshes(nullptr, GetOwner()->GetLocalRole() == ROLE_SimulatedProxy);
     }
+    // 새로운 무기를 추가하기 전에 제거된 무기를 소켓 맵에서도 제거해서 빈 공간을 만들어야 함.
+    for (TPair<FName, AWeaponActor*>& Item : WeaponSlotSocketMap)
+    {
+        if (Item.Value && RemovedWeapons.Contains(Item.Value))
+        {
+            Item.Value = nullptr;
+        }
+    }
+
+    // Added weapons
+    for (AWeaponActor* Wpn : NewSet)
+    {
+        if (Wpn && !OldSet.Contains(Wpn))
+        {
+            AttachWeaponToSocket(Wpn);
+            Wpn->SetOwner(GetOwner()); // WeaponActor의 Owner는 아직 레플리케이트되지 않았을수도 있음.
+            IPickupable::Execute_OnPickedUp(Wpn);
+        }
+    }
+    
+    if (GetOwnerRole() != ROLE_SimulatedProxy && WeaponSlot.CurrentSlot < WeaponSlot.MaxSlotSize)
+    {
+        // TODO: 무기를 swap하면서 새로운 무기를 픽업하면 픽업한 무기는 drawfirst가 아닌 draw 애니메이션이 나옴
+        // WeaponActor의 bIsEverDrawn의 문제는 아님.
+        
+        const bool bCurrentSlotChanged = OldSlot.CurrentSlot != WeaponSlot.CurrentSlot;
+
+        // CurrentSlot은 동일하다는 전제조건
+        const bool bCurrentWeaponChanged = OldSlot.WeaponActorSlot[WeaponSlot.CurrentSlot] != WeaponSlot.WeaponActorSlot[WeaponSlot.CurrentSlot];
+        
+        if (bCurrentSlotChanged || bCurrentWeaponChanged)
+        {
+            OnCurrentWeaponDropped(false);
+            TrySwapWeaponSlot(WeaponSlot.CurrentSlot, false, true);
+        }
+
+        UpdateWeaponTagSlot();
+    }
+    
+    UpdateMeshes(nullptr, GetOwner()->GetLocalRole() == ROLE_SimulatedProxy);
 }
 
 void UNLCharacterComponent::UpdateMeshes(AWeaponActor* OldWeaponActor, bool bIsSimulated)
@@ -230,7 +216,7 @@ void UNLCharacterComponent::OnWeaponHolstered()
         AttachWeaponToSocket(PrevWeapon);
     }
 
-    CurrentWeaponSlot = WeaponSwapPendingSlot;
+    WeaponSlot.CurrentSlot = WeaponSwapPendingSlot;
 
     UpdateMeshes();
 
@@ -286,6 +272,11 @@ void UNLCharacterComponent::UnBindWeaponDelegate(AWeaponActor* Weapon)
 
 void UNLCharacterComponent::AttachWeaponToSocket(AWeaponActor* Weapon)
 {
+    if (!IsValid(Weapon))
+    {
+        return;
+    }
+
     FName TargetSocketName = NAME_None;
     for (TPair<FName, AWeaponActor*>& Item : WeaponSlotSocketMap)
     {
@@ -314,6 +305,11 @@ void UNLCharacterComponent::AttachWeaponToSocket(AWeaponActor* Weapon)
 
 void UNLCharacterComponent::AttachWeaponToHand(AWeaponActor* Weapon)
 {
+    if (!IsValid(Weapon))
+    {
+        return;
+    }
+
     FName TargetSocketName = NAME_None;
     for (TPair<FName, AWeaponActor*>& Item : WeaponSlotSocketMap)
     {
@@ -340,7 +336,7 @@ void UNLCharacterComponent::ClearWeapons()
     * 리스폰할때 0번 슬롯 무기를 들게 하려면 CurrentWeaponSlot이 0이면 안되므로 다른 값을 넣어야함
     * 근데 이 변수 타입이 uint라서 음수는 안되니 마지막 인덱스를 넘는 값으로 지정함.
     */
-    CurrentWeaponSlot = MaxWeaponSlotSize;
+    WeaponSlot.CurrentSlot = WeaponSlot.MaxSlotSize;
 
     for (TPair<FName, AWeaponActor*>& Item : WeaponSlotSocketMap)
     {
@@ -349,13 +345,13 @@ void UNLCharacterComponent::ClearWeapons()
 
     if (GetOwnerRole() == ENetRole::ROLE_Authority)
     {
-        for (uint8 i = 0; i < WeaponActorSlot.Num(); i++)
+        for (uint8 i = 0; i < WeaponSlot.WeaponActorSlot.Num(); i++)
         {
-            if (IsValid(WeaponActorSlot[i]))
+            if (IsValid(WeaponSlot.WeaponActorSlot[i]))
             {
-                WeaponActorSlot[i]->Destroy();
+                WeaponSlot.WeaponActorSlot[i]->Destroy();
             }
-            WeaponActorSlot[i] = nullptr;
+            WeaponSlot.WeaponActorSlot[i] = nullptr;
         }
     }
 }
@@ -431,7 +427,7 @@ UNLAbilitySystemComponent* UNLCharacterComponent::GetNLASC() const
 void UNLCharacterComponent::UpdateWeaponTagSlot()
 {
     WeaponTagSlot.Empty();
-    for (const AWeaponActor* Weapon : WeaponActorSlot)
+    for (const AWeaponActor* Weapon : WeaponSlot.WeaponActorSlot)
     {
         if (IsValid(Weapon))
         {
@@ -447,31 +443,31 @@ void UNLCharacterComponent::UpdateWeaponTagSlot()
 
 int32 UNLCharacterComponent::GetWeaponSlotSize() const
 {
-    return WeaponActorSlot.Num();
+    return WeaponSlot.WeaponActorSlot.Num();
 }
 
 int32 UNLCharacterComponent::GetWeaponSlotMaxSize() const
 {
-    return MaxWeaponSlotSize;
+    return WeaponSlot.MaxSlotSize;
 }
 
 AWeaponActor* UNLCharacterComponent::GetWeaponActorAtSlot(uint8 Slot) const
 {
-    if (Slot < WeaponActorSlot.Num())
+    if (Slot < WeaponSlot.WeaponActorSlot.Num())
     {
-        return WeaponActorSlot[Slot];
+        return WeaponSlot.WeaponActorSlot[Slot];
     }
     return nullptr;
 }
 
 AWeaponActor* UNLCharacterComponent::GetCurrentWeaponActor() const
 {
-    return GetWeaponActorAtSlot(CurrentWeaponSlot);
+    return GetWeaponActorAtSlot(WeaponSlot.CurrentSlot);
 }
 
 AWeaponActor* UNLCharacterComponent::GetEquippedWeaponActorByTag(const FGameplayTag& WeaponTag) const
 {
-    for (AWeaponActor* Weapon : WeaponActorSlot)
+    for (AWeaponActor* Weapon : WeaponSlot.WeaponActorSlot)
     {
         if (IsValid(Weapon) && Weapon->GetWeaponTag().MatchesTagExact(WeaponTag))
         {
@@ -492,7 +488,7 @@ const FGameplayTag UNLCharacterComponent::GetWeaponTagAtSlot(uint8 Slot) const
 
 const FGameplayTag UNLCharacterComponent::GetCurrentWeaponTag() const
 {
-    return GetWeaponTagAtSlot(CurrentWeaponSlot);
+    return GetWeaponTagAtSlot(WeaponSlot.CurrentSlot);
 }
 
 void UNLCharacterComponent::WeaponAdded(AWeaponActor* Weapon)
@@ -526,14 +522,14 @@ void UNLCharacterComponent::ValidateStartupWeapons()
         return;
     }
 
-    const int32 StartupWeaponNum = FMath::Min(int32(MaxWeaponSlotSize), PS->StartupWeapons.Num());
+    const int32 StartupWeaponNum = FMath::Min(int32(WeaponSlot.MaxSlotSize), PS->StartupWeapons.Num());
     if (InitializedStartupWeapons.Num() == StartupWeaponNum)
     {
         bool bAllInitalizedAndValid = true;
         for (int32 i = 0; i < StartupWeaponNum; i++)
         {
             AWeaponActor* InitializedWeapon = InitializedStartupWeapons[i];
-            if (!InitializedWeapon->IsInitialized() || !WeaponActorSlot.Contains(InitializedWeapon))
+            if (!InitializedWeapon->IsInitialized() || !WeaponSlot.WeaponActorSlot.Contains(InitializedWeapon))
             {
                 bAllInitalizedAndValid = false;
                 break;
@@ -553,8 +549,8 @@ void UNLCharacterComponent::ValidateStartupWeapons()
             {
                 // Update Simulated Character Mesh
                 // 나중에 접속한 클라이언트 입장에서도 기존에 접속했던 플레이어들의 무기 정보에 맞게 업데이트
-                CurrentWeaponSlot = 0;
-                UpdateOwningCharacterMesh();
+                // WeaponSlot.CurrentSlot = 0;
+                // UpdateOwningCharacterMesh();
             }
             else if (GetOwningPlayer()->GetNLPC()) // 클라이언트면 클라이언트에서 어빌리티 활성화 하게 함.
             {
@@ -573,14 +569,14 @@ void UNLCharacterComponent::ValidateStartupWeapons()
 
 bool UNLCharacterComponent::CanSwapWeaponSlot(int32 NewWeaponSlot) const
 {
-    if (!bIsSwappingWeapon && CurrentWeaponSlot == NewWeaponSlot)
+    if (!bIsSwappingWeapon && WeaponSlot.CurrentSlot == NewWeaponSlot)
     {
         return false;
     }
 
-    if (0 <= NewWeaponSlot && NewWeaponSlot < WeaponActorSlot.Num())
+    if (0 <= NewWeaponSlot && NewWeaponSlot < WeaponSlot.WeaponActorSlot.Num())
     {
-        AWeaponActor* Weapon = WeaponActorSlot[NewWeaponSlot];
+        AWeaponActor* Weapon = WeaponSlot.WeaponActorSlot[NewWeaponSlot];
         if (IsValid(Weapon) && Weapon->IsInitialized())
         {
             return true;
@@ -603,12 +599,13 @@ void UNLCharacterComponent::TrySwapWeaponSlot(int32 NewWeaponSlot, bool bCheckCo
     // Update Widget
     WeaponSwapped.Broadcast(
         GetCurrentWeaponTag(),
-        CurrentWeaponSlot,
+        WeaponSlot.CurrentSlot,
         GetWeaponTagAtSlot(WeaponSwapPendingSlot),
         WeaponSwapPendingSlot
     );
+    AWeaponActor* PendingWeapon = GetWeaponActorAtSlot(WeaponSwapPendingSlot);
     CurrentWeaponBulletNumChanged.Broadcast(
-        GetWeaponActorAtSlot(WeaponSwapPendingSlot)->GetCurrentBulletNum()
+        IsValid(PendingWeapon) ? PendingWeapon->GetCurrentBulletNum() : 0
     );
 
     if (!IsValid(GetCurrentWeaponActor()) || bSkipHolsterAnim)
@@ -620,7 +617,7 @@ void UNLCharacterComponent::TrySwapWeaponSlot(int32 NewWeaponSlot, bool bCheckCo
 
     if (bIsSwappingWeapon)
     {
-        if (WeaponSwapPendingSlot == CurrentWeaponSlot)
+        if (WeaponSwapPendingSlot == WeaponSlot.CurrentSlot)
         {
             CancelWeaponSwap();
         }
@@ -652,10 +649,10 @@ void UNLCharacterComponent::TrySwapWeaponSlot(int32 NewWeaponSlot, bool bCheckCo
 
 void UNLCharacterComponent::TrySwapWeaponSlot_Next(bool bPrev)
 {
-    for (int32 i = 1; i < MaxWeaponSlotSize; i++)
+    for (int32 i = 1; i < WeaponSlot.MaxSlotSize; i++)
     {
         const int32 Offset = bPrev ? -i : i;
-        const int32 NewSlotNum = ((int32)(CurrentWeaponSlot + MaxWeaponSlotSize) + Offset) % MaxWeaponSlotSize;
+        const int32 NewSlotNum = ((int32)(WeaponSlot.CurrentSlot + WeaponSlot.MaxSlotSize) + Offset) % WeaponSlot.MaxSlotSize;
         if (CanSwapWeaponSlot(NewSlotNum))
         {
             TrySwapWeaponSlot(NewSlotNum);
@@ -900,7 +897,7 @@ void UNLCharacterComponent::DropCurrentWeapon(bool bSwapSlot)
         GetNLASC()->WeaponDropped(WeaponActor);
         WeaponActor->Dropped();
 
-        WeaponActorSlot[CurrentWeaponSlot] = nullptr;
+        WeaponSlot.WeaponActorSlot[WeaponSlot.CurrentSlot] = nullptr;
 
         UpdateMeshes();
 
@@ -927,35 +924,18 @@ void UNLCharacterComponent::PickUp(AActor* Pickupable)
 
 void UNLCharacterComponent::PickUpWeapon(AWeaponActor* WeaponActor)
 {
-    int32 Slot = -1;
-    if (IsWeaponSlotFull())
+    uint8 Slot = GetFirstEmptySlot();
+    if (Slot == WeaponSlot.MaxSlotSize)
     {
-        Slot = CurrentWeaponSlot;
-
+        Slot = WeaponSlot.CurrentSlot;
         DropCurrentWeapon();
-    }
-    else
-    {
-        for (int i = 0; i < MaxWeaponSlotSize; i++)
-        {
-            if (!IsValid(GetWeaponActorAtSlot(i)))
-            {
-                Slot = i;
-                break;
-            }
-        }
-        if (Slot < 0)
-        {
-            UE_LOG(LogTemp, Error, TEXT("Error: IsWeaponSlotFull() returns false but all slots are full"));
-            return;
-        }
     }
 
     AttachWeaponToSocket(WeaponActor);
     WeaponActor->SetOwner(GetOwningPlayer());
     IPickupable::Execute_OnPickedUp(WeaponActor);
 
-    WeaponActorSlot[Slot] = WeaponActor;
+    WeaponSlot.WeaponActorSlot[Slot] = WeaponActor;
     UpdateWeaponTagSlot();
 
     GetNLASC()->WeaponAdded(WeaponActor);
@@ -965,7 +945,7 @@ void UNLCharacterComponent::PickUpWeapon(AWeaponActor* WeaponActor)
 
 bool UNLCharacterComponent::IsWeaponSlotFull() const
 {
-    for (const AWeaponActor* Weapon : WeaponActorSlot)
+    for (const AWeaponActor* Weapon : WeaponSlot.WeaponActorSlot)
     {
         if (!IsValid(Weapon))
         {
@@ -977,7 +957,7 @@ bool UNLCharacterComponent::IsWeaponSlotFull() const
 
 bool UNLCharacterComponent::IsWeaponSlotEmpty() const
 {
-    for (const AWeaponActor* Weapon : WeaponActorSlot)
+    for (const AWeaponActor* Weapon : WeaponSlot.WeaponActorSlot)
     {
         if (IsValid(Weapon))
         {
@@ -985,4 +965,16 @@ bool UNLCharacterComponent::IsWeaponSlotEmpty() const
         }
     }
     return true;
+}
+
+uint8 UNLCharacterComponent::GetFirstEmptySlot() const
+{
+    for (uint8 i = 0; i < WeaponSlot.MaxSlotSize; i++)
+    {
+        if (!IsValid(WeaponSlot.WeaponActorSlot[i]))
+        {
+            return i;
+        }
+    }
+    return WeaponSlot.MaxSlotSize;
 }

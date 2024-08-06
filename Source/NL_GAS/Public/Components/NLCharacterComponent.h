@@ -18,6 +18,21 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWeaponSlotChangedSignature, const T
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FWeaponSwappedSignature, const FGameplayTag&, FromWeaponTag, int32, FromSlotNum, const FGameplayTag&, ToWeaponTag, int32, ToSlotNum);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCurrentWeaponBulletNumChangedSignature, int32, NewBulletNum);
 
+USTRUCT(BlueprintType)
+struct FWeaponSlot
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	uint8 MaxSlotSize = 3;
+
+	UPROPERTY(BlueprintReadOnly)
+	uint8 CurrentSlot = 0;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TArray<AWeaponActor*> WeaponActorSlot;
+};
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class NL_GAS_API UNLCharacterComponent : public UActorComponent
 {
@@ -38,20 +53,11 @@ public:
 	TArray<FGameplayTag> WeaponTagSlot;
 
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	uint8 MaxWeaponSlotSize;
-
-	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_CurrentWeaponSlot)
-	uint8 CurrentWeaponSlot;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, ReplicatedUsing = OnRep_WeaponSlot)
+	FWeaponSlot WeaponSlot;
 
 	UFUNCTION()
-	void OnRep_CurrentWeaponSlot(uint8 OldSlot);
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_WeaponActorSlot)
-	TArray<AWeaponActor*> WeaponActorSlot;
-
-	UFUNCTION()
-	void OnRep_WeaponActorSlot(TArray<AWeaponActor*> OldWeaponActorSlot);
+	void OnRep_WeaponSlot(FWeaponSlot OldSlot);
 
 	// 현재 들고있는 무기 정보로 뷰 메시와 3인칭 캐릭터 메시 업데이트
 	void UpdateMeshes(AWeaponActor* OldWeaponActor = nullptr, bool bIsSimulated = false);
@@ -122,7 +128,7 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	AWeaponActor* GetCurrentWeaponActor() const;
 
-	FORCEINLINE int32 GetCurrentWeaponSlot() const { return CurrentWeaponSlot; }
+	FORCEINLINE int32 GetCurrentWeaponSlot() const { return WeaponSlot.CurrentSlot; }
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	AWeaponActor* GetEquippedWeaponActorByTag(const FGameplayTag& WeaponTag) const;
@@ -184,4 +190,6 @@ public:
 	bool IsWeaponSlotFull() const;
 
 	bool IsWeaponSlotEmpty() const;
+
+	uint8 GetFirstEmptySlot() const;
 };
