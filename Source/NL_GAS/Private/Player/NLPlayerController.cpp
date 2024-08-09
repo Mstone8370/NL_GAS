@@ -261,6 +261,8 @@ void ANLPlayerController::BeginInteraction()
         return;
     }
 
+    // TODO: 상호작용 중엔 무기 스왑을 막는게 버그 발생을 예방할듯
+
     OnInteractionBegin.Broadcast();
 }
 

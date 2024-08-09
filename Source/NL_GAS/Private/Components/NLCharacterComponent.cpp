@@ -132,9 +132,6 @@ void UNLCharacterComponent::OnRep_WeaponSlot(FWeaponSlot OldSlot)
     
     if (GetOwnerRole() != ROLE_SimulatedProxy && WeaponSlot.CurrentSlot < WeaponSlot.MaxSlotSize)
     {
-        // TODO: 무기를 swap하면서 새로운 무기를 픽업하면 픽업한 무기는 drawfirst가 아닌 draw 애니메이션이 나옴
-        // WeaponActor의 bIsEverDrawn의 문제는 아님.
-        
         const bool bCurrentSlotChanged = OldSlot.CurrentSlot != WeaponSlot.CurrentSlot;
 
         // CurrentSlot은 동일하다는 전제조건
@@ -142,7 +139,7 @@ void UNLCharacterComponent::OnRep_WeaponSlot(FWeaponSlot OldSlot)
         
         if (bCurrentSlotChanged || bCurrentWeaponChanged)
         {
-            OnCurrentWeaponDropped(false);
+            OnCurrentWeaponDropped();
             TrySwapWeaponSlot(WeaponSlot.CurrentSlot, false, true);
         }
 
@@ -186,7 +183,7 @@ void UNLCharacterComponent::UpdateOwningCharacterMesh(AWeaponActor* OldWeaponAct
     }
 }
 
-void UNLCharacterComponent::CancelWeaponSwap()
+void UNLCharacterComponent::RevertWeaponSwap()
 {
     bIsSwappingWeapon = false;
 
@@ -356,7 +353,7 @@ void UNLCharacterComponent::ClearWeapons()
     }
 }
 
-void UNLCharacterComponent::OnCurrentWeaponDropped(bool bSwapSlot)
+void UNLCharacterComponent::OnCurrentWeaponDropped()
 {
     // On Server and Client
 
@@ -366,24 +363,26 @@ void UNLCharacterComponent::OnCurrentWeaponDropped(bool bSwapSlot)
         GetOwningPlayer()->StopArmsAnimMontage();
     }
 
-    if (GetWorld()->GetTimerManager().IsTimerActive(HolsterTimerHandle))
+    const bool bHolstering = GetWorld()->GetTimerManager().IsTimerActive(HolsterTimerHandle);
+    const bool bDrawing = GetWorld()->GetTimerManager().IsTimerActive(DrawTimerHandle);
+    if (bHolstering)
     {
+        // 무기를 holster하는 중이었으면, 이미 무기를 스왑중이고, pending 슬롯이 정해져있음
         GetWorld()->GetTimerManager().ClearTimer(HolsterTimerHandle);
         OnWeaponHolstered();
     }
-    if (GetWorld()->GetTimerManager().IsTimerActive(DrawTimerHandle))
+    else
     {
-        GetWorld()->GetTimerManager().ClearTimer(DrawTimerHandle);
-        OnWeaponDrawn();
-    }
+        if (bDrawing)
+        {
+            // 무기를 draw하는 중이었으면, 다음 슬롯 무기로 스왑해야함.
+            GetWorld()->GetTimerManager().ClearTimer(DrawTimerHandle);
+        }
 
-    if (bSwapSlot)
-    {
-        /**
-        * 이 함수 호출은 어빌리티를 activate하는게 아니라서 서버와 클라이언트간 동기화가 안됨.
-        * 따라서 서버와 클라이언트 모두 호출될 수 있게 해야함.
-        */
-        TrySwapWeaponSlot_Next();
+        if (GetOwnerRole() == ROLE_Authority)
+        {
+            TrySwapWeaponSlot_Next();
+        }
     }
 }
 
@@ -619,7 +618,7 @@ void UNLCharacterComponent::TrySwapWeaponSlot(int32 NewWeaponSlot, bool bCheckCo
     {
         if (WeaponSwapPendingSlot == WeaponSlot.CurrentSlot)
         {
-            CancelWeaponSwap();
+            RevertWeaponSwap();
         }
         return;
     }
@@ -884,7 +883,7 @@ void UNLCharacterComponent::HandleOwnerDeath()
     ClearWeapons();
 }
 
-void UNLCharacterComponent::DropCurrentWeapon(bool bSwapSlot)
+void UNLCharacterComponent::DropCurrentWeapon()
 {
     AWeaponActor* WeaponActor = GetCurrentWeaponActor();
     if (!IsValid(WeaponActor))
@@ -903,7 +902,7 @@ void UNLCharacterComponent::DropCurrentWeapon(bool bSwapSlot)
 
         UpdateWeaponTagSlot(); // for authorized player
 
-        OnCurrentWeaponDropped(bSwapSlot);
+        OnCurrentWeaponDropped();
     }
 }
 

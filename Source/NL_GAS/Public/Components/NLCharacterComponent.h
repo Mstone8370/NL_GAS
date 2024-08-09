@@ -73,7 +73,7 @@ protected:
 	FTimerHandle HolsterTimerHandle;
 	FTimerHandle DrawTimerHandle;
 
-	void CancelWeaponSwap();
+	void RevertWeaponSwap();
 
 	void OnWeaponHolstered();
 
@@ -92,7 +92,7 @@ protected:
 
 	void ClearWeapons();
 
-	void OnCurrentWeaponDropped(bool bSwapSlot = false); // for local controlled player
+	void OnCurrentWeaponDropped(); // for local controlled player
 
 private:
 	bool bStartupWeaponInitFinished;
@@ -181,7 +181,7 @@ public:
 	void HandleOwnerDeath();
 
 	UFUNCTION(BlueprintCallable)
-	void DropCurrentWeapon(bool bSwapSlot = false);
+	void DropCurrentWeapon();
 
 	void PickUp(AActor* Pickupable);
 
