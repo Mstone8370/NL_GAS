@@ -157,6 +157,8 @@ protected:
 	UPROPERTY()
 	TObjectPtr<AActor> InteractableActor;
 
+	bool bIsInteracting = false;
+
 public:
 	float GetBaseLookSensitivity() const { return LookSensitivity; }
 

@@ -76,7 +76,14 @@ void ANLPlayerController::PostProcessInput(const float DeltaTime, const bool bGa
 
     if (GetNLAbilitySystemComponent())
     {
-        GetNLAbilitySystemComponent()->ProcessAbilityInput(DeltaTime, bGamePaused);
+        if (bIsInteracting)
+        {
+            GetNLAbilitySystemComponent()->ClearAbilityInput();
+        }
+        else
+        {
+            GetNLAbilitySystemComponent()->ProcessAbilityInput(DeltaTime, bGamePaused);
+        }
     }
 
     if (GetNLPlayerCharacter())
@@ -245,6 +252,8 @@ void ANLPlayerController::Interaction()
         return;
     }
 
+    bIsInteracting = false;
+
     if (InteractableActor->Implements<UPickupable>())
     {
         if (GetNLPlayerCharacter())
@@ -261,7 +270,7 @@ void ANLPlayerController::BeginInteraction()
         return;
     }
 
-    // TODO: 상호작용 중엔 무기 스왑을 막는게 버그 발생을 예방할듯
+    bIsInteracting = true;
 
     OnInteractionBegin.Broadcast();
 }
@@ -272,6 +281,8 @@ void ANLPlayerController::EndInteraction()
     {
         return;
     }
+
+    bIsInteracting = false;
 
     OnInteractionEnd.Broadcast();
 }
@@ -486,6 +497,8 @@ void ANLPlayerController::EnableInteraction(AActor* Interactable, FString Messag
 void ANLPlayerController::DisableInteraction()
 {
     InteractableActor = nullptr;
+
+    bIsInteracting = false;
 
     OnInteractionDisabled.Broadcast();
 }

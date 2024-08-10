@@ -139,8 +139,23 @@ void UNLCharacterComponent::OnRep_WeaponSlot(FWeaponSlot OldSlot)
         
         if (bCurrentSlotChanged || bCurrentWeaponChanged)
         {
-            OnCurrentWeaponDropped();
-            TrySwapWeaponSlot(WeaponSlot.CurrentSlot, false, true);
+            /**
+            * OnCurrentWeaponDropped 함수 호출로 인해서 current slot이 변경될 수 있음.
+            * 따라서 레플리케이트 된 current slot을 따로 저장해놓음.
+            * e.g. holster중인데 무기 교체가 된 경우, 교체된 무기가 있는 슬롯으로 스왑하는게 맞음.
+            *      하지만 holster중인 무기를 버리는걸 우선으로 처리해야하는 정해진 절차가 있으므로
+            *      pending 슬롯으로 스왑하는 과정을 먼저 하게 됨.
+            *      (무기를 버리는 경우에는 pending 슬롯으로 스왑하는게 맞는 행동이기 때문.)
+            *      pending 슬롯으로 스왑하게 되면 current slot이 변경되는 문제가 발생하게 되고,
+            *      그렇게 변경된 current slot 값으로 무기 스왑을 하게되면 서버와 클라이언트가 서로 다른
+            *      슬롯의 무기를 들고있게 됨.
+            *      이 함수에서는 클라이언트의 입장에서, 서버에서 발생했던 사건의 결과물만 보고,
+            *      실제로 발생한 사건을 예측해야하므로, 서버에서는 모든것이 의도대로 작동했다고 가정해야하고
+            *      클라이언트에서는 그 결과물을 그대로 따라야함.
+            */
+            const uint8 RealCurrentSlot = WeaponSlot.CurrentSlot;
+            OnCurrentWeaponDropped(); // This function is not const
+            TrySwapWeaponSlot(RealCurrentSlot, false, true);
         }
 
         UpdateWeaponTagSlot();
@@ -607,13 +622,6 @@ void UNLCharacterComponent::TrySwapWeaponSlot(int32 NewWeaponSlot, bool bCheckCo
         IsValid(PendingWeapon) ? PendingWeapon->GetCurrentBulletNum() : 0
     );
 
-    if (!IsValid(GetCurrentWeaponActor()) || bSkipHolsterAnim)
-    {
-        // Start up or weapon drop
-        OnWeaponHolstered();
-        return;
-    }
-
     if (bIsSwappingWeapon)
     {
         if (WeaponSwapPendingSlot == WeaponSlot.CurrentSlot)
@@ -628,6 +636,13 @@ void UNLCharacterComponent::TrySwapWeaponSlot(int32 NewWeaponSlot, bool bCheckCo
     GetASC()->AddLooseGameplayTag(Ability_Block_Weapon);
     GetOwningPlayer()->StopArmsAnimMontage();
     GetOwningPlayer()->StopWeaponAnimMontage();
+
+    if (!IsValid(GetCurrentWeaponActor()) || bSkipHolsterAnim)
+    {
+        // Start up or weapon drop
+        OnWeaponHolstered();
+        return;
+    }
     
     // 현재 무기를 draw중인 경우인지 확인
     if (GetWorld()->GetTimerManager().IsTimerActive(DrawTimerHandle))
