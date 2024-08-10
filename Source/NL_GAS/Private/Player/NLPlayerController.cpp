@@ -247,7 +247,7 @@ void ANLPlayerController::CrouchToggle()
 
 void ANLPlayerController::Interaction()
 {
-    if (!IsValid(InteractableActor))
+    if (!bIsInteracting || !IsValid(InteractableActor))
     {
         return;
     }
@@ -267,6 +267,7 @@ void ANLPlayerController::BeginInteraction()
 {
     if (!IsValid(InteractableActor))
     {
+        bIsInteracting = false;
         return;
     }
 
