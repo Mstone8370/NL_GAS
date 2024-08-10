@@ -142,7 +142,6 @@ void ANLCharacterBase::OnRep_DeathInfo(FDeathInfo OldDeathInfo)
     else
     {
         OnRespawned_Internal(GetLocalRole() == ROLE_SimulatedProxy);
-        UE_LOG(LogTemp, Warning, TEXT("Client Respawn"));
     }
 }
 
@@ -165,8 +164,6 @@ void ANLCharacterBase::OnDead_Internal(const FDeathInfo& Info, bool bSimulated)
         GetCharacterMovement()->bWantsToCrouch = false;
         GetCharacterMovement()->DisableMovement();
     }
-
-    BP_SpawnDeathCamAndSetViewTarget(Info.SourceActor.Get());
 }
 
 void ANLCharacterBase::OnDeathRagdollTimeEnded()

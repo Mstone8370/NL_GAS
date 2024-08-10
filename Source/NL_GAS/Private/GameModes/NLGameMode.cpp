@@ -55,8 +55,6 @@ void ANLGameMode::MulticastKillLog(AActor* SourceActor, AActor* TargetActor, FGa
 
 void ANLGameMode::RespawnPlayer(APlayerController* PC)
 {
-    UE_LOG(LogTemp, Warning, TEXT("Respawn received: %s"), *GetNameSafe(PC));
-
     float HalfHeight = 0.f;
     float Radius = 0.f;
     if (APawn* PCPawn = PC->GetPawn())

@@ -18,6 +18,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Data/AimPunchData.h"
 #include "Interface/Pickupable.h"
+#include "Actors/DeathCam.h"
 
 void ANLPlayerController::SetupInputComponent()
 {
@@ -398,6 +399,31 @@ void ANLPlayerController::Client_OnKilled_Implementation(AActor* TargetActor)
     OnKill.Broadcast(TargetActor);
 }
 
+void ANLPlayerController::SetupDeathCam(AActor* TargetActor)
+{
+    if (IsLocalController())
+    {
+        if (ADeathCam* DeathCam = GetWorld()->SpawnActor<ADeathCam>(GetPawn()->GetActorLocation(), GetPawn()->GetActorRotation()))
+        {
+            DeathCam->SetTargetActor(TargetActor);
+            SetViewTargetWithBlend(DeathCam, 0.2f);
+        }
+    }
+}
+
+void ANLPlayerController::ClearDeathCam()
+{
+    if (IsLocalController())
+    {
+        AActor* ViewTargetActor = GetViewTarget();
+        if (ViewTargetActor && ViewTargetActor->IsA<ADeathCam>())
+        {
+            SetViewTarget(GetPawn());
+            ViewTargetActor->Destroy();
+        }
+    }
+}
+
 void ANLPlayerController::SetLookSensitivity(float InLookSensitivity)
 {
     CurrentLookSensitivity = InLookSensitivity;
@@ -446,7 +472,7 @@ void ANLPlayerController::Client_OnRespawned_Implementation()
         GetNLHUD()->OnCharacterRespawn();
     }
 
-    SetViewTarget(GetPawn());
+    ClearDeathCam();
 
     OnPlayerRespawn.Broadcast();
 }
@@ -459,6 +485,8 @@ void ANLPlayerController::OnDead(AActor* SourceActor, FGameplayTag DamageType)
     {
         GetNLHUD()->OnCharacterDead();
     }
+
+    SetupDeathCam(SourceActor);
 
     OnPlayerDeath.Broadcast(SourceActor, GetPawn(), DamageType);
 }

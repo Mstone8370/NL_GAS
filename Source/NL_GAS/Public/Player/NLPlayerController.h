@@ -159,6 +159,10 @@ protected:
 
 	bool bIsInteracting = false;
 
+	void SetupDeathCam(AActor* TargetActor);
+
+	void ClearDeathCam();
+
 public:
 	float GetBaseLookSensitivity() const { return LookSensitivity; }
 
