@@ -80,12 +80,14 @@ void ANLGameMode::RespawnPlayer(APlayerController* PC)
     }
 
     FVector RespawnLocation = FVector::ZeroVector;
+    FVector RespawnDirection = FVector::XAxisVector;
     for (AActor* Actor : RespawnAreas)
     {
         if (ARespawnArea* RespawnArea = Cast<ARespawnArea>(Actor))
         {
             if (RespawnArea->GetRespawnableLocation(HalfHeight, Radius, RespawnLocation))
             {
+                RespawnDirection = RespawnArea->GetDirection();
                 break;
             }
         }
@@ -97,6 +99,6 @@ void ANLGameMode::RespawnPlayer(APlayerController* PC)
     }
     if (ANLPlayerController* NLPC = Cast<ANLPlayerController>(PC))
     {
-        NLPC->OnRespawned();
+        NLPC->OnRespawned(RespawnDirection);
     }
 }

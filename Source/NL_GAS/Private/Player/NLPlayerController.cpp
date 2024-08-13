@@ -501,13 +501,14 @@ void ANLPlayerController::SetRespawnTime(float RespawnTime)
     GetWorldTimerManager().SetTimer(RespawnTimerHandle, this, &ANLPlayerController::OnRespawnableState, RespawnTime, false);
 }
 
-void ANLPlayerController::OnRespawned()
+void ANLPlayerController::OnRespawned(FVector Direction)
 {
     if (GetNLPlayerCharacter())
     {
         GetNLPlayerCharacter()->OnRespawned();
     }
-
+    
+    ClientSetRotation(Direction.Rotation());
     Client_OnRespawned();
 }
 

@@ -4,6 +4,7 @@
 #include "Actors/Volumes/RespawnArea.h"
 
 #include "Components/BoxComponent.h"
+#include "Components/ArrowComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
 
@@ -12,6 +13,9 @@ ARespawnArea::ARespawnArea()
     BoxComponent = CreateDefaultSubobject<UBoxComponent>(FName("BoxComponent"));
     BoxComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     SetRootComponent(BoxComponent);
+
+    ArrowComponent = CreateDefaultSubobject<UArrowComponent>(FName("Respawn Direction"));
+    ArrowComponent->SetupAttachment(BoxComponent);
 }
 
 bool ARespawnArea::GetRespawnableLocation(float CapsuleHalfHeight, float CapsuleRadius, FVector& OutLocation)
@@ -19,7 +23,6 @@ bool ARespawnArea::GetRespawnableLocation(float CapsuleHalfHeight, float Capsule
     const FVector BoxExtend = BoxComponent->GetScaledBoxExtent();
     const FVector Origin = GetActorLocation();
 
-    // TODO: 루프로 캡슐이 들어갈 수 있는 위치 찾을때까지 or 최대 횟수만큼 위치 찾기 시도
     for (int32 i = 0; i < 999; i++)
     {
         const FVector RandomPoint = UKismetMathLibrary::RandomPointInBoundingBox(Origin, BoxExtend);
@@ -39,7 +42,7 @@ bool ARespawnArea::GetRespawnableLocation(float CapsuleHalfHeight, float Capsule
             FName("Pawn"),
             false,
             ActorsToIgnore,
-            EDrawDebugTrace::ForDuration,
+            EDrawDebugTrace::None,
             HitRes,
             true,
             FLinearColor::Red,
@@ -54,34 +57,25 @@ bool ARespawnArea::GetRespawnableLocation(float CapsuleHalfHeight, float Capsule
                 OutLocation = HitRes.Location;
                 OutLocation.Z += CapsuleHalfHeight - CapsuleRadius + UE_SMALL_NUMBER;
 
-                UKismetSystemLibrary::DrawDebugCapsule(
-                    this,
-                    OutLocation,
-                    CapsuleHalfHeight,
-                    CapsuleRadius,
-                    FRotator::ZeroRotator,
-                    FLinearColor::White,
-                    999.f
-                );
-
                 return true;
+            }
+            else
+            {
+                continue;
             }
         }
 
         OutLocation = End;
         OutLocation.Z += CapsuleHalfHeight - CapsuleRadius + UE_SMALL_NUMBER;
 
-        UKismetSystemLibrary::DrawDebugCapsule(
-            this,
-            OutLocation,
-            CapsuleHalfHeight,
-            CapsuleRadius,
-            FRotator::ZeroRotator,
-            FLinearColor::White,
-            999.f
-        );
-
         return true;
     }
     return false;
+}
+
+FVector ARespawnArea::GetDirection() const
+{
+    FVector Ret = ArrowComponent->GetForwardVector();
+    Ret.Z = 0.f;
+    return Ret;
 }

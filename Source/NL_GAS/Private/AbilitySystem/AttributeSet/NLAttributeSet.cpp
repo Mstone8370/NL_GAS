@@ -180,11 +180,13 @@ void UNLAttributeSet::HandleDamage(FEffectContextParams& Params)
         }
     }
 
-    SetHealth(FMath::Max(GetHealth() - LocalIncomingDamage, 0.f));
+    const float NewHealth = FMath::Max(GetHealth() - LocalIncomingDamage, 0.f);
+    const float ActualDamage = GetHealth() - NewHealth;
+    SetHealth(NewHealth);
 
     if (Params.SourceAvatarActor != Params.TargetAvatarActor && SourceNLPC)
     {
-        SourceNLPC->OnCausedDamage(LocalIncomingDamage, bIsCriticalHit, Params.TargetAvatarActor);
+        SourceNLPC->OnCausedDamage(ActualDamage, bIsCriticalHit, Params.TargetAvatarActor);
     }
 
     if (TargetNLPC)

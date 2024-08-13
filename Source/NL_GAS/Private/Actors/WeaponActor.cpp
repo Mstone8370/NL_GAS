@@ -142,9 +142,14 @@ void AWeaponActor::SetWeaponState(bool bInIsEuipped)
 
 		PickUpCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 
-		if (GetOwner()->Implements<UCombatInterface>())
+		if (GetOwner() && GetOwner()->Implements<UCombatInterface>())
 		{
 			Cast<ICombatInterface>(GetOwner())->OnWeaponAdded(this);
+		}
+		else
+		{
+			// 시뮬레이티드 프록시의 무기인데 폰보다 무기가 먼저 레플리케이트 되는 경우
+			UE_LOG(LogTemp, Error, TEXT("Weapon is equipped, but owner is nullptr"));
 		}
 	}
 	else
@@ -223,6 +228,11 @@ void AWeaponActor::Drawn()
 void AWeaponActor::OnRep_IsEquipped()
 {
 	SetWeaponState(bIsEquipped);
+}
+
+void AWeaponActor::OnRep_Owner()
+{
+	SetWeaponState(GetOwner() != nullptr);
 }
 
 void AWeaponActor::SetBulletNum_Internal(int32 NewBulletNum)

@@ -184,7 +184,7 @@ public:
 
 	void SetRespawnTime(float RespawnTime);
 
-	void OnRespawned();
+	void OnRespawned(FVector Direction);
 
 	void EnableInteraction(AActor* Interactable, FString Message);
 

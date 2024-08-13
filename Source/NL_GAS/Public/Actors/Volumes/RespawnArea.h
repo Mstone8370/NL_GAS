@@ -7,6 +7,7 @@
 #include "RespawnArea.generated.h"
 
 class UBoxComponent;
+class UArrowComponent;
 
 /**
  * 
@@ -22,7 +23,12 @@ public:
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<UBoxComponent> BoxComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<UArrowComponent> ArrowComponent;
 	
 public:
 	bool GetRespawnableLocation(float CapsuleHalfHeight, float CapsuleRadius, FVector& OutLocation);
+
+	FVector GetDirection() const;
 };

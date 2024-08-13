@@ -212,7 +212,7 @@ void UNLCharacterMovementComponent::UpdateCharacterStateBeforeMovement(float Del
                 FHitResult BlockingLedgeHitResult;
                 FHitResult StandUpHitResult;
                 LedgeClimbTargetLocation = FVector::ZeroVector;
-                if (FindBlockingLedge(BlockingLedgeHitResult, true) && CanStandUpOnLegde(StandUpHitResult, true))
+                if (FindBlockingLedge(BlockingLedgeHitResult) && CanStandUpOnLegde(StandUpHitResult))
                 {
                     if (GetLedgeClimbTargetLocation(BlockingLedgeHitResult, StandUpHitResult))
                     {
@@ -715,7 +715,7 @@ bool UNLCharacterMovementComponent::GetLedgeClimbTargetLocation(const FHitResult
         FName("Pawn"),
         false,
         ActorsToIgnore,
-        EDrawDebugTrace::ForOneFrame,
+        EDrawDebugTrace::None,
         HitRes,
         true
     );

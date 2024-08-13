@@ -90,7 +90,7 @@ void UNLCharacterComponent::AddStartupWeapons()
     }
 }
 
-void UNLCharacterComponent::OnRep_WeaponSlot(FWeaponSlot OldSlot)
+void UNLCharacterComponent::OnRep_WeaponSlot(const FWeaponSlot& OldSlot)
 {
     if (!bStartupWeaponInitFinished)
     {
@@ -104,7 +104,7 @@ void UNLCharacterComponent::OnRep_WeaponSlot(FWeaponSlot OldSlot)
     TSet<AWeaponActor*> RemovedWeapons;
     for (AWeaponActor* Wpn : OldSet)
     {
-        if (IsValid(Wpn) && !NewSet.Contains(Wpn))
+        if (Wpn && !NewSet.Contains(Wpn))
         {
             RemovedWeapons.Add(Wpn);
             IPickupable::Execute_OnDropped(Wpn);
@@ -129,8 +129,11 @@ void UNLCharacterComponent::OnRep_WeaponSlot(FWeaponSlot OldSlot)
             IPickupable::Execute_OnPickedUp(Wpn);
         }
     }
+
+    UpdateWeaponTagSlot();
     
-    if (GetOwnerRole() != ROLE_SimulatedProxy && WeaponSlot.CurrentSlot < WeaponSlot.MaxSlotSize)
+    bool bShouldSwapSlot = false;
+    if (WeaponSlot.CurrentSlot < WeaponSlot.MaxSlotSize)
     {
         const bool bCurrentSlotChanged = OldSlot.CurrentSlot != WeaponSlot.CurrentSlot;
 
@@ -139,29 +142,41 @@ void UNLCharacterComponent::OnRep_WeaponSlot(FWeaponSlot OldSlot)
         
         if (bCurrentSlotChanged || bCurrentWeaponChanged)
         {
+            bShouldSwapSlot = true;
+        }
+    }
+    
+    const bool bIsSimulated = GetOwnerRole() == ROLE_SimulatedProxy;
+    UpdateMeshes(nullptr, bIsSimulated);
+
+    if (bShouldSwapSlot)
+    {
+        if (!bIsSimulated)
+        {
             /**
             * OnCurrentWeaponDropped 함수 호출로 인해서 current slot이 변경될 수 있음.
             * 따라서 레플리케이트 된 current slot을 따로 저장해놓음.
             * e.g. holster중인데 무기 교체가 된 경우, 교체된 무기가 있는 슬롯으로 스왑하는게 맞음.
             *      하지만 holster중인 무기를 버리는걸 우선으로 처리해야하는 정해진 절차가 있으므로
-            *      pending 슬롯으로 스왑하는 과정을 먼저 하게 됨.
+            *      swap pending 슬롯으로 스왑하는 과정을 먼저 하게 됨.
             *      (무기를 버리는 경우에는 pending 슬롯으로 스왑하는게 맞는 행동이기 때문.)
             *      pending 슬롯으로 스왑하게 되면 current slot이 변경되는 문제가 발생하게 되고,
-            *      그렇게 변경된 current slot 값으로 무기 스왑을 하게되면 서버와 클라이언트가 서로 다른
-            *      슬롯의 무기를 들고있게 됨.
-            *      이 함수에서는 클라이언트의 입장에서, 서버에서 발생했던 사건의 결과물만 보고,
-            *      실제로 발생한 사건을 예측해야하므로, 서버에서는 모든것이 의도대로 작동했다고 가정해야하고
-            *      클라이언트에서는 그 결과물을 그대로 따라야함.
+            *      그렇게 로컬에서 변경된 current slot 값으로 무기 스왑을 하게되면 서버와 클라이언트가
+            *      서로 다른 슬롯의 무기를 들고있게 됨.
+            *      서버에서는 모든 작업을 끝낸 결과를 레플리케이트 시켰는데 클라이언트에서는 그 값을 바꾼 상황.
+            *      이 함수에서는 클라이언트의 입장에서, 서버에서 발생했던 사건의 결과물만 보고 판단해야하므로,
+            *      서버에서 모든것이 의도대로 작동했다고 생각해야하고 그 결과를 그대로 따라야함.
             */
             const uint8 RealCurrentSlot = WeaponSlot.CurrentSlot;
             OnCurrentWeaponDropped(); // This function is not const
             TrySwapWeaponSlot(RealCurrentSlot, false, true);
         }
-
-        UpdateWeaponTagSlot();
+        else if (MontageTemp && GetOwningCharacter() && GetOwningCharacter()->GetMesh() && GetOwningCharacter()->GetMesh()->GetAnimInstance())
+        {
+            // TODO: temp
+            GetOwningCharacter()->GetMesh()->GetAnimInstance()->Montage_Play(MontageTemp);
+        }
     }
-    
-    UpdateMeshes(nullptr, GetOwner()->GetLocalRole() == ROLE_SimulatedProxy);
 }
 
 void UNLCharacterComponent::UpdateMeshes(AWeaponActor* OldWeaponActor, bool bIsSimulated)
@@ -509,6 +524,8 @@ void UNLCharacterComponent::WeaponAdded(AWeaponActor* Weapon)
 {
     BindWeaponDelegate(Weapon);
 
+    AttachWeaponToSocket(Weapon);
+
     if (!bStartupWeaponInitFinished)
     {
         InitializedStartupWeapons.AddUnique(Weapon);
@@ -559,14 +576,7 @@ void UNLCharacterComponent::ValidateStartupWeapons()
         bStartupWeaponInitFinished = bAllInitalizedAndValid;
         if (bStartupWeaponInitFinished)
         {
-            if (GetOwnerRole() == ROLE_SimulatedProxy)
-            {
-                // Update Simulated Character Mesh
-                // 나중에 접속한 클라이언트 입장에서도 기존에 접속했던 플레이어들의 무기 정보에 맞게 업데이트
-                // WeaponSlot.CurrentSlot = 0;
-                // UpdateOwningCharacterMesh();
-            }
-            else if (GetOwningPlayer()->GetNLPC()) // 클라이언트면 클라이언트에서 어빌리티 활성화 하게 함.
+            if (GetOwningPlayer()->GetLocalViewingPlayerController()) // 클라이언트면 클라이언트에서 어빌리티 활성화 하게 함.
             {
                 UAbilitySystemComponent* ASC = GetASC();
                 FGameplayTagContainer TagContainer(Ability_WeaponChange_1);

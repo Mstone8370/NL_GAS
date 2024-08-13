@@ -23,7 +23,7 @@ struct FWeaponSlot
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	uint8 MaxSlotSize = 3;
 
 	UPROPERTY(BlueprintReadOnly)
@@ -52,12 +52,15 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TArray<FGameplayTag> WeaponTagSlot;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<class UAnimMontage> MontageTemp;
+
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, ReplicatedUsing = OnRep_WeaponSlot)
 	FWeaponSlot WeaponSlot;
 
 	UFUNCTION()
-	void OnRep_WeaponSlot(FWeaponSlot OldSlot);
+	void OnRep_WeaponSlot(const FWeaponSlot& OldSlot);
 
 	// 현재 들고있는 무기 정보로 뷰 메시와 3인칭 캐릭터 메시 업데이트
 	void UpdateMeshes(AWeaponActor* OldWeaponActor = nullptr, bool bIsSimulated = false);

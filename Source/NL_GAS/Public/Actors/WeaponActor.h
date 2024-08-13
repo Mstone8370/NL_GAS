@@ -91,6 +91,8 @@ protected:
 	UFUNCTION()
 	void OnRep_IsEquipped();
 
+	virtual void OnRep_Owner() override;
+
 	bool bIsTacticalReload;
 
 	EReloadState ReloadState;

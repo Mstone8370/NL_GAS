@@ -322,7 +322,10 @@ void ANLPlayerCharacter::Server_PickUp_Implementation(AActor* Pickupable)
         return;
     }
     
-    NLCharacterComponent->PickUp(Pickupable);
+    if (IPickupable::Execute_CanPickedUp(Pickupable))
+    {
+        NLCharacterComponent->PickUp(Pickupable);
+    }
 }
 
 bool ANLPlayerCharacter::CanAttack_Implementation()
