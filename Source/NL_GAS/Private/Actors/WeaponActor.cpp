@@ -52,6 +52,12 @@ void AWeaponActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME_CONDITION_NOTIFY(AWeaponActor, bIsEquipped, COND_None, REPNOTIFY_OnChanged);
 }
 
+void AWeaponActor::OnRep_AttachmentReplication()
+{
+	// 어태치 정보가 레플리케이트될때 기본적으로 하는 작업을 무시함.
+	// 모든 어태치 작업은 직접 관리되는 중.
+}
+
 void AWeaponActor::BeginPlay()
 {
 	Super::BeginPlay();
@@ -141,6 +147,8 @@ void AWeaponActor::SetWeaponState(bool bInIsEuipped)
 		WeaponMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 		PickUpCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+		
+		SetActorRelativeRotation(FRotator(0.f, -90.f, 0.f));
 
 		if (GetOwner() && GetOwner()->Implements<UCombatInterface>())
 		{
@@ -195,7 +203,6 @@ bool AWeaponActor::CanPickedUp_Implementation()
 void AWeaponActor::OnPickedUp_Implementation()
 {
 	SetWeaponState(true);
-	SetActorRelativeRotation(FRotator(0.f, -90.f, 0.f));
 }
 
 void AWeaponActor::OnDropped_Implementation()

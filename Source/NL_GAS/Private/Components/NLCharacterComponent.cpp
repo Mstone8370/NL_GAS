@@ -67,7 +67,6 @@ void UNLCharacterComponent::AddStartupWeapons()
         // Spawn Weapon
         FTransform SpawnTransform;
         SpawnTransform.SetLocation(OwningPlayer->GetActorLocation());
-        SpawnTransform.SetRotation(FRotator(0.f, -90.f, 0.f).Quaternion());
         SpawnTransform.SetScale3D(FVector::OneVector);
 
         AWeaponActor* Weapon = GetWorld()->SpawnActorDeferred<AWeaponActor>(
@@ -151,6 +150,12 @@ void UNLCharacterComponent::OnRep_WeaponSlot(const FWeaponSlot& OldSlot)
 
     if (bShouldSwapSlot)
     {
+        for (AWeaponActor* Wpn : WeaponSlot.WeaponActorSlot)
+        {
+            AttachWeaponToSocket(Wpn);
+        }
+
+        const uint8 RealCurrentSlot = WeaponSlot.CurrentSlot;
         if (!bIsSimulated)
         {
             /**
@@ -167,12 +172,12 @@ void UNLCharacterComponent::OnRep_WeaponSlot(const FWeaponSlot& OldSlot)
             *      이 함수에서는 클라이언트의 입장에서, 서버에서 발생했던 사건의 결과물만 보고 판단해야하므로,
             *      서버에서 모든것이 의도대로 작동했다고 생각해야하고 그 결과를 그대로 따라야함.
             */
-            const uint8 RealCurrentSlot = WeaponSlot.CurrentSlot;
             OnCurrentWeaponDropped(); // This function is not const
             TrySwapWeaponSlot(RealCurrentSlot, false, true);
         }
         else if (MontageTemp && GetOwningCharacter() && GetOwningCharacter()->GetMesh() && GetOwningCharacter()->GetMesh()->GetAnimInstance())
         {
+            AttachWeaponToHand(GetWeaponActorAtSlot(RealCurrentSlot));
             // TODO: temp
             GetOwningCharacter()->GetMesh()->GetAnimInstance()->Montage_Play(MontageTemp);
         }
@@ -576,17 +581,28 @@ void UNLCharacterComponent::ValidateStartupWeapons()
         bStartupWeaponInitFinished = bAllInitalizedAndValid;
         if (bStartupWeaponInitFinished)
         {
-            if (GetOwningPlayer()->GetLocalViewingPlayerController()) // 클라이언트면 클라이언트에서 어빌리티 활성화 하게 함.
+            const AController* Controller = GetOwningPlayer()->GetController();
+            const bool bIsSimulated = !(Controller && Controller->IsLocalPlayerController());
+
+            if (!bIsSimulated)
             {
+                // 플레이어의 캐릭터면 어빌리티 활성화 하게 함.
                 UAbilitySystemComponent* ASC = GetASC();
                 FGameplayTagContainer TagContainer(Ability_WeaponChange_1);
                 ASC->TryActivateAbilitiesByTag(TagContainer);
 
                 UpdateWeaponTagSlot();
             }
+            else
+            {
+                // 나중에 접속한 클라이언트 입장에서도 기존에 접속했던 플레이어들의 무기 정보에 맞게 업데이트
+                AttachWeaponToHand(GetCurrentWeaponActor());
+            }
 
             // Clear up validation data
             InitializedStartupWeapons.Empty();
+
+            UpdateMeshes(nullptr, bIsSimulated);
         }
     }
 }
