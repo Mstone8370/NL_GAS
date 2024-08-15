@@ -182,3 +182,33 @@ FString UNLFunctionLibrary::GetPlayerName(AActor* Actor)
     }
     return GetNameSafe(Actor);
 }
+
+AActor* UNLFunctionLibrary::GetAbilitySystemAvatarActor(UAbilitySystemComponent* ASC)
+{
+    if (ASC)
+    {
+        return ASC->GetAvatarActor();
+    }
+    return nullptr;
+}
+
+AController* UNLFunctionLibrary::GetAbilitySystemController(UAbilitySystemComponent* ASC)
+{
+    if (AActor* AvatarActor = GetAbilitySystemAvatarActor(ASC))
+    {
+        if (APawn* Pawn = Cast<APawn>(AvatarActor))
+        {
+            return Pawn->GetController();
+        }
+    }
+    return nullptr;
+}
+
+APlayerController* UNLFunctionLibrary::GetAbilitySystemPlayerController(UAbilitySystemComponent* ASC)
+{
+    if (AController* Controller = GetAbilitySystemController(ASC))
+    {
+        return Cast<APlayerController>(Controller);
+    }
+    return nullptr;
+}

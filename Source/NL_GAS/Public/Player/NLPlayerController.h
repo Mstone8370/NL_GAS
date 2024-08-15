@@ -171,6 +171,7 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	void GetPlayerAimPoint(FVector& OutViewLocation, FRotator& OutViewRotation) const;
 
+	UFUNCTION(BlueprintCallable)
 	void OnCausedDamage(float InDamage, bool bInIsCriticalHit, AActor* DamagedActor);
 
 	void OnTakenDamage(const FHitResult* InHitResult, FVector DamageOrigin, bool bIsCriticalHit, const FGameplayTag& DamageType);

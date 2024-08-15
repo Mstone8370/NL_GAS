@@ -39,4 +39,13 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "NLFunctionLibrary")
 	static FString GetPlayerName(AActor* Actor);
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "NLFunctionLibrary")
+	static AActor* GetAbilitySystemAvatarActor(UAbilitySystemComponent* ASC);
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "NLFunctionLibrary")
+	static AController* GetAbilitySystemController(UAbilitySystemComponent* ASC);
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "NLFunctionLibrary")
+	static APlayerController* GetAbilitySystemPlayerController(UAbilitySystemComponent* ASC);
 };

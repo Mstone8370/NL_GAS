@@ -551,6 +551,7 @@ void ANLPlayerCharacter::OnEndSlide()
 {
     GetWorldTimerManager().SetTimer(SlideTiltTimer, SlidingTiltInterpTime, false);
 
+    FGameplayTag FOVTag = IsADS() ? NLCharacterComponent->GetCurrentWeaponADSFOVTag() : FOV_Default;
     SetTargetFOVByTag(FOV_Default, 5.f);
 }
 
@@ -677,7 +678,23 @@ void ANLPlayerCharacter::SetTargetFOVByTag(FGameplayTag FOVTag, float TransientI
     }
     FName FOVRowName = FOVTag.GetTagName();
 
-    if (FFOVModifyValue* DataRow = FOV_Data->FindRow<FFOVModifyValue>(FOVRowName, FString()))
+    // TODO: temp. 카메라와 뷰메시는 각자의 클래스가 있으므로 여기에서 관리하는게 복잡한 경우 다룰때 좋을듯.
+    if (IsADS() && !FOVTag.MatchesTag(FGameplayTag::RequestGameplayTag(FName("FOV_ADS"), false)))
+    {
+        FName ADSFOVRowName = NLCharacterComponent->GetCurrentWeaponADSFOVTag().GetTagName();
+        if (FFOVModifyValue* DataRow = FOV_Data->FindRow<FFOVModifyValue>(ADSFOVRowName, FString()))
+        {
+            CameraTargetFOV = CameraComponent->GetBaseFOV() * DataRow->CameraFOVMultiplier + DataRow->CameraFOVAdditive;
+            ViewMeshTargetFOV = DataRow->ViewModelHorizontalFOV;
+            LookSensitivityMultiplier = DataRow->LookSensitivityMultiplier;
+            LoopingControlShakeCurve = DataRow->LoopingControlShakeCurve;
+        }
+        if (FFOVModifyValue* DataRow = FOV_Data->FindRow<FFOVModifyValue>(FOVRowName, FString()))
+        {
+            CameraTargetFOV += DataRow->CameraFOVAdditive;
+        }
+    }
+    else if (FFOVModifyValue* DataRow = FOV_Data->FindRow<FFOVModifyValue>(FOVRowName, FString()))
     {
         CameraTargetFOV = CameraComponent->GetBaseFOV() * DataRow->CameraFOVMultiplier + DataRow->CameraFOVAdditive;
         ViewMeshTargetFOV = DataRow->ViewModelHorizontalFOV;
@@ -839,7 +856,7 @@ void ANLPlayerCharacter::OnADS(bool bInIsADS)
 
     bIsADS = bInIsADS;
 
-    FGameplayTag FOVTag = bIsADS ? NLCharacterComponent->GetCurrentWeaponADSFOVTag() : FGameplayTag();
+    FGameplayTag FOVTag = bIsADS ? NLCharacterComponent->GetCurrentWeaponADSFOVTag() : FOV_Default;
     SetTargetFOVByTag(FOVTag);
 }
 

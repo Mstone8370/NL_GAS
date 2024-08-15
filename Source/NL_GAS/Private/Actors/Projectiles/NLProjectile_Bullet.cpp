@@ -11,6 +11,7 @@
 #include "Components/DecalComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
+#include "Interface/Damageable.h"
 
 void ANLProjectile_Bullet::BeginPlay()
 {
@@ -26,18 +27,20 @@ void ANLProjectile_Bullet::OnBeginOverlap(UPrimitiveComponent* OverlappedCompone
 
     if (HasAuthority())
     {
+        DamageEffectParams.TravelDistance = FVector::Dist(SweepResult.Location, StartLocation);
+        DamageEffectParams.RadialDamageOrigin = GetActorLocation();
+        DamageEffectParams.HitResult = SweepResult;
+
         if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor))
         {
             DamageEffectParams.TargetASC = TargetASC;
-            DamageEffectParams.TravelDistance = FVector::Dist(SweepResult.Location, StartLocation);
-            DamageEffectParams.RadialDamageOrigin = GetActorLocation();
-            DamageEffectParams.HitResult = SweepResult;
 
             UNLFunctionLibrary::ApplyDamageEffect(DamageEffectParams);
         }
-        else if (false) // TODO: Check if OtherActor is damageable prop Actor.
+        else if (OtherActor->Implements<UDamageable>()) // TODO: Check if OtherActor is damageable prop Actor.
         {
-
+            float Damage = DamageEffectParams.DamageScalableFloat.GetValueAtLevel(SweepResult.Distance);
+            IDamageable::Execute_OnTakenDamage(OtherActor, Damage, DamageEffectParams);
         }
 
         Destroy();
