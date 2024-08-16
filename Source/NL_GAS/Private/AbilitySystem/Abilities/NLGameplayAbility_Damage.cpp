@@ -7,24 +7,32 @@
 #include "AbilitySystem/NLAbilitySystemTypes.h"
 #include "AbilitySystemComponent.h"
 #include "NLGameplayTags.h"
+#include "NLFunctionLibrary.h"
+#include "Interface/Damageable.h"
 
 void UNLGameplayAbility_Damage::CauseDamage(FHitResult InHitResult)
 {
-    if (!IsValid(InHitResult.GetActor()))
+    AActor* OtherActor = InHitResult.GetActor();
+
+    if (!IsValid(OtherActor))
     {
         return;
     }
 
-    FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(DamageEffectClass);
-
-    // TODO: Fill EffectContext
+    FDamageEffectParams DamageEffectParams = MakeDamageEffectParams(OtherActor, InHitResult);
 
     const float DamageMagnitude = DamageScalableFloat.GetValueAtLevel(InHitResult.Distance);
-    UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, Attribute_Meta_IncomingDamage, DamageMagnitude);
-        
-    if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(InHitResult.GetActor()))
+    
+    if (UAbilitySystemComponent* TargetASC = DamageEffectParams.TargetASC)
     {
-        GetAbilitySystemComponentFromActorInfo()->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), TargetASC);
+        FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(DamageEffectClass);
+        UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, Attribute_Meta_IncomingDamage, DamageMagnitude);
+
+        UNLFunctionLibrary::ApplyDamageEffect(DamageEffectParams);
+    }
+    else if (OtherActor->Implements<UDamageable>())
+    {
+        IDamageable::Execute_OnTakenDamage(OtherActor, DamageMagnitude, DamageEffectParams);
     }
 }
 

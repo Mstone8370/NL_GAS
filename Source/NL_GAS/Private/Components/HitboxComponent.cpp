@@ -7,5 +7,7 @@ UHitboxComponent::UHitboxComponent()
     : bIsWeakHitbox(false)
     , CriticalHitDamageMultiplier(2.f)
 {
+    SetIsReplicatedByDefault(false);
+
     SetCollisionProfileName(FName("Hitbox"));
 }

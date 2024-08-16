@@ -37,7 +37,7 @@ void ANLProjectile_Bullet::OnBeginOverlap(UPrimitiveComponent* OverlappedCompone
 
             UNLFunctionLibrary::ApplyDamageEffect(DamageEffectParams);
         }
-        else if (OtherActor->Implements<UDamageable>()) // TODO: Check if OtherActor is damageable prop Actor.
+        else if (OtherActor->Implements<UDamageable>())
         {
             float Damage = DamageEffectParams.DamageScalableFloat.GetValueAtLevel(SweepResult.Distance);
             IDamageable::Execute_OnTakenDamage(OtherActor, Damage, DamageEffectParams);
