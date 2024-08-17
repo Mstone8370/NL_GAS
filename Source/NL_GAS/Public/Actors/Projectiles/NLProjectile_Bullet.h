@@ -37,12 +37,10 @@ protected:
 
 	virtual void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit) override;
 
+	virtual void HandleDestroy(AActor* DestroyedActor) override;
+
 	UFUNCTION(BlueprintCallable)
 	void HandleHitFX(const FHitResult& HitResult);
 
 	bool bHit = false;
-
-public:
-	virtual void BeginDestroy() override;
-
 };

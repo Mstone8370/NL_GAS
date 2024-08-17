@@ -27,8 +27,11 @@ void ANLProjectile::BeginPlay()
     
     SphereCollision->OnComponentBeginOverlap.AddDynamic(this, &ANLProjectile::OnBeginOverlap);
     SphereCollision->OnComponentHit.AddDynamic(this, &ANLProjectile::OnHit);
+    OnDestroyed.AddDynamic(this, &ANLProjectile::HandleDestroy);
 }
 
 void ANLProjectile::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {}
 
 void ANLProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit) {}
+
+void ANLProjectile::HandleDestroy(AActor* DestroyedActor) {}

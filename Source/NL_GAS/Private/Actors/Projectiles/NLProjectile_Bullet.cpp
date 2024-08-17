@@ -44,16 +44,9 @@ void ANLProjectile_Bullet::OnBeginOverlap(UPrimitiveComponent* OverlappedCompone
         }
 
         Destroy();
+    }
 
-        if (GetNetMode() == ENetMode::NM_Standalone || GetNetMode() == ENetMode::NM_ListenServer)
-        {
-            HandleHitFX(SweepResult);
-        }
-    }
-    else
-    {
-        HandleHitFX(SweepResult);
-    }
+    HandleHitFX(SweepResult);
 }
 
 void ANLProjectile_Bullet::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
@@ -65,16 +58,38 @@ void ANLProjectile_Bullet::OnHit(UPrimitiveComponent* HitComponent, AActor* Othe
 
     if (HasAuthority())
     {
-        Destroy();
+        DamageEffectParams.TravelDistance = FVector::Dist(Hit.Location, StartLocation);
+        DamageEffectParams.RadialDamageOrigin = GetActorLocation();
+        DamageEffectParams.HitResult = Hit;
 
-        if (GetNetMode() == ENetMode::NM_Standalone || GetNetMode() == ENetMode::NM_ListenServer)
+        if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor))
         {
-            HandleHitFX(Hit);
+            DamageEffectParams.TargetASC = TargetASC;
+
+            UNLFunctionLibrary::ApplyDamageEffect(DamageEffectParams);
         }
+        else if (OtherActor->Implements<UDamageable>())
+        {
+            float Damage = DamageEffectParams.DamageScalableFloat.GetValueAtLevel(Hit.Distance);
+            IDamageable::Execute_OnTakenDamage(OtherActor, Damage, DamageEffectParams);
+        }
+
+        Destroy();
     }
-    else
+
+    HandleHitFX(Hit);
+}
+
+void ANLProjectile_Bullet::HandleDestroy(AActor* DestroyedActor)
+{
+    Super::HandleDestroy(DestroyedActor);
+
+    if (!bHit)
     {
-        HandleHitFX(Hit);
+        FHitResult TempHitResult;
+        TempHitResult.ImpactPoint = GetActorLocation();
+        TempHitResult.ImpactNormal = -GetActorForwardVector();
+        HandleHitFX(TempHitResult);
     }
 }
 
@@ -85,7 +100,7 @@ void ANLProjectile_Bullet::HandleHitFX(const FHitResult& HitResult)
     if (HitImpactDecalMaterial)
     {
         UDecalComponent* Decal = UGameplayStatics::SpawnDecalAtLocation(
-            this,
+            GetWorld(),
             HitImpactDecalMaterial,
             DecalSize,
             HitResult.ImpactPoint,
@@ -101,7 +116,7 @@ void ANLProjectile_Bullet::HandleHitFX(const FHitResult& HitResult)
     if (HitImpactFX)
     {
         FFXSystemSpawnParameters SpawnParams;
-        SpawnParams.WorldContextObject = this;
+        SpawnParams.WorldContextObject = GetWorld();
         SpawnParams.SystemTemplate = HitImpactFX;
         SpawnParams.Location = HitResult.ImpactPoint;
         SpawnParams.Rotation = HitResult.ImpactNormal.Rotation();
@@ -111,9 +126,3 @@ void ANLProjectile_Bullet::HandleHitFX(const FHitResult& HitResult)
         }
     }
 }
-
-void ANLProjectile_Bullet::BeginDestroy()
-{
-    Super::BeginDestroy();
-}
-
