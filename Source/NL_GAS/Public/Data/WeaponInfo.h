@@ -76,7 +76,7 @@ public:
 	TSubclassOf<UGameplayAbility> ReloadAbility;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	int32 MagSize;
+	int32 MagSize = 0;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FWeaponSpreadInfo SpreadInfo;

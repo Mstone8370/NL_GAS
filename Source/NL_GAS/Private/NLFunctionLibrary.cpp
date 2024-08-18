@@ -16,6 +16,11 @@
 #include "Components/HitboxComponent.h"
 #include "Engine/ObjectLibrary.h"
 #include "GameFramework/PlayerState.h"
+#include "Data/ParticleData.h"
+#include "Particles/ParticleSystemComponent.h"
+#include "Components/DecalComponent.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraComponent.h"
 
 const FWeaponInfo* UNLFunctionLibrary::GetWeaponInfoByTag(const UObject* WorldContextObject, const FGameplayTag& WeaponTag)
 {
@@ -211,4 +216,75 @@ APlayerController* UNLFunctionLibrary::GetAbilitySystemPlayerController(UAbility
         return Cast<APlayerController>(Controller);
     }
     return nullptr;
+}
+
+void UNLFunctionLibrary::SpawnSingleParticleByParticleInfo(const UObject* WorldContextObject, const FParticleInfo& ParticleInfo, const FParticleSpawnInfo& SpawnInfo)
+{
+    if (ParticleInfo.HitImpactDecalMaterial)
+    {
+        UDecalComponent* Decal = UGameplayStatics::SpawnDecalAtLocation(
+            WorldContextObject,
+            ParticleInfo.HitImpactDecalMaterial,
+            ParticleInfo.DecalSize,
+            SpawnInfo.Location,
+            SpawnInfo.Normal.Rotation(),
+            ParticleInfo.DecalLifeSpan
+        );
+        if (Decal)
+        {
+            Decal->SetFadeScreenSize(ParticleInfo.FadeScreenSize);
+        }
+    }
+
+    if (ParticleInfo.HitImpactFX)
+    {
+        FFXSystemSpawnParameters SpawnParams;
+        SpawnParams.WorldContextObject = WorldContextObject;
+        SpawnParams.SystemTemplate = ParticleInfo.HitImpactFX;
+        SpawnParams.Location = SpawnInfo.Location;
+        SpawnParams.Rotation = SpawnInfo.Normal.Rotation();
+        if (UNiagaraComponent* Niagara = UNiagaraFunctionLibrary::SpawnSystemAtLocationWithParams(SpawnParams))
+        {
+            Niagara->SetVectorParameter(FName("Direction"), SpawnInfo.Normal);
+        }
+    }
+}
+
+void UNLFunctionLibrary::SpawnSingleParticleByTag(const UObject* WorldContextObject, const FGameplayTag& ParticleTag, const FParticleSpawnInfo& SpawnInfo)
+{
+    if (UNLGameInstance* NLGameInstance = Cast<UNLGameInstance>(UGameplayStatics::GetGameInstance(WorldContextObject)))
+    {
+        if (UParticleData* ParticleData = NLGameInstance->ParticleData)
+        {
+            if (const FParticleInfo* ParticleInfo = ParticleData->FindParticleDataByTag(ParticleTag))
+            {
+                UNLFunctionLibrary::SpawnSingleParticleByParticleInfo(WorldContextObject, *ParticleInfo, SpawnInfo);
+            }
+        }
+    }
+}
+
+void UNLFunctionLibrary::SpawnMultipleParticleByParticleInfo(const UObject* WorldContextObject, const FParticleInfo& ParticleInfo, const TArray<FParticleSpawnInfo>& SpawnInfos)
+{
+    for (const FParticleSpawnInfo& SpawnInfo : SpawnInfos)
+    {
+        UNLFunctionLibrary::SpawnSingleParticleByParticleInfo(WorldContextObject, ParticleInfo, SpawnInfo);
+    }
+}
+
+void UNLFunctionLibrary::SpawnMultipleParticleByTag(const UObject* WorldContextObject, const FGameplayTag& ParticleTag, const TArray<FParticleSpawnInfo>& SpawnInfos)
+{
+    if (UNLGameInstance* NLGameInstance = Cast<UNLGameInstance>(UGameplayStatics::GetGameInstance(WorldContextObject)))
+    {
+        if (UParticleData* ParticleData = NLGameInstance->ParticleData)
+        {
+            if (const FParticleInfo* ParticleInfo = ParticleData->FindParticleDataByTag(ParticleTag))
+            {
+                for (const FParticleSpawnInfo& SpawnInfo : SpawnInfos)
+                {
+                    UNLFunctionLibrary::SpawnSingleParticleByParticleInfo(WorldContextObject, *ParticleInfo, SpawnInfo);
+                }
+            }
+        }
+    }
 }

@@ -9,6 +9,7 @@
 #include "Kismet/GameplayStatics.h"
 
 #include "Actors/Volumes/RespawnArea.h"
+#include "Actors/Singletons/ParticleReplicationManager.h"
 
 void ANLGameMode::PostLogin(APlayerController* NewPlayer)
 {
@@ -18,6 +19,26 @@ void ANLGameMode::PostLogin(APlayerController* NewPlayer)
     {
         NLPC->OnPlayerDeath.AddUObject(this, &ANLGameMode::OnPlayerDead);
         NLPC->OnRequestRespawn.BindUObject(this, &ANLGameMode::RespawnPlayer);
+    }
+}
+
+void ANLGameMode::BeginPlay()
+{
+    Super::BeginPlay();
+
+    TArray<AActor*> Actors;
+    UGameplayStatics::GetAllActorsOfClass(this, AParticleReplicationManager::StaticClass(), Actors);
+    if (!Actors.IsEmpty())
+    {
+        ParticleReplicationManager = Cast<AParticleReplicationManager>(Actors[0]);
+        for (int32 i = 1; i < Actors.Num(); i++)
+        {
+            Actors[i]->Destroy();
+        }
+    }
+    if (!ParticleReplicationManager)
+    {
+        ParticleReplicationManager = GetWorld()->SpawnActor<AParticleReplicationManager>();
     }
 }
 

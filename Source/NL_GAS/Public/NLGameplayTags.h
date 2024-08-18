@@ -91,3 +91,6 @@ UE_DECLARE_GAMEPLAY_TAG_EXTERN(DamageType_Environment);
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(DamageType_Weapon_Rifle_ACR);
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(DamageType_Weapon_Pistol_Glock);
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(DamageType_Weapon_Sniper_TEMP);
+
+// Particle Tag
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(Particle_Weapon_Impact_Default);

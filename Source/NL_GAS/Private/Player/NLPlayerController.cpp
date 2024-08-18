@@ -19,6 +19,7 @@
 #include "Data/AimPunchData.h"
 #include "Interface/Pickupable.h"
 #include "Actors/DeathCam.h"
+#include "NLFunctionLibrary.h"
 
 void ANLPlayerController::SetupInputComponent()
 {
@@ -424,6 +425,11 @@ void ANLPlayerController::ClearDeathCam()
     }
 }
 
+void ANLPlayerController::Client_SpawnParticles_Implementation(const FGameplayTag& ParticleTag, const TArray<FParticleSpawnInfo>& SpawnInfos)
+{
+    UNLFunctionLibrary::SpawnMultipleParticleByTag(this, ParticleTag, SpawnInfos);
+}
+
 void ANLPlayerController::SetLookSensitivity(float InLookSensitivity)
 {
     CurrentLookSensitivity = InLookSensitivity;
@@ -531,4 +537,9 @@ void ANLPlayerController::DisableInteraction()
     bIsInteracting = false;
 
     OnInteractionDisabled.Broadcast();
+}
+
+void ANLPlayerController::ReplicateParticlesToClient(const FGameplayTag& ParticleTag, const TArray<FParticleSpawnInfo>& SpawnInfos)
+{
+    Client_SpawnParticles(ParticleTag, SpawnInfos);
 }

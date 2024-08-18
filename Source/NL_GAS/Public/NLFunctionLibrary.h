@@ -11,6 +11,8 @@
 struct FWeaponInfo;
 struct FTaggedAnimMontageInfo;
 struct FUIWeaponInfo;
+struct FParticleInfo;
+struct FParticleSpawnInfo;
 
 /**
  * 
@@ -48,4 +50,16 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "NLFunctionLibrary")
 	static APlayerController* GetAbilitySystemPlayerController(UAbilitySystemComponent* ASC);
+
+	UFUNCTION(BlueprintCallable, Category = "NLFunctionLibrary")
+	static void SpawnSingleParticleByParticleInfo(const UObject* WorldContextObject, const FParticleInfo& ParticleInfo, const FParticleSpawnInfo& SpawnInfo);
+	
+	UFUNCTION(BlueprintCallable, Category = "NLFunctionLibrary")
+	static void SpawnSingleParticleByTag(const UObject* WorldContextObject, const FGameplayTag& ParticleTag, const FParticleSpawnInfo& SpawnInfo);
+
+	UFUNCTION(BlueprintCallable, Category = "NLFunctionLibrary")
+	static void SpawnMultipleParticleByParticleInfo(const UObject* WorldContextObject, const FParticleInfo& ParticleInfo, const TArray<FParticleSpawnInfo>& SpawnInfos);
+
+	UFUNCTION(BlueprintCallable, Category = "NLFunctionLibrary")
+	static void SpawnMultipleParticleByTag(const UObject* WorldContextObject, const FGameplayTag& ParticleTag, const TArray<FParticleSpawnInfo>& SpawnInfos);
 };

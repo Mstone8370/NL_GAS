@@ -85,3 +85,6 @@ UE_DEFINE_GAMEPLAY_TAG(DamageType_Environment, "DamageType.Environment");
 UE_DEFINE_GAMEPLAY_TAG(DamageType_Weapon_Rifle_ACR, "DamageType.Weapon.Rifle.ACR");
 UE_DEFINE_GAMEPLAY_TAG(DamageType_Weapon_Pistol_Glock, "DamageType.Weapon.Pistol.Glock");
 UE_DEFINE_GAMEPLAY_TAG(DamageType_Weapon_Sniper_TEMP, "DamageType.Weapon.Sniper.TEMP");
+
+// DamageType Tag
+UE_DEFINE_GAMEPLAY_TAG(Particle_Weapon_Impact_Default, "Particle.Weapon.Impact.Default");

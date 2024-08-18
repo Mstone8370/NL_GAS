@@ -19,6 +19,7 @@ class UAimPunchData;
 class ANLHUD;
 class UEnhancedInputLocalPlayerSubsystem;
 struct FInputActionValue;
+struct FParticleSpawnInfo;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnTakenDamageSignature, FVector);
 DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnReceivedKillLogSignature, AActor* /*SourceActor*/, AActor* /*TargetActor*/, FGameplayTag /*DamageType*/);
@@ -163,6 +164,9 @@ protected:
 
 	void ClearDeathCam();
 
+	UFUNCTION(Client, Unreliable)
+	void Client_SpawnParticles(const FGameplayTag& ParticleTag, const TArray<FParticleSpawnInfo>& SpawnInfos);
+
 public:
 	float GetBaseLookSensitivity() const { return LookSensitivity; }
 
@@ -190,4 +194,6 @@ public:
 	void EnableInteraction(AActor* Interactable, FString Message);
 
 	void DisableInteraction();
+
+	void ReplicateParticlesToClient(const FGameplayTag& ParticleTag, const TArray<FParticleSpawnInfo>& SpawnInfos);
 };

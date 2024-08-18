@@ -6,6 +6,8 @@
 #include "GameFramework/GameMode.h"
 #include "NLGameMode.generated.h"
 
+class AParticleReplicationManager;
+
 /**
  * 
  */
@@ -21,6 +23,8 @@ public:
 	float PlayerRespawnTime = 3.f;
 
 protected:
+	virtual void BeginPlay() override;
+
 	UFUNCTION()
 	virtual void OnPlayerDead(AActor* SourceActor, AActor* TargetActor, FGameplayTag DamageType);
 
@@ -29,4 +33,13 @@ protected:
 	virtual void MulticastKillLog(AActor* SourceActor, AActor* TargetActor, FGameplayTag DamageType);
 
 	virtual void RespawnPlayer(APlayerController* PC);
+
+private:
+	UPROPERTY()
+	TObjectPtr<AParticleReplicationManager> ParticleReplicationManager;
+
+public:
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	AParticleReplicationManager* GetParticleReplicationManager() const { return ParticleReplicationManager; }
+
 };
