@@ -19,6 +19,9 @@ struct FProjectileSpawnInfo
 
 	UPROPERTY(BlueprintReadWrite)
 	FVector Direction = FVector::ZeroVector;
+
+	UPROPERTY(BlueprintReadWrite)
+	FGuid Id = FGuid();
 };
 
 USTRUCT(BlueprintType)

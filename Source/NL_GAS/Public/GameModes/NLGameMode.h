@@ -49,6 +49,6 @@ public:
 	AParticleReplicationManager* GetParticleReplicationManager() const { return ParticleReplicationManager; }
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
-	AProjectileReplicationManager* GetAProjectileReplicationManager() const { return ProjectileReplicationManager; }
+	AProjectileReplicationManager* GetProjectileReplicationManager() const { return ProjectileReplicationManager; }
 
 };

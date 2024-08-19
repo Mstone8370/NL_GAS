@@ -7,6 +7,9 @@
 #include "GameplayTagContainer.h"
 #include "ProjectileReplicationManager.generated.h"
 
+struct FProjectileSpawnInfo;
+struct FProjectileInfo;
+
 UCLASS()
 class NL_GAS_API AProjectileReplicationManager : public AActor
 {
@@ -15,14 +18,12 @@ class NL_GAS_API AProjectileReplicationManager : public AActor
 public:	
 	AProjectileReplicationManager();
 
-	/*
 protected:
 	UFUNCTION(NetMulticast, Unreliable)
-	void MulticastParticles(const FGameplayTag& ParticleTag, const TArray<FParticleSpawnInfo>& SpawnInfos);
+	void MulticastProjectiles(const FGameplayTag& ProjectileTag, const TArray<FProjectileSpawnInfo>& SpawnInfos);
 
 public:
 	UFUNCTION(BlueprintCallable)
-	void ReplicateParticles(const AController* ParticleInstigator, const FGameplayTag& ParticleTag, const TArray<FParticleSpawnInfo>& SpawnInfos, bool bExcludeInstigator = true);
+	void ReplicateProjectiles(const AController* ParticleInstigator, const FGameplayTag& ProjectileTag, const TArray<FProjectileSpawnInfo>& SpawnInfos, bool bExcludeInstigator = true);
 
-	*/
 };

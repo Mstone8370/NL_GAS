@@ -20,6 +20,8 @@ void ANLProjectile_Bullet::OnBeginOverlap(UPrimitiveComponent* OverlappedCompone
     ApplyDamage(SweepResult);
 
     HandleHitFX(SweepResult);
+
+    Destroy();
 }
 
 void ANLProjectile_Bullet::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
@@ -27,6 +29,8 @@ void ANLProjectile_Bullet::OnHit(UPrimitiveComponent* HitComponent, AActor* Othe
     ApplyDamage(Hit);
 
     HandleHitFX(Hit);
+
+    Destroy();
 }
 
 void ANLProjectile_Bullet::HandleDestroy(AActor* DestroyedActor)

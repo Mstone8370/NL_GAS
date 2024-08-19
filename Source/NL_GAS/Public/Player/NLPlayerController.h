@@ -20,6 +20,7 @@ class ANLHUD;
 class UEnhancedInputLocalPlayerSubsystem;
 struct FInputActionValue;
 struct FParticleSpawnInfo;
+struct FProjectileSpawnInfo;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnTakenDamageSignature, FVector);
 DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnReceivedKillLogSignature, AActor* /*SourceActor*/, AActor* /*TargetActor*/, FGameplayTag /*DamageType*/);
@@ -167,6 +168,9 @@ protected:
 	UFUNCTION(Client, Unreliable)
 	void Client_SpawnParticles(const FGameplayTag& ParticleTag, const TArray<FParticleSpawnInfo>& SpawnInfos);
 
+	UFUNCTION(Client, Unreliable)
+	void Client_SpawnProjectiles(const FGameplayTag& ProjectileTag, const TArray<FProjectileSpawnInfo>& SpawnInfos);
+
 public:
 	float GetBaseLookSensitivity() const { return LookSensitivity; }
 
@@ -196,4 +200,6 @@ public:
 	void DisableInteraction();
 
 	void ReplicateParticlesToClient(const FGameplayTag& ParticleTag, const TArray<FParticleSpawnInfo>& SpawnInfos);
+
+	void ReplicateProjectilesToClient(const FGameplayTag& ProjectileTag, const TArray<FProjectileSpawnInfo>& SpawnInfos);
 };

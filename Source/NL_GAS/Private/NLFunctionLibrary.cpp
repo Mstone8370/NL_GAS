@@ -21,6 +21,8 @@
 #include "Components/DecalComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
+#include "Data/ProjectileData.h"
+#include "Actors/NLProjectile.h"
 
 const FWeaponInfo* UNLFunctionLibrary::GetWeaponInfoByTag(const UObject* WorldContextObject, const FGameplayTag& WeaponTag)
 {
@@ -283,6 +285,80 @@ void UNLFunctionLibrary::SpawnMultipleParticleByTag(const UObject* WorldContextO
                 for (const FParticleSpawnInfo& SpawnInfo : SpawnInfos)
                 {
                     UNLFunctionLibrary::SpawnSingleParticleByParticleInfo(WorldContextObject, *ParticleInfo, SpawnInfo);
+                }
+            }
+        }
+    }
+}
+
+ANLProjectile* UNLFunctionLibrary::SpawnSingleProjectileByProjectileInfo(const UObject* WorldContextObject, const FProjectileInfo& ProjectileInfo, const FProjectileSpawnInfo& SpawnInfo)
+{
+    // TODO: 
+    ANLProjectile* Ret = nullptr;
+
+    if (WorldContextObject && WorldContextObject->GetWorld())
+    {
+        if (ProjectileInfo.ProjectileClass)
+        {
+            FActorSpawnParameters SpawnParam;
+            Ret = WorldContextObject->GetWorld()->SpawnActor<ANLProjectile>(
+                ProjectileInfo.ProjectileClass,
+                SpawnInfo.Location,
+                SpawnInfo.Direction.Rotation(),
+                SpawnParam
+            );
+            Ret->Id = SpawnInfo.Id;
+        }
+    }
+
+    return Ret;
+}
+
+ANLProjectile* UNLFunctionLibrary::SpawnSingleProjectileByTag(const UObject* WorldContextObject, const FGameplayTag& ProjectileTag, const FProjectileSpawnInfo& SpawnInfo)
+{
+    ANLProjectile* Ret = nullptr;
+
+    if (UNLGameInstance* NLGameInstance = Cast<UNLGameInstance>(UGameplayStatics::GetGameInstance(WorldContextObject)))
+    {
+        if (UProjectileData* ProjectileData = NLGameInstance->ProjectileData)
+        {
+            if (const FProjectileInfo* ProjectileInfo = ProjectileData->FindProjectileDataByTag(ProjectileTag))
+            {
+                Ret = UNLFunctionLibrary::SpawnSingleProjectileByProjectileInfo(WorldContextObject, *ProjectileInfo, SpawnInfo);
+            }
+        }
+    }
+
+    return Ret;
+}
+
+void UNLFunctionLibrary::SpawnMultipleProjectileByProjectileInfo(const UObject* WorldContextObject, const FProjectileInfo& ProjectileInfo, const TArray<FProjectileSpawnInfo>& SpawnInfos, TArray<ANLProjectile*>& OutProjectiles)
+{
+    OutProjectiles.Empty();
+
+    for (const FProjectileSpawnInfo& SpawnInfo : SpawnInfos)
+    {
+        OutProjectiles.Add(
+            UNLFunctionLibrary::SpawnSingleProjectileByProjectileInfo(WorldContextObject, ProjectileInfo, SpawnInfo)
+        );
+    }
+}
+
+void UNLFunctionLibrary::SpawnMultipleProjectileByTag(const UObject* WorldContextObject, const FGameplayTag& ProjectileTag, const TArray<FProjectileSpawnInfo>& SpawnInfos, TArray<ANLProjectile*>& OutProjectiles)
+{
+    OutProjectiles.Empty();
+
+    if (UNLGameInstance* NLGameInstance = Cast<UNLGameInstance>(UGameplayStatics::GetGameInstance(WorldContextObject)))
+    {
+        if (UProjectileData* ProjectileData = NLGameInstance->ProjectileData)
+        {
+            if (const FProjectileInfo* ProjectileInfo = ProjectileData->FindProjectileDataByTag(ProjectileTag))
+            {
+                for (const FProjectileSpawnInfo& SpawnInfo : SpawnInfos)
+                {
+                    OutProjectiles.Add(
+                        UNLFunctionLibrary::SpawnSingleProjectileByProjectileInfo(WorldContextObject, *ProjectileInfo, SpawnInfo)
+                    );
                 }
             }
         }

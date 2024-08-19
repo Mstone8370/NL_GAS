@@ -94,3 +94,6 @@ UE_DECLARE_GAMEPLAY_TAG_EXTERN(DamageType_Weapon_Sniper_TEMP);
 
 // Particle Tag
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(Particle_Weapon_Impact_Default);
+
+// Projectile Tag
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(Projectile_Bullet_Default);
