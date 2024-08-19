@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "AbilitySystem/NLAbilitySystemTypes.h"
+#include "GameplayTagContainer.h"
 #include "NLProjectile.generated.h"
 
 class USphereComponent;
@@ -37,6 +38,9 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	FVector StartLocation;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FGameplayTag HitParticleTag;
+
 protected:
 	UFUNCTION()
 	virtual void OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
@@ -46,4 +50,6 @@ protected:
 
 	UFUNCTION()
 	virtual void HandleDestroy(AActor* DestroyedActor);
+
+	virtual void ApplyDamage(const FHitResult& HitResult);
 };

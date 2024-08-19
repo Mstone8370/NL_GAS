@@ -5,20 +5,17 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "GameplayTagContainer.h"
-#include "ParticleReplicationManager.generated.h"
-
-class UParticleData;
-struct FParticleInfo;
-struct FParticleSpawnInfo;
+#include "ProjectileReplicationManager.generated.h"
 
 UCLASS()
-class NL_GAS_API AParticleReplicationManager : public AActor
+class NL_GAS_API AProjectileReplicationManager : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
-	AParticleReplicationManager();
+	AProjectileReplicationManager();
 
+	/*
 protected:
 	UFUNCTION(NetMulticast, Unreliable)
 	void MulticastParticles(const FGameplayTag& ParticleTag, const TArray<FParticleSpawnInfo>& SpawnInfos);
@@ -26,4 +23,6 @@ protected:
 public:
 	UFUNCTION(BlueprintCallable)
 	void ReplicateParticles(const AController* ParticleInstigator, const FGameplayTag& ParticleTag, const TArray<FParticleSpawnInfo>& SpawnInfos, bool bExcludeInstigator = true);
+
+	*/
 };

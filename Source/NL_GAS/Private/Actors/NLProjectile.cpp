@@ -10,7 +10,7 @@ ANLProjectile::ANLProjectile()
     : StartLocation(FVector::ZeroVector)
 {
     PrimaryActorTick.bCanEverTick = true;
-    bReplicates = true;
+    bReplicates = false;
 
     SphereCollision = CreateDefaultSubobject<USphereComponent>(FName("SphereCollision"));
     SetRootComponent(SphereCollision);
@@ -35,3 +35,5 @@ void ANLProjectile::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 void ANLProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit) {}
 
 void ANLProjectile::HandleDestroy(AActor* DestroyedActor) {}
+
+void ANLProjectile::ApplyDamage(const FHitResult& HitResult) {}
