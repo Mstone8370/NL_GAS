@@ -84,7 +84,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FWeaponSpreadInfo SpreadInfo;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "FOV"))
 	FGameplayTag IronsightADSFOVTag;
 };
 
@@ -97,7 +97,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FWeaponInfo WeaponInfo;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "Weapon"))
 	FGameplayTag WeaponTag;
 };
 

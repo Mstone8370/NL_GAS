@@ -293,7 +293,6 @@ void UNLFunctionLibrary::SpawnMultipleParticleByTag(const UObject* WorldContextO
 
 ANLProjectile* UNLFunctionLibrary::SpawnSingleProjectileByProjectileInfo(const UObject* WorldContextObject, const FProjectileInfo& ProjectileInfo, const FProjectileSpawnInfo& SpawnInfo)
 {
-    // TODO: 
     ANLProjectile* Ret = nullptr;
 
     if (WorldContextObject && WorldContextObject->GetWorld())
