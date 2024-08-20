@@ -13,6 +13,9 @@ struct FTaggedAnimMontageInfo;
 struct FUIWeaponInfo;
 struct FParticleInfo;
 struct FParticleSpawnInfo;
+struct FProjectileInfo;
+struct FProjectileSpawnInfo;
+class ANLProjectile;
 
 /**
  * 
@@ -51,15 +54,27 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "NLFunctionLibrary")
 	static APlayerController* GetAbilitySystemPlayerController(UAbilitySystemComponent* ASC);
 
-	UFUNCTION(BlueprintCallable, Category = "NLFunctionLibrary")
+	UFUNCTION(BlueprintCallable, Category = "NLFunctionLibrary|Particles")
 	static void SpawnSingleParticleByParticleInfo(const UObject* WorldContextObject, const FParticleInfo& ParticleInfo, const FParticleSpawnInfo& SpawnInfo);
 	
-	UFUNCTION(BlueprintCallable, Category = "NLFunctionLibrary")
+	UFUNCTION(BlueprintCallable, Category = "NLFunctionLibrary|Particles")
 	static void SpawnSingleParticleByTag(const UObject* WorldContextObject, const FGameplayTag& ParticleTag, const FParticleSpawnInfo& SpawnInfo);
 
-	UFUNCTION(BlueprintCallable, Category = "NLFunctionLibrary")
+	UFUNCTION(BlueprintCallable, Category = "NLFunctionLibrary|Particles")
 	static void SpawnMultipleParticleByParticleInfo(const UObject* WorldContextObject, const FParticleInfo& ParticleInfo, const TArray<FParticleSpawnInfo>& SpawnInfos);
 
-	UFUNCTION(BlueprintCallable, Category = "NLFunctionLibrary")
+	UFUNCTION(BlueprintCallable, Category = "NLFunctionLibrary|Particles")
 	static void SpawnMultipleParticleByTag(const UObject* WorldContextObject, const FGameplayTag& ParticleTag, const TArray<FParticleSpawnInfo>& SpawnInfos);
+
+	UFUNCTION(BlueprintCallable, Category = "NLFunctionLibrary|Projectiles")
+	static ANLProjectile* SpawnSingleProjectileByProjectileInfo(const UObject* WorldContextObject, const FProjectileInfo& ProjectileInfo, const FProjectileSpawnInfo& SpawnInfo);
+
+	UFUNCTION(BlueprintCallable, Category = "NLFunctionLibrary|Projectiles")
+	static ANLProjectile* SpawnSingleProjectileByTag(const UObject* WorldContextObject, const FGameplayTag& ProjectileTag, const FProjectileSpawnInfo& SpawnInfo);
+
+	UFUNCTION(BlueprintCallable, Category = "NLFunctionLibrary|Projectiles")
+	static void SpawnMultipleProjectileByProjectileInfo(const UObject* WorldContextObject, const FProjectileInfo& ProjectileInfo, const TArray<FProjectileSpawnInfo>& SpawnInfos, TArray<ANLProjectile*>& OutProjectiles);
+
+	UFUNCTION(BlueprintCallable, Category = "NLFunctionLibrary|Projectiles")
+	static void SpawnMultipleProjectileByTag(const UObject* WorldContextObject, const FGameplayTag& ProjectileTag, const TArray<FProjectileSpawnInfo>& SpawnInfos, TArray<ANLProjectile*>& OutProjectiles);
 };

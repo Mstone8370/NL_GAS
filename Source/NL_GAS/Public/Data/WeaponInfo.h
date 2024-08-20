@@ -21,6 +21,9 @@ public:
 	float Hip = 2.f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float ADS = 0.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float Crouch = 1.f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
@@ -81,7 +84,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FWeaponSpreadInfo SpreadInfo;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "FOV"))
 	FGameplayTag IronsightADSFOVTag;
 };
 
@@ -94,7 +97,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FWeaponInfo WeaponInfo;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "Weapon"))
 	FGameplayTag WeaponTag;
 };
 

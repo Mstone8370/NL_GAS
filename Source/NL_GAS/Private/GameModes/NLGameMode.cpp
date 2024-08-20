@@ -10,6 +10,7 @@
 
 #include "Actors/Volumes/RespawnArea.h"
 #include "Actors/Singletons/ParticleReplicationManager.h"
+#include "Actors/Singletons/ProjectileReplicationManager.h"
 
 void ANLGameMode::PostLogin(APlayerController* NewPlayer)
 {
@@ -40,6 +41,10 @@ void ANLGameMode::BeginPlay()
     {
         ParticleReplicationManager = GetWorld()->SpawnActor<AParticleReplicationManager>();
     }
+
+    AActor* ActorPtr = nullptr;
+    SpawnOrGetSingleton(ActorPtr, AProjectileReplicationManager::StaticClass());
+    ProjectileReplicationManager = Cast<AProjectileReplicationManager>(ActorPtr);
 }
 
 void ANLGameMode::OnPlayerDead(AActor* SourceActor, AActor* TargetActor, FGameplayTag DamageType)
@@ -121,5 +126,23 @@ void ANLGameMode::RespawnPlayer(APlayerController* PC)
     if (ANLPlayerController* NLPC = Cast<ANLPlayerController>(PC))
     {
         NLPC->OnRespawned(RespawnDirection);
+    }
+}
+
+void ANLGameMode::SpawnOrGetSingleton(AActor*& OutActor, TSubclassOf<AActor> ActorClass)
+{
+    TArray<AActor*> Actors;
+    UGameplayStatics::GetAllActorsOfClass(this, ActorClass, Actors);
+    if (!Actors.IsEmpty())
+    {
+        OutActor = Actors[0];
+        for (int32 i = 1; i < Actors.Num(); i++)
+        {
+            Actors[i]->Destroy();
+        }
+    }
+    if (!OutActor)
+    {
+        OutActor = GetWorld()->SpawnActor(ActorClass);
     }
 }

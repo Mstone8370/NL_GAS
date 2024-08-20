@@ -8,6 +8,7 @@
 
 class UTaggedWeaponInfoList;
 class UParticleData;
+class UProjectileData;
 
 /**
  * 
@@ -23,4 +24,8 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TObjectPtr<UParticleData> ParticleData;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TObjectPtr<UProjectileData> ProjectileData;
+	
 };

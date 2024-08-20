@@ -7,6 +7,7 @@
 #include "NLGameMode.generated.h"
 
 class AParticleReplicationManager;
+class AProjectileReplicationManager;
 
 /**
  * 
@@ -38,8 +39,16 @@ private:
 	UPROPERTY()
 	TObjectPtr<AParticleReplicationManager> ParticleReplicationManager;
 
+	UPROPERTY()
+	TObjectPtr<AProjectileReplicationManager> ProjectileReplicationManager;
+
+	void SpawnOrGetSingleton(AActor*& OutActor, TSubclassOf<AActor> ActorClass);
+
 public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	AParticleReplicationManager* GetParticleReplicationManager() const { return ParticleReplicationManager; }
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	AProjectileReplicationManager* GetProjectileReplicationManager() const { return ProjectileReplicationManager; }
 
 };

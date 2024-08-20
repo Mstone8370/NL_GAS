@@ -43,6 +43,7 @@ struct FParticleInfo
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float DecalLifeSpan = 30.f;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float FadeScreenSize = 0.0001f;
 };
 

@@ -20,8 +20,6 @@ public:
 	AParticleReplicationManager();
 
 protected:
-	virtual void BeginPlay() override;
-
 	UFUNCTION(NetMulticast, Unreliable)
 	void MulticastParticles(const FGameplayTag& ParticleTag, const TArray<FParticleSpawnInfo>& SpawnInfos);
 

@@ -430,6 +430,13 @@ void ANLPlayerController::Client_SpawnParticles_Implementation(const FGameplayTa
     UNLFunctionLibrary::SpawnMultipleParticleByTag(this, ParticleTag, SpawnInfos);
 }
 
+void ANLPlayerController::Client_SpawnProjectiles_Implementation(const FGameplayTag& ProjectileTag, const TArray<FProjectileSpawnInfo>& SpawnInfos)
+{
+    // 이 플레이어 컨트롤러 입장에선 시뮬레이티드 프록시가 발사한 발사체임.
+    TArray<ANLProjectile*> DummyArray;
+    UNLFunctionLibrary::SpawnMultipleProjectileByTag(this, ProjectileTag, SpawnInfos, DummyArray);
+}
+
 void ANLPlayerController::SetLookSensitivity(float InLookSensitivity)
 {
     CurrentLookSensitivity = InLookSensitivity;
@@ -542,4 +549,9 @@ void ANLPlayerController::DisableInteraction()
 void ANLPlayerController::ReplicateParticlesToClient(const FGameplayTag& ParticleTag, const TArray<FParticleSpawnInfo>& SpawnInfos)
 {
     Client_SpawnParticles(ParticleTag, SpawnInfos);
+}
+
+void ANLPlayerController::ReplicateProjectilesToClient(const FGameplayTag& ProjectileTag, const TArray<FProjectileSpawnInfo>& SpawnInfos)
+{
+    Client_SpawnProjectiles(ProjectileTag, SpawnInfos);
 }

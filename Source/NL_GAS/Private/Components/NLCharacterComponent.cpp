@@ -835,15 +835,15 @@ void UNLCharacterComponent::OnWeaponReloadStateChanged(const FGameplayTag& Weapo
 
 float UNLCharacterComponent::GetCurrentWeaponSpreadValue(bool bADS, bool bFalling, bool bCrouched, float CharacterSpeedSquared, int32 RecoilOffset) const
 {
-    if (bADS)
-    {
-        return 0.f;
-    }
-
     if (AWeaponActor* Weapon = GetCurrentWeaponActor())
     {
         if (const FWeaponSpreadInfo* SpreadInfo = Weapon->GetSpreadInfo())
         {
+            if (bADS)
+            {
+                return SpreadInfo->ADS;
+            }
+
             if (bFalling)
             {
                 return SpreadInfo->Fall;

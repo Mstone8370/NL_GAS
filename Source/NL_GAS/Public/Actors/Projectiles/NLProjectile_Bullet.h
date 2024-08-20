@@ -39,6 +39,8 @@ protected:
 
 	virtual void HandleDestroy(AActor* DestroyedActor) override;
 
+	virtual void ApplyDamage(const FHitResult& HitResult) override;
+
 	UFUNCTION(BlueprintCallable)
 	void HandleHitFX(const FHitResult& HitResult);
 

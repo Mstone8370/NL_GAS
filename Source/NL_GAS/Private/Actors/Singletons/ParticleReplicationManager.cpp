@@ -14,11 +14,6 @@ AParticleReplicationManager::AParticleReplicationManager()
 	bAlwaysRelevant = true;
 }
 
-void AParticleReplicationManager::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
 void AParticleReplicationManager::MulticastParticles_Implementation(const FGameplayTag& ParticleTag, const TArray<FParticleSpawnInfo>& SpawnInfos)
 {
     UNLFunctionLibrary::SpawnMultipleParticleByTag(this, ParticleTag, SpawnInfos);

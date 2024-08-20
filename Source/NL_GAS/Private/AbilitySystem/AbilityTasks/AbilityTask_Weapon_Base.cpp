@@ -104,6 +104,7 @@ void UAbilityTask_Weapon_Base::SendWeaponTargetData()
 
     if (ShouldBroadcastAbilityTaskDelegates())
     {
+        // Prediction
         ValidData.Broadcast(DataHandle);
     }
 }
