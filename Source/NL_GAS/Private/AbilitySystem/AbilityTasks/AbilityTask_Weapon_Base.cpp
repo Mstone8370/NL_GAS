@@ -81,7 +81,7 @@ void UAbilityTask_Weapon_Base::SendWeaponTargetData()
     for (uint8 i = 0; i < TraceCount; i++)
     {
         FGameplayAbilityTargetData_SingleTargetHit* Data = new FGameplayAbilityTargetData_SingleTargetHit();
-    
+        
         FVector ViewDir = UKismetMathLibrary::RandomUnitVectorInConeInDegrees(ViewRot.Vector(), SpreadVal);
         
         FVector TraceStart = ViewStart;

@@ -15,20 +15,13 @@ void ANLProjectile_Bullet::BeginPlay()
     Super::BeginPlay();
 }
 
-void ANLProjectile_Bullet::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void ANLProjectile_Bullet::OnProjectileHit(const FHitResult& HitResult)
 {
-    ApplyDamage(SweepResult);
+    ApplyDamage(HitResult);
 
-    HandleHitFX(SweepResult);
+    HandleHitFX(HitResult);
 
-    Destroy();
-}
-
-void ANLProjectile_Bullet::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
-{
-    ApplyDamage(Hit);
-
-    HandleHitFX(Hit);
+    OnProjectileHit_BP(HitResult);
 
     Destroy();
 }
