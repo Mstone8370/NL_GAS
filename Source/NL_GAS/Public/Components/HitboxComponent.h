@@ -18,13 +18,24 @@ public:
 	UHitboxComponent();
 	
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Replicated)
 	bool bIsWeakHitbox;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (EditCondition = "bIsWeakHitbox"))
 	float CriticalHitDamageMultiplier;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_HitboxExtent)
+	FVector HitboxExtent;
+
+	UFUNCTION()
+	void OnRep_HitboxExtent();
+
 public:
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	UFUNCTION(BlueprintCallable)
+	void SeHitboxExtent(FVector NewHitboxExtent);
+
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE bool IsWeakHitbox() const { return bIsWeakHitbox; }
 

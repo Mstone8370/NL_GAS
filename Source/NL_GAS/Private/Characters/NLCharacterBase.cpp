@@ -32,7 +32,10 @@ void ANLCharacterBase::BeginPlay()
 {
     Super::BeginPlay();
     
-    UNLFunctionLibrary::LoadHitboxComponents(GetMesh());
+    if (HasAuthority())
+    {
+        UNLFunctionLibrary::LoadHitboxComponents(GetMesh());
+    }
 }
 
 UAbilitySystemComponent* ANLCharacterBase::GetAbilitySystemComponent() const

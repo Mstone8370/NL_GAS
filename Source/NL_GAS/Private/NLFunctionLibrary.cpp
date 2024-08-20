@@ -147,7 +147,7 @@ void UNLFunctionLibrary::LoadHitboxComponents(USkeletalMeshComponent* SkeletalMe
         UHitboxComponent* HitboxComp = NewObject<UHitboxComponent>(SkeletalMeshComponent);
         HitboxComp->RegisterComponent();
         HitboxComp->SetRelativeLocationAndRotation(Info->Location,Info->Rotation);
-        HitboxComp->SetBoxExtent(Info->Extend);
+        HitboxComp->SeHitboxExtent(Info->Extend);
         HitboxComp->SetIsWeakHitbox(Info->bIsWeakHitbox);
         HitboxComp->AttachToComponent(
             SkeletalMeshComponent,
