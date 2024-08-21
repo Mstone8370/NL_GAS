@@ -91,3 +91,8 @@ UE_DEFINE_GAMEPLAY_TAG(Particle_Weapon_Impact_Default, "Particle.Weapon.Impact.D
 
 // Projectile Tag
 UE_DEFINE_GAMEPLAY_TAG(Projectile_Bullet_Default, "Projectile.Bullet.Default");
+
+// Interaction Tag
+UE_DEFINE_GAMEPLAY_TAG(Interaction_Pickup, "Interaction.Pickup");
+UE_DEFINE_GAMEPLAY_TAG(Interaction_Pickup_Weapon, "Interaction.Pickup.Weapon");
+UE_DEFINE_GAMEPLAY_TAG(Interaction_Button, "Interaction.Button");

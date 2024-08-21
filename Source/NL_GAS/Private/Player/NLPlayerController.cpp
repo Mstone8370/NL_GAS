@@ -17,9 +17,9 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Data/AimPunchData.h"
-#include "Interface/Pickupable.h"
 #include "Actors/DeathCam.h"
 #include "NLFunctionLibrary.h"
+#include "Actors/Abstract/Interactable.h"
 
 void ANLPlayerController::SetupInputComponent()
 {
@@ -49,7 +49,7 @@ void ANLPlayerController::SetupInputComponent()
     NLInputComponent->BindActionByTag(IC, Input_Default_CrouchHold, ETriggerEvent::Triggered, this, &ANLPlayerController::Crouch);
     NLInputComponent->BindActionByTag(IC, Input_Default_CrouchHold, ETriggerEvent::Completed, this, &ANLPlayerController::UnCrouch);
     NLInputComponent->BindActionByTag(IC, Input_Default_CrouchToggle, ETriggerEvent::Triggered, this, &ANLPlayerController::CrouchToggle);
-    NLInputComponent->BindActionByTag(IC, Input_Default_Interaction, ETriggerEvent::Triggered, this, &ANLPlayerController::Interaction);
+    NLInputComponent->BindActionByTag(IC, Input_Default_Interaction, ETriggerEvent::Triggered, this, &ANLPlayerController::OnInteractionHoldTriggered);
     NLInputComponent->BindActionByTag(IC, Input_Default_Interaction, ETriggerEvent::Started, this, &ANLPlayerController::BeginInteraction);
     NLInputComponent->BindActionByTag(IC, Input_Default_Interaction, ETriggerEvent::Canceled, this, &ANLPlayerController::EndInteraction);
     NLInputComponent->BindActionByTag(IC, Input_DeathCam_Respawn, ETriggerEvent::Triggered, this, &ANLPlayerController::Respawn);
@@ -256,13 +256,20 @@ void ANLPlayerController::Interaction()
 
     bIsInteracting = false;
 
-    if (InteractableActor->Implements<UPickupable>())
+    const FGameplayTag& InteractionType = InteractableActor->GetInteractionType();
+
+    if (InteractionType.MatchesTag(Interaction_Pickup_Weapon))
     {
         if (GetNLPlayerCharacter())
         {
             GetNLPlayerCharacter()->Server_PickUp(InteractableActor);
         }
     }
+}
+
+void ANLPlayerController::OnInteractionHoldTriggered()
+{
+    Interaction();
 }
 
 void ANLPlayerController::BeginInteraction()
@@ -525,7 +532,7 @@ void ANLPlayerController::OnRespawned(FVector Direction)
     Client_OnRespawned();
 }
 
-void ANLPlayerController::EnableInteraction(AActor* Interactable, FString Message)
+void ANLPlayerController::EnableInteraction(AInteractable* Interactable, FString Message)
 {
     if (!IsValid(Interactable) || (IsValid(InteractableActor) && InteractableActor == Interactable))
     {

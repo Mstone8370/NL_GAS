@@ -97,3 +97,8 @@ UE_DECLARE_GAMEPLAY_TAG_EXTERN(Particle_Weapon_Impact_Default);
 
 // Projectile Tag
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(Projectile_Bullet_Default);
+
+// Interaction Tag
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(Interaction_Pickup);
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(Interaction_Pickup_Weapon);
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(Interaction_Button);

@@ -28,6 +28,8 @@ AWeaponActor::AWeaponActor()
 	bReplicates = true;
 	SetReplicateMovement(true);
 
+	InteractionType = Interaction_Pickup_Weapon;
+
 	WeaponMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(FName("WeaponMesh"));
 	WeaponMeshComponent->SetCollisionObjectType(ECC_WeaponProp);
 	WeaponMeshComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
@@ -177,7 +179,7 @@ void AWeaponActor::SetWeaponState(bool bInIsEuipped)
 
 void AWeaponActor::OnPickUpCollisionBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (!Execute_CanPickedUp(this))
+	if (!CanInteract())
 	{
 		return;
 	}
@@ -187,7 +189,7 @@ void AWeaponActor::OnPickUpCollisionBeginOverlap(UPrimitiveComponent* Overlapped
 
 void AWeaponActor::OnPickUpCollisionEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (!Execute_CanPickedUp(this))
+	if (!CanInteract())
 	{
 		return;
 	}
@@ -195,17 +197,17 @@ void AWeaponActor::OnPickUpCollisionEndOverlap(UPrimitiveComponent* OverlappedCo
 	IPlayerInterface::Execute_OnPickupableRangeExit(OtherActor);
 }
 
-bool AWeaponActor::CanPickedUp_Implementation()
+bool AWeaponActor::CanInteract() const
 {
 	return !bIsEquipped;
 }
 
-void AWeaponActor::OnPickedUp_Implementation()
+void AWeaponActor::OnStartInteraction(APawn* Interactor)
 {
 	SetWeaponState(true);
 }
 
-void AWeaponActor::OnDropped_Implementation()
+void AWeaponActor::OnEndInteraction()
 {
 	SetOwner(nullptr);
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
@@ -255,7 +257,7 @@ void AWeaponActor::Holstered()
 
 void AWeaponActor::Dropped()
 {
-	OnDropped_Implementation();
+	OnEndInteraction();
 }
 
 bool AWeaponActor::CommitWeaponCost()

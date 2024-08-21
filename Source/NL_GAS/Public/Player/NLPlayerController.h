@@ -18,6 +18,7 @@ class UNLCharacterComponent;
 class UAimPunchData;
 class ANLHUD;
 class UEnhancedInputLocalPlayerSubsystem;
+class AInteractable;
 struct FInputActionValue;
 struct FParticleSpawnInfo;
 struct FProjectileSpawnInfo;
@@ -60,6 +61,7 @@ protected:
 	void UnCrouch();
 	void CrouchToggle();
 	void Interaction();
+	void OnInteractionHoldTriggered();
 	void BeginInteraction();
 	void EndInteraction();
 
@@ -157,7 +159,7 @@ protected:
 	void Client_OnRespawned();
 
 	UPROPERTY()
-	TObjectPtr<AActor> InteractableActor;
+	TObjectPtr<AInteractable> InteractableActor;
 
 	bool bIsInteracting = false;
 
@@ -195,7 +197,7 @@ public:
 
 	void OnRespawned(FVector Direction);
 
-	void EnableInteraction(AActor* Interactable, FString Message);
+	void EnableInteraction(AInteractable* Interactable, FString Message);
 
 	void DisableInteraction();
 

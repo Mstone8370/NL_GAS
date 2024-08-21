@@ -17,6 +17,7 @@ class UControlShakeManager;
 class UMaterialInstanceDynamic;
 class UNLViewSkeletalMeshComponent;
 class UNLAbilitySystemComponent;
+class AInteractable;
 
 USTRUCT()
 struct FLedgeClimbData
@@ -91,8 +92,9 @@ public:
 	virtual void OnPickupableRangeExit_Implementation() override;
 	//~End PlayerInterface
 
+	// TODO: move RPC to PC
 	UFUNCTION(Server, Reliable)
-	void Server_PickUp(AActor* Pickupable);
+	void Server_PickUp(AInteractable* Pickupable);
 
 public:
 	//~Begin CombatInterface
@@ -172,6 +174,8 @@ protected:
 	TObjectPtr<UNLAbilitySystemComponent> NLAbilitySystemComponent;
 
 	void SeekInteractable();
+
+	void OnFoundInteractable(AInteractable* Interactable);
 
 	int32 PickupableInRangeCount = 0;
 

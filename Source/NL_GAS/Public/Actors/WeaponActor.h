@@ -7,7 +7,7 @@
 #include "Data/WeaponInfo.h"
 #include "GameplayTagContainer.h"
 #include "GameplayAbilitySpec.h"
-#include "Interface/Pickupable.h"
+#include "Abstract/Interactable.h"
 #include "WeaponActor.generated.h"
 
 class UGameplayAbility;
@@ -26,7 +26,7 @@ enum EReloadState : uint8
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FBulletNumChangedSignature, const AWeaponActor*, Weapon, int32, NewBulletNum);
 
 UCLASS(Blueprintable, BlueprintType)
-class NL_GAS_API AWeaponActor : public AActor, public IPickupable
+class NL_GAS_API AWeaponActor : public AInteractable
 {
 	GENERATED_BODY()
 	
@@ -115,12 +115,15 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void InitializeWeapon(const FGameplayTag& InWeaponTag, bool bForceInit = false);
 	
-	//~Begin Pickupable interface
-	virtual bool CanPickedUp_Implementation() override;
-	virtual void OnPickedUp_Implementation() override;
-	virtual void OnDropped_Implementation() override;
-	//~End Pickupable interface
+	//~Begin Interactable
+public:
+	virtual bool CanInteract() const override;
+protected:
+	virtual void OnStartInteraction(APawn* Interactor) override;
+	virtual void OnEndInteraction() override;
+	//~End Interactable
 
+public:
 	FORCEINLINE bool IsEquipped() const { return bIsEquipped; }
 
 	FORCEINLINE bool IsInitialized() const { return bIsInitialized; }

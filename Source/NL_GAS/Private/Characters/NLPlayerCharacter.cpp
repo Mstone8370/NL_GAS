@@ -23,7 +23,7 @@
 #include "Components/NLViewSkeletalMeshComponent.h"
 #include "Data/NLDataTableRows.h"
 #include "Data/AimPunchData.h"
-#include "Interface/Pickupable.h"
+#include "Actors/Abstract/Interactable.h"
 
 ANLPlayerCharacter::ANLPlayerCharacter(const FObjectInitializer& ObjectInitializer)
     : Super(ObjectInitializer.SetDefaultSubobjectClass<UNLCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))  // CharacterMovementComponent의 클래스를 NLCharacterMovementComponent로 변경
@@ -315,14 +315,14 @@ void ANLPlayerCharacter::OnPickupableRangeExit_Implementation()
     }
 }
 
-void ANLPlayerCharacter::Server_PickUp_Implementation(AActor* Pickupable)
+void ANLPlayerCharacter::Server_PickUp_Implementation(AInteractable* Pickupable)
 {
-    if (!IsValid(Pickupable) || !Pickupable->Implements<UPickupable>())
+    if (!IsValid(Pickupable))
     {
         return;
     }
     
-    if (IPickupable::Execute_CanPickedUp(Pickupable))
+    if (Pickupable->CanInteract())
     {
         NLCharacterComponent->PickUp(Pickupable);
     }
@@ -620,20 +620,38 @@ void ANLPlayerCharacter::SeekInteractable()
 
     if (HitRes.bBlockingHit && HitRes.GetActor())
     {
-        if (PickupableInRangeCount > 0 && HitRes.GetActor()->Implements<UPickupable>())
+        if (AInteractable* Interactable = Cast<AInteractable>(HitRes.GetActor()))
         {
-            FString Message = "Pick Up";
+            OnFoundInteractable(Interactable);
+            return;
+        }
+    }
+
+    GetNLPC()->DisableInteraction();
+}
+
+void ANLPlayerCharacter::OnFoundInteractable(AInteractable* Interactable)
+{
+    FString Message = "Interact";
+
+    const FGameplayTag& InteractionType = Interactable->GetInteractionType();
+    if (InteractionType.MatchesTag(Interaction_Pickup))
+    {
+        if (InteractionType.MatchesTag(Interaction_Pickup_Weapon))
+        {
             if (NLCharacterComponent && NLCharacterComponent->IsWeaponSlotFull())
             {
                 Message = "Exchange";
             }
-            GetNLPC()->EnableInteraction(HitRes.GetActor(), Message);
-            return;
+            else
+            {
+                Message = "Pick Up";
+            }
+            // TODO: append weapon name to message
         }
-        // TODO: other interactions
     }
 
-    GetNLPC()->DisableInteraction();
+    GetNLPC()->EnableInteraction(Interactable, Message);
 }
 
 void ANLPlayerCharacter::OnViewportResized(FViewport* InViewport, uint32 arg)
