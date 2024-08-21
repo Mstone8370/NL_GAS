@@ -87,11 +87,7 @@ protected:
 
 	bool bIsEverDrawn;
 
-	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_IsEquipped)
-	bool bIsEquipped;
-
-	UFUNCTION()
-	void OnRep_IsEquipped();
+	virtual void OnRep_IsInteracting() override;
 
 	virtual void OnRep_Owner() override;
 
@@ -124,7 +120,7 @@ protected:
 	//~End Interactable
 
 public:
-	FORCEINLINE bool IsEquipped() const { return bIsEquipped; }
+	FORCEINLINE bool IsEquipped() const { return bIsInteracting; }
 
 	FORCEINLINE bool IsInitialized() const { return bIsInitialized; }
 
@@ -152,6 +148,10 @@ public:
 
 	void Holstered();
 
+	// Same with AInteractable::StartInteraction
+	void PickedUp(APawn* Interactor);
+
+	// Same with AInteractable::EndInteraction
 	void Dropped();
 
 	bool CommitWeaponCost();

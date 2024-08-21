@@ -92,9 +92,7 @@ public:
 	virtual void OnPickupableRangeExit_Implementation() override;
 	//~End PlayerInterface
 
-	// TODO: move RPC to PC
-	UFUNCTION(Server, Reliable)
-	void Server_PickUp(AInteractable* Pickupable);
+	void PickUp(AInteractable* Pickupable);
 
 public:
 	//~Begin CombatInterface

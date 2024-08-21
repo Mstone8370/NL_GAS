@@ -21,7 +21,6 @@ AWeaponActor::AWeaponActor()
 	, CurrentBulletNum(0)
 	, bIsInitialized(false)
 	, bIsEverDrawn(false)
-	, bIsEquipped(false)
 	, ReloadState(EReloadState::None)
 {
  	PrimaryActorTick.bCanEverTick = false;
@@ -51,7 +50,6 @@ void AWeaponActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 
 	DOREPLIFETIME_CONDITION(AWeaponActor, WeaponTag, COND_InitialOnly);
 	DOREPLIFETIME_CONDITION_NOTIFY(AWeaponActor, CurrentBulletNum, COND_AutonomousOnly, REPNOTIFY_OnChanged);
-	DOREPLIFETIME_CONDITION_NOTIFY(AWeaponActor, bIsEquipped, COND_None, REPNOTIFY_OnChanged);
 }
 
 void AWeaponActor::OnRep_AttachmentReplication()
@@ -139,9 +137,9 @@ void AWeaponActor::InitializeWeapon(const FGameplayTag& InWeaponTag, bool bForce
 
 void AWeaponActor::SetWeaponState(bool bInIsEuipped)
 {
-	bIsEquipped = bInIsEuipped;
+	bIsInteracting = bInIsEuipped;
 
-	if (bIsEquipped)
+	if (bIsInteracting)
 	{
 		WeaponMeshComponent->bOwnerNoSee = true;
 		WeaponMeshComponent->MarkRenderStateDirty();
@@ -199,7 +197,7 @@ void AWeaponActor::OnPickUpCollisionEndOverlap(UPrimitiveComponent* OverlappedCo
 
 bool AWeaponActor::CanInteract() const
 {
-	return !bIsEquipped;
+	return !bIsInteracting;
 }
 
 void AWeaponActor::OnStartInteraction(APawn* Interactor)
@@ -234,9 +232,9 @@ void AWeaponActor::Drawn()
 	CheckReloadState();
 }
 
-void AWeaponActor::OnRep_IsEquipped()
+void AWeaponActor::OnRep_IsInteracting()
 {
-	SetWeaponState(bIsEquipped);
+	SetWeaponState(bIsInteracting);
 }
 
 void AWeaponActor::OnRep_Owner()
@@ -255,9 +253,14 @@ void AWeaponActor::Holstered()
 
 }
 
+void AWeaponActor::PickedUp(APawn* Interactor)
+{
+	StartInteraction(Interactor);
+}
+
 void AWeaponActor::Dropped()
 {
-	OnEndInteraction();
+	EndInteraction();
 }
 
 bool AWeaponActor::CommitWeaponCost()

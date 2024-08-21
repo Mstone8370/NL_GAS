@@ -136,6 +136,9 @@ protected:
 
 	FVector MoveInputDirection;
 
+	UFUNCTION(Server, Reliable)
+	void Server_Interaction(AInteractable* Interactable);
+
 	UFUNCTION(Client, Reliable)
 	void Client_ShowDamageCauseIndicator(float InDamage, bool bIsCriticalHit, AActor* DamagedActor);
 

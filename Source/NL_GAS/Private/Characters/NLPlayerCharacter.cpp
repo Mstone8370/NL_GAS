@@ -315,13 +315,13 @@ void ANLPlayerCharacter::OnPickupableRangeExit_Implementation()
     }
 }
 
-void ANLPlayerCharacter::Server_PickUp_Implementation(AInteractable* Pickupable)
+void ANLPlayerCharacter::PickUp(AInteractable* Pickupable)
 {
     if (!IsValid(Pickupable))
     {
         return;
     }
-    
+
     if (Pickupable->CanInteract())
     {
         NLCharacterComponent->PickUp(Pickupable);

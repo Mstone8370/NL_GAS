@@ -212,3 +212,12 @@ void ANLCharacterBase::GetAimPoint(FVector& OutViewLocation, FRotator& OutViewRo
     OutViewLocation = GetActorLocation();
     OutViewRotation = GetActorRotation();
 }
+
+bool ANLCharacterBase::IsWeaponSlotFull() const
+{
+    if (NLCharacterComponent)
+    {
+        return NLCharacterComponent->IsWeaponSlotFull();
+    }
+    return false;
+}

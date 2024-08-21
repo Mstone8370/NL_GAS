@@ -101,4 +101,7 @@ private:
 public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	virtual void GetAimPoint(FVector& OutViewLocation, FRotator& OutViewRotation) const;
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	bool IsWeaponSlotFull() const;
 };

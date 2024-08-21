@@ -256,15 +256,7 @@ void ANLPlayerController::Interaction()
 
     bIsInteracting = false;
 
-    const FGameplayTag& InteractionType = InteractableActor->GetInteractionType();
-
-    if (InteractionType.MatchesTag(Interaction_Pickup_Weapon))
-    {
-        if (GetNLPlayerCharacter())
-        {
-            GetNLPlayerCharacter()->Server_PickUp(InteractableActor);
-        }
-    }
+    Server_Interaction(InteractableActor);
 }
 
 void ANLPlayerController::OnInteractionHoldTriggered()
@@ -282,7 +274,23 @@ void ANLPlayerController::BeginInteraction()
 
     bIsInteracting = true;
 
-    OnInteractionBegin.Broadcast();
+    bool bShouldHoldKeyPress = InteractableActor->ShouldHoldKeyPress();
+    if (!bShouldHoldKeyPress 
+        && InteractableActor->GetInteractionType().MatchesTag(Interaction_Pickup_Weapon)
+        && GetNLPlayerCharacter())
+    {
+        // 무기를 교체해야하는 경우에는 키 홀드
+        bShouldHoldKeyPress |= GetNLPlayerCharacter()->IsWeaponSlotFull();
+    }
+
+    if (bShouldHoldKeyPress)
+    {
+        OnInteractionBegin.Broadcast();
+    }
+    else
+    {
+        Interaction();
+    }
 }
 
 void ANLPlayerController::EndInteraction()
@@ -315,7 +323,6 @@ void ANLPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 
 void ANLPlayerController::Respawn()
 {
-    UE_LOG(LogTemp, Warning, TEXT("Respawn requested"));
     Server_RespawnRequested(this);
 }
 
@@ -358,6 +365,24 @@ void ANLPlayerController::InitHUD(APlayerState* PS, UAbilitySystemComponent* ASC
     if (GetNLHUD())
     {
         GetNLHUD()->Initialize(this, PS, ASC, AS, NLC);
+    }
+}
+
+void ANLPlayerController::Server_Interaction_Implementation(AInteractable* Interactable)
+{
+    if (!IsValid(Interactable) || !Interactable->CanInteract() || !GetNLPlayerCharacter())
+    {
+        return;
+    }
+
+    const FGameplayTag& InteractionType = Interactable->GetInteractionType();
+    if (InteractionType.MatchesTag(Interaction_Pickup))
+    {
+        GetNLPlayerCharacter()->PickUp(Interactable);
+    }
+    else if (InteractionType.MatchesTag(Interaction_Button))
+    {
+        // TODO:
     }
 }
 

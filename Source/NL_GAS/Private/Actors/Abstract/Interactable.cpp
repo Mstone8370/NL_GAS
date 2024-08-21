@@ -3,6 +3,8 @@
 
 #include "Actors/Abstract/Interactable.h"
 
+#include "Net/UnrealNetwork.h"
+
 AInteractable::AInteractable()
     : InteractionType(FGameplayTag::EmptyTag)
     , bShouldHoldKeyPress(false)
@@ -10,6 +12,13 @@ AInteractable::AInteractable()
 {
  	PrimaryActorTick.bCanEverTick = false;
     bReplicates = true;
+}
+
+void AInteractable::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    DOREPLIFETIME_CONDITION_NOTIFY(AInteractable, bIsInteracting, COND_None, REPNOTIFY_OnChanged);
 }
 
 void AInteractable::StartInteraction(APawn* Interactor)

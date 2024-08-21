@@ -15,6 +15,8 @@ class NL_GAS_API AInteractable : public AActor
 public:	
 	AInteractable();
 
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
+
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Category = "Interactable"))
 	FGameplayTag InteractionType;
@@ -22,8 +24,11 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	bool bShouldHoldKeyPress;
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_IsInteracting)
 	bool bIsInteracting;
+
+	UFUNCTION()
+	virtual void OnRep_IsInteracting() {};
 
 	virtual void OnStartInteraction(APawn* Interactor) {};
 

@@ -106,8 +106,7 @@ void UNLCharacterComponent::OnRep_WeaponSlot(const FWeaponSlot& OldSlot)
         if (Wpn && !NewSet.Contains(Wpn))
         {
             RemovedWeapons.Add(Wpn);
-            // IPickupable::Execute_OnDropped(Wpn);
-            Wpn->EndInteraction();
+            Wpn->Dropped();
         }
     }
     // 새로운 무기를 추가하기 전에 제거된 무기를 소켓 맵에서도 제거해서 빈 공간을 만들어야 함.
@@ -126,8 +125,7 @@ void UNLCharacterComponent::OnRep_WeaponSlot(const FWeaponSlot& OldSlot)
         {
             AttachWeaponToSocket(Wpn);
             Wpn->SetOwner(GetOwner()); // WeaponActor의 Owner는 아직 레플리케이트되지 않았을수도 있음.
-            // IPickupable::Execute_OnPickedUp(Wpn);
-            Wpn->StartInteraction(GetOwningCharacter());
+            Wpn->PickedUp(GetOwningCharacter());
         }
     }
 
@@ -975,8 +973,7 @@ void UNLCharacterComponent::PickUpWeapon(AWeaponActor* WeaponActor)
 
     AttachWeaponToSocket(WeaponActor);
     WeaponActor->SetOwner(GetOwningPlayer());
-    // IPickupable::Execute_OnPickedUp(WeaponActor);
-    WeaponActor->StartInteraction(GetOwningCharacter());
+    WeaponActor->PickedUp(GetOwningCharacter());
 
     WeaponSlot.WeaponActorSlot[Slot] = WeaponActor;
     UpdateWeaponTagSlot();
