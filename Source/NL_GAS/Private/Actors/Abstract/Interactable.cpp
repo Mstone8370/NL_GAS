@@ -49,7 +49,7 @@ void AInteractable::OnInteractorEnter(UPrimitiveComponent* OverlappedComponent, 
         return;
     }
 
-    IPlayerInterface::Execute_OnPickupableRangeEnter(OtherActor);
+    IPlayerInterface::Execute_OnInteractableRangeEnter(OtherActor);
 }
 
 void AInteractable::OnInteractorExit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
@@ -59,7 +59,7 @@ void AInteractable::OnInteractorExit(UPrimitiveComponent* OverlappedComponent, A
         return;
     }
 
-    IPlayerInterface::Execute_OnPickupableRangeExit(OtherActor);
+    IPlayerInterface::Execute_OnInteractableRangeExit(OtherActor);
 }
 
 void AInteractable::StartInteraction(APawn* Interactor)

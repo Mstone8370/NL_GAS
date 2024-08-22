@@ -88,8 +88,8 @@ public:
 	virtual void OnWeaponReloadStateChanged_Implementation(const FGameplayTag& WeaponTag, const FGameplayTag& StateTag) override;
 	virtual float GetWeaponSpreadValue_Implementation() override;
 	virtual bool CommitWeaponCost_Implementation(bool& bIsLast) override;
-	virtual void OnPickupableRangeEnter_Implementation() override;
-	virtual void OnPickupableRangeExit_Implementation() override;
+	virtual void OnInteractableRangeEnter_Implementation() override;
+	virtual void OnInteractableRangeExit_Implementation() override;
 	//~End PlayerInterface
 
 	void PickUp(AInteractable* Pickupable);
@@ -175,7 +175,7 @@ protected:
 
 	void OnFoundInteractable(AInteractable* Interactable);
 
-	int32 PickupableInRangeCount = 0;
+	int32 InteractableInRangeCount = 0;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float InteractableSeekLength = 200.f;

@@ -300,16 +300,16 @@ bool ANLPlayerCharacter::CommitWeaponCost_Implementation(bool& bIsLast)
     return NLCharacterComponent->CommitWeaponCost(bIsLast);
 }
 
-void ANLPlayerCharacter::OnPickupableRangeEnter_Implementation()
+void ANLPlayerCharacter::OnInteractableRangeEnter_Implementation()
 {
-    PickupableInRangeCount++;
+    InteractableInRangeCount++;
 }
 
-void ANLPlayerCharacter::OnPickupableRangeExit_Implementation()
+void ANLPlayerCharacter::OnInteractableRangeExit_Implementation()
 {
-    PickupableInRangeCount = FMath::Max(0, PickupableInRangeCount - 1);
+    InteractableInRangeCount = FMath::Max(0, InteractableInRangeCount - 1);
 
-    if (PickupableInRangeCount == 0 && GetNLPC())
+    if (InteractableInRangeCount == 0 && GetNLPC())
     {
         GetNLPC()->DisableInteraction();
     }
@@ -598,7 +598,7 @@ void ANLPlayerCharacter::SeekInteractable()
     {
         return;
     }
-    if (PickupableInRangeCount < 1)
+    if (InteractableInRangeCount < 1)
     {
         return;
     }

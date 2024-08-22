@@ -54,8 +54,8 @@ public:
 	bool CommitWeaponCost(bool& bIsLast);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	void OnPickupableRangeEnter();
+	void OnInteractableRangeEnter();
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	void OnPickupableRangeExit();
+	void OnInteractableRangeExit();
 };
