@@ -29,19 +29,11 @@ AWeaponActor::AWeaponActor()
 
 	InteractionType = Interaction_Pickup_Weapon;
 
-	WeaponMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(FName("WeaponMesh"));
-	WeaponMeshComponent->SetCollisionObjectType(ECC_WeaponProp);
-	WeaponMeshComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
-	WeaponMeshComponent->SetMassOverrideInKg(NAME_None, 2.f, true);
-	SetRootComponent(WeaponMeshComponent);
+	RootMesh->SetCollisionObjectType(ECC_WeaponProp);
+	RootMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+	RootMesh->SetMassOverrideInKg(NAME_None, 2.f, true);
 
-	PickUpCollision = CreateDefaultSubobject<USphereComponent>(FName("PickUpCollision"));
-	PickUpCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	PickUpCollision->SetGenerateOverlapEvents(true);
-	PickUpCollision->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-	PickUpCollision->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
-	PickUpCollision->SetSphereRadius(200.f, false);
-	PickUpCollision->SetupAttachment(WeaponMeshComponent);
+	SphereCollision->SetSphereRadius(200.f, false);
 }
 
 void AWeaponActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -62,9 +54,6 @@ void AWeaponActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	PickUpCollision->OnComponentBeginOverlap.AddDynamic(this, &AWeaponActor::OnPickUpCollisionBeginOverlap);
-	PickUpCollision->OnComponentEndOverlap.AddDynamic(this, &AWeaponActor::OnPickUpCollisionEndOverlap);
-	
 	InitializeWeapon(WeaponTag);
 }
 
@@ -104,7 +93,7 @@ void AWeaponActor::InitializeWeapon(const FGameplayTag& InWeaponTag, bool bForce
 	{
 		PropMesh = Info->PropMesh.LoadSynchronous();
 	}
-	WeaponMeshComponent->SetStaticMesh(PropMesh);
+	RootMesh->SetStaticMesh(PropMesh);
 
 	// Init View Weapon Mesh
 	ViewWeaponMesh = Info->ViewModelMesh.Get();
@@ -141,12 +130,12 @@ void AWeaponActor::SetWeaponState(bool bInIsEuipped)
 
 	if (bIsInteracting)
 	{
-		WeaponMeshComponent->bOwnerNoSee = true;
-		WeaponMeshComponent->MarkRenderStateDirty();
-		WeaponMeshComponent->SetSimulatePhysics(false);
-		WeaponMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		RootMesh->bOwnerNoSee = true;
+		RootMesh->MarkRenderStateDirty();
+		RootMesh->SetSimulatePhysics(false);
+		RootMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-		PickUpCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+		SphereCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 		
 		SetActorRelativeRotation(FRotator(0.f, -90.f, 0.f));
 
@@ -162,37 +151,17 @@ void AWeaponActor::SetWeaponState(bool bInIsEuipped)
 	}
 	else
 	{
-		WeaponMeshComponent->bOwnerNoSee = false;
-		WeaponMeshComponent->MarkRenderStateDirty();
-		WeaponMeshComponent->SetSimulatePhysics(true);
-		WeaponMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		RootMesh->bOwnerNoSee = false;
+		RootMesh->MarkRenderStateDirty();
+		RootMesh->SetSimulatePhysics(true);
+		RootMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
-		PickUpCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+		SphereCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 
 		bIsEverDrawn = false;
 		ReloadState = EReloadState::None;
 		BulletNumChanged.Clear();
 	}
-}
-
-void AWeaponActor::OnPickUpCollisionBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	if (!CanInteract())
-	{
-		return;
-	}
-
-	IPlayerInterface::Execute_OnPickupableRangeEnter(OtherActor);
-}
-
-void AWeaponActor::OnPickUpCollisionEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-	if (!CanInteract())
-	{
-		return;
-	}
-
-	IPlayerInterface::Execute_OnPickupableRangeExit(OtherActor);
 }
 
 bool AWeaponActor::CanInteract() const
@@ -211,7 +180,7 @@ void AWeaponActor::OnEndInteraction()
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	SetWeaponState(false);
 
-	WeaponMeshComponent->AddImpulse(GetActorRightVector() * 200.f, NAME_None, true);
+	RootMesh->AddImpulse(GetActorRightVector() * 200.f, NAME_None, true);
 }
 
 const FGameplayTag& AWeaponActor::GetADSFOVTag() const

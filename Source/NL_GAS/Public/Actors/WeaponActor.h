@@ -101,12 +101,6 @@ protected:
 
 	FGameplayTag IronsightADSFOVTag;
 
-	UFUNCTION()
-	void OnPickUpCollisionBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-	
-	UFUNCTION()
-	void OnPickUpCollisionEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-
 public:
 	UFUNCTION(BlueprintCallable)
 	void InitializeWeapon(const FGameplayTag& InWeaponTag, bool bForceInit = false);

@@ -7,6 +7,8 @@
 #include "GameplayTagContainer.h"
 #include "Interactable.generated.h"
 
+class USphereComponent;
+
 UCLASS(Abstract)
 class NL_GAS_API AInteractable : public AActor
 {
@@ -18,6 +20,14 @@ public:
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
 protected:
+	virtual void BeginPlay() override;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UStaticMeshComponent> RootMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<USphereComponent> SphereCollision;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Category = "Interactable"))
 	FGameplayTag InteractionType;
 
@@ -26,6 +36,12 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_IsInteracting)
 	bool bIsInteracting;
+
+	UFUNCTION()
+	virtual void OnInteractorEnter(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	virtual void OnInteractorExit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	UFUNCTION()
 	virtual void OnRep_IsInteracting() {};
