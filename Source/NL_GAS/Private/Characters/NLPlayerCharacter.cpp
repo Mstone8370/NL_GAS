@@ -647,7 +647,6 @@ void ANLPlayerCharacter::OnFoundInteractable(AInteractable* Interactable)
             {
                 Message = "Pick Up";
             }
-            // TODO: append weapon name to message
         }
     }
 
