@@ -3,10 +3,10 @@
 
 #include "Actors/ButtonActor.h"
 
-void AButtonActor::OnStartInteraction(APawn* Interactor)
+void AButtonActor::OnStartInteraction_Implementation(APawn* Interactor)
 {
 }
 
-void AButtonActor::OnEndInteraction()
+void AButtonActor::OnEndInteraction_Implementation()
 {
 }

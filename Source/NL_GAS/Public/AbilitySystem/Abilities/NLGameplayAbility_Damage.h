@@ -23,7 +23,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage")
 	FScalableFloat DamageScalableFloat;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage", meta = (Categories = "DamageType"))
 	FGameplayTag DamageType;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage")

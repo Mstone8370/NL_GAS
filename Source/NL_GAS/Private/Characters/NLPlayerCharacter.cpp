@@ -632,6 +632,12 @@ void ANLPlayerCharacter::SeekInteractable()
 
 void ANLPlayerCharacter::OnFoundInteractable(AInteractable* Interactable)
 {
+    if (!Interactable->CanInteract())
+    {
+        GetNLPC()->DisableInteraction();
+        return;
+    }
+
     FString Message = "Interact";
 
     const FGameplayTag& InteractionType = Interactable->GetInteractionType();
@@ -648,6 +654,10 @@ void ANLPlayerCharacter::OnFoundInteractable(AInteractable* Interactable)
                 Message = "Pick Up";
             }
         }
+    }
+    else if (InteractionType.MatchesTag(Interaction_Button))
+    {
+        Message = "Press";
     }
 
     GetNLPC()->EnableInteraction(Interactable, Message);

@@ -109,8 +109,8 @@ public:
 public:
 	virtual bool CanInteract() const override;
 protected:
-	virtual void OnStartInteraction(APawn* Interactor) override;
-	virtual void OnEndInteraction() override;
+	virtual void OnStartInteraction_Implementation(APawn* Interactor);
+	virtual void OnEndInteraction_Implementation();
 	//~End Interactable
 
 public:

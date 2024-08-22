@@ -169,12 +169,12 @@ bool AWeaponActor::CanInteract() const
 	return !bIsInteracting;
 }
 
-void AWeaponActor::OnStartInteraction(APawn* Interactor)
+void AWeaponActor::OnStartInteraction_Implementation(APawn* Interactor)
 {
 	SetWeaponState(true);
 }
 
-void AWeaponActor::OnEndInteraction()
+void AWeaponActor::OnEndInteraction_Implementation()
 {
 	SetOwner(nullptr);
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);

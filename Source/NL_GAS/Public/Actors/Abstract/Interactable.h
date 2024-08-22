@@ -28,7 +28,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USphereComponent> SphereCollision;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Category = "Interactable"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "Interaction"))
 	FGameplayTag InteractionType;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
@@ -44,11 +44,13 @@ protected:
 	virtual void OnInteractorExit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	UFUNCTION()
-	virtual void OnRep_IsInteracting() {};
+	virtual void OnRep_IsInteracting();
 
-	virtual void OnStartInteraction(APawn* Interactor) {};
+	UFUNCTION(BlueprintNativeEvent)
+	void OnStartInteraction(APawn* Interactor);
 
-	virtual void OnEndInteraction() {};
+	UFUNCTION(BlueprintNativeEvent)
+	void OnEndInteraction();
 
 public:
 	UFUNCTION(BlueprintCallable)
@@ -58,7 +60,7 @@ public:
 	virtual void EndInteraction();
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
-	virtual bool CanInteract() const { return true; }
+	virtual bool CanInteract() const { return !bIsInteracting; }
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	const FGameplayTag& GetInteractionType() const { return InteractionType; }

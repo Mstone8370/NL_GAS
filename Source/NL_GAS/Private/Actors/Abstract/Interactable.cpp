@@ -62,12 +62,30 @@ void AInteractable::OnInteractorExit(UPrimitiveComponent* OverlappedComponent, A
     IPlayerInterface::Execute_OnInteractableRangeExit(OtherActor);
 }
 
+void AInteractable::OnRep_IsInteracting()
+{
+    if (bIsInteracting)
+    {
+        OnStartInteraction(nullptr);
+    }
+    else
+    {
+        OnEndInteraction();
+    }
+}
+
+void AInteractable::OnStartInteraction_Implementation(APawn* Interactor) {}
+
+void AInteractable::OnEndInteraction_Implementation() {}
+
 void AInteractable::StartInteraction(APawn* Interactor)
 {
-    if (!CanInteract() && bIsInteracting)
+    if (!CanInteract())
     {
         return;
     }
+
+    bIsInteracting = true;
 
     OnStartInteraction(Interactor);
 }
@@ -78,6 +96,8 @@ void AInteractable::EndInteraction()
     {
         return;
     }
+
+    bIsInteracting = false;
 
     OnEndInteraction();
 }

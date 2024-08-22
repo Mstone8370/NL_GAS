@@ -15,7 +15,7 @@ class NL_GAS_API AButtonActor : public AInteractable
 	GENERATED_BODY()
 	
 protected:
-	virtual void OnStartInteraction(APawn* Interactor) override;
+	void OnStartInteraction_Implementation(APawn* Interactor);
 
-	virtual void OnEndInteraction() override;
+	void OnEndInteraction_Implementation();
 };

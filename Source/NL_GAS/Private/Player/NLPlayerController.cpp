@@ -383,6 +383,12 @@ void ANLPlayerController::Server_Interaction_Implementation(AInteractable* Inter
     else if (InteractionType.MatchesTag(Interaction_Button))
     {
         // TODO:
+        Interactable->StartInteraction(GetPawn());
+    }
+    else
+    {
+        // Default Interaction
+        Interactable->StartInteraction(GetPawn());
     }
 }
 
@@ -559,7 +565,7 @@ void ANLPlayerController::OnRespawned(FVector Direction)
 
 void ANLPlayerController::EnableInteraction(AInteractable* Interactable, FString Message)
 {
-    if (!IsValid(Interactable) || (IsValid(InteractableActor) && InteractableActor == Interactable))
+    if (!IsValid(Interactable) || !Interactable->CanInteract() || (IsValid(InteractableActor) && InteractableActor == Interactable))
     {
         return;
     }
