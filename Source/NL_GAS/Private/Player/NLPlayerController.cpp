@@ -472,7 +472,7 @@ void ANLPlayerController::Client_SpawnProjectiles_Implementation(const FGameplay
 {
     // 이 플레이어 컨트롤러 입장에선 시뮬레이티드 프록시가 발사한 발사체임.
     TArray<ANLProjectile*> DummyArray;
-    UNLFunctionLibrary::SpawnMultipleProjectileByTag(this, ProjectileTag, SpawnInfos, DummyArray);
+    UNLFunctionLibrary::SpawnMultipleProjectileByTag(this, ProjectileTag, SpawnInfos, nullptr, DummyArray);
 }
 
 void ANLPlayerController::SetLookSensitivity(float InLookSensitivity)

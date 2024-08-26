@@ -291,7 +291,7 @@ void UNLFunctionLibrary::SpawnMultipleParticleByTag(const UObject* WorldContextO
     }
 }
 
-ANLProjectile* UNLFunctionLibrary::SpawnSingleProjectileByProjectileInfo(const UObject* WorldContextObject, const FProjectileInfo& ProjectileInfo, const FProjectileSpawnInfo& SpawnInfo)
+ANLProjectile* UNLFunctionLibrary::SpawnSingleProjectileByProjectileInfo(const UObject* WorldContextObject, const FProjectileInfo& ProjectileInfo, const FProjectileSpawnInfo& SpawnInfo, APawn* Instigator)
 {
     ANLProjectile* Ret = nullptr;
 
@@ -300,6 +300,7 @@ ANLProjectile* UNLFunctionLibrary::SpawnSingleProjectileByProjectileInfo(const U
         if (ProjectileInfo.ProjectileClass)
         {
             FActorSpawnParameters SpawnParam;
+            SpawnParam.Instigator = Instigator;
             Ret = WorldContextObject->GetWorld()->SpawnActor<ANLProjectile>(
                 ProjectileInfo.ProjectileClass,
                 SpawnInfo.Location,
@@ -313,7 +314,7 @@ ANLProjectile* UNLFunctionLibrary::SpawnSingleProjectileByProjectileInfo(const U
     return Ret;
 }
 
-ANLProjectile* UNLFunctionLibrary::SpawnSingleProjectileByTag(const UObject* WorldContextObject, const FGameplayTag& ProjectileTag, const FProjectileSpawnInfo& SpawnInfo)
+ANLProjectile* UNLFunctionLibrary::SpawnSingleProjectileByTag(const UObject* WorldContextObject, const FGameplayTag& ProjectileTag, const FProjectileSpawnInfo& SpawnInfo, APawn* Instigator)
 {
     ANLProjectile* Ret = nullptr;
 
@@ -323,7 +324,7 @@ ANLProjectile* UNLFunctionLibrary::SpawnSingleProjectileByTag(const UObject* Wor
         {
             if (const FProjectileInfo* ProjectileInfo = ProjectileData->FindProjectileDataByTag(ProjectileTag))
             {
-                Ret = UNLFunctionLibrary::SpawnSingleProjectileByProjectileInfo(WorldContextObject, *ProjectileInfo, SpawnInfo);
+                Ret = UNLFunctionLibrary::SpawnSingleProjectileByProjectileInfo(WorldContextObject, *ProjectileInfo, SpawnInfo, Instigator);
             }
         }
     }
@@ -331,19 +332,19 @@ ANLProjectile* UNLFunctionLibrary::SpawnSingleProjectileByTag(const UObject* Wor
     return Ret;
 }
 
-void UNLFunctionLibrary::SpawnMultipleProjectileByProjectileInfo(const UObject* WorldContextObject, const FProjectileInfo& ProjectileInfo, const TArray<FProjectileSpawnInfo>& SpawnInfos, TArray<ANLProjectile*>& OutProjectiles)
+void UNLFunctionLibrary::SpawnMultipleProjectileByProjectileInfo(const UObject* WorldContextObject, const FProjectileInfo& ProjectileInfo, const TArray<FProjectileSpawnInfo>& SpawnInfos, APawn* Instigator, TArray<ANLProjectile*>& OutProjectiles)
 {
     OutProjectiles.Empty();
 
     for (const FProjectileSpawnInfo& SpawnInfo : SpawnInfos)
     {
         OutProjectiles.Add(
-            UNLFunctionLibrary::SpawnSingleProjectileByProjectileInfo(WorldContextObject, ProjectileInfo, SpawnInfo)
+            UNLFunctionLibrary::SpawnSingleProjectileByProjectileInfo(WorldContextObject, ProjectileInfo, SpawnInfo, Instigator)
         );
     }
 }
 
-void UNLFunctionLibrary::SpawnMultipleProjectileByTag(const UObject* WorldContextObject, const FGameplayTag& ProjectileTag, const TArray<FProjectileSpawnInfo>& SpawnInfos, TArray<ANLProjectile*>& OutProjectiles)
+void UNLFunctionLibrary::SpawnMultipleProjectileByTag(const UObject* WorldContextObject, const FGameplayTag& ProjectileTag, const TArray<FProjectileSpawnInfo>& SpawnInfos, APawn* Instigator, TArray<ANLProjectile*>& OutProjectiles)
 {
     OutProjectiles.Empty();
 
@@ -356,7 +357,7 @@ void UNLFunctionLibrary::SpawnMultipleProjectileByTag(const UObject* WorldContex
                 for (const FProjectileSpawnInfo& SpawnInfo : SpawnInfos)
                 {
                     OutProjectiles.Add(
-                        UNLFunctionLibrary::SpawnSingleProjectileByProjectileInfo(WorldContextObject, *ProjectileInfo, SpawnInfo)
+                        UNLFunctionLibrary::SpawnSingleProjectileByProjectileInfo(WorldContextObject, *ProjectileInfo, SpawnInfo, Instigator)
                     );
                 }
             }

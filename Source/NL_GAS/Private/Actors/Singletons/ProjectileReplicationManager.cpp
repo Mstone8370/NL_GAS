@@ -18,7 +18,7 @@ void AProjectileReplicationManager::MulticastProjectiles_Implementation(const FG
 {
     // 서버에서 생성된 발사체를 레플리케이트 하는것과 유사하므로 instigator와 관련된걸 고려할 필요는 없는듯.
     TArray<ANLProjectile*> DummyArray;
-    UNLFunctionLibrary::SpawnMultipleProjectileByTag(this, ProjectileTag, SpawnInfos, DummyArray);
+    UNLFunctionLibrary::SpawnMultipleProjectileByTag(this, ProjectileTag, SpawnInfos, nullptr, DummyArray);
 }
 
 void AProjectileReplicationManager::ReplicateProjectiles(const AController* ParticleInstigator, const FGameplayTag& ProjectileTag, const TArray<FProjectileSpawnInfo>& SpawnInfos, bool bExcludeInstigator)

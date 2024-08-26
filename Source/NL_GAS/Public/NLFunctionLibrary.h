@@ -67,14 +67,14 @@ public:
 	static void SpawnMultipleParticleByTag(const UObject* WorldContextObject, const FGameplayTag& ParticleTag, const TArray<FParticleSpawnInfo>& SpawnInfos);
 
 	UFUNCTION(BlueprintCallable, Category = "NLFunctionLibrary|Projectiles")
-	static ANLProjectile* SpawnSingleProjectileByProjectileInfo(const UObject* WorldContextObject, const FProjectileInfo& ProjectileInfo, const FProjectileSpawnInfo& SpawnInfo);
+	static ANLProjectile* SpawnSingleProjectileByProjectileInfo(const UObject* WorldContextObject, const FProjectileInfo& ProjectileInfo, const FProjectileSpawnInfo& SpawnInfo, APawn* Instigator);
 
 	UFUNCTION(BlueprintCallable, Category = "NLFunctionLibrary|Projectiles")
-	static ANLProjectile* SpawnSingleProjectileByTag(const UObject* WorldContextObject, const FGameplayTag& ProjectileTag, const FProjectileSpawnInfo& SpawnInfo);
+	static ANLProjectile* SpawnSingleProjectileByTag(const UObject* WorldContextObject, const FGameplayTag& ProjectileTag, const FProjectileSpawnInfo& SpawnInfo, APawn* Instigator);
 
 	UFUNCTION(BlueprintCallable, Category = "NLFunctionLibrary|Projectiles")
-	static void SpawnMultipleProjectileByProjectileInfo(const UObject* WorldContextObject, const FProjectileInfo& ProjectileInfo, const TArray<FProjectileSpawnInfo>& SpawnInfos, TArray<ANLProjectile*>& OutProjectiles);
+	static void SpawnMultipleProjectileByProjectileInfo(const UObject* WorldContextObject, const FProjectileInfo& ProjectileInfo, const TArray<FProjectileSpawnInfo>& SpawnInfos, APawn* Instigator, TArray<ANLProjectile*>& OutProjectiles);
 
 	UFUNCTION(BlueprintCallable, Category = "NLFunctionLibrary|Projectiles")
-	static void SpawnMultipleProjectileByTag(const UObject* WorldContextObject, const FGameplayTag& ProjectileTag, const TArray<FProjectileSpawnInfo>& SpawnInfos, TArray<ANLProjectile*>& OutProjectiles);
+	static void SpawnMultipleProjectileByTag(const UObject* WorldContextObject, const FGameplayTag& ProjectileTag, const TArray<FProjectileSpawnInfo>& SpawnInfos, APawn* Instigator, TArray<ANLProjectile*>& OutProjectiles);
 };

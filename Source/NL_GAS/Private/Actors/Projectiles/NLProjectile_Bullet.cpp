@@ -41,7 +41,7 @@ void ANLProjectile_Bullet::HandleDestroy(AActor* DestroyedActor)
 
 void ANLProjectile_Bullet::ApplyDamage(const FHitResult& HitResult)
 {
-    if (!HasAuthority())
+    if (!HasAuthority() || !GetInstigator() || !GetInstigator()->HasAuthority())
     {
         return;
     }
