@@ -184,6 +184,8 @@ public:
 
 	void HandleOwnerDeath();
 
+	void HandleOwnerDestroyed();
+
 	UFUNCTION(BlueprintCallable)
 	void DropCurrentWeapon();
 

@@ -28,11 +28,17 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USphereComponent> SphereCollision;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "Interaction"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Categories = "Interaction"))
 	FGameplayTag InteractionType;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	bool bShouldHoldKeyPress;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	bool bHighlight;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ClampMin = 0, ClampMax = 256, UIMin = 0, UIMax = 256))
+	float HighlightStencilValue;
 
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_IsInteracting)
 	bool bIsInteracting;
@@ -67,4 +73,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	virtual bool ShouldHoldKeyPress() const { return bShouldHoldKeyPress; }
+
+	UFUNCTION(BlueprintCallable)
+	void StartHighlight();
+	
+	UFUNCTION(BlueprintCallable)
+	void EndHighlight();
 };

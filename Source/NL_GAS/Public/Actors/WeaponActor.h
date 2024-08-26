@@ -60,7 +60,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, meta = (Categories = "Weapon"))
 	FGameplayTag WeaponTag;
 
 	UPROPERTY(BlueprintReadOnly)

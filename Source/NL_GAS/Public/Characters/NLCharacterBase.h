@@ -41,6 +41,8 @@ public:
 	virtual bool IsDead() const { return DeathInfo.bIsDead; }
 	//~End CombatInterface
 
+	virtual void Destroyed() override;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "DamageText")
 	TSubclassOf<UDamageTextWidgetComponent> DamageTextWidgetComponentClass;
 

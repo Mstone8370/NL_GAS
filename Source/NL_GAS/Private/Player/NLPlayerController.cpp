@@ -571,13 +571,18 @@ void ANLPlayerController::EnableInteraction(AInteractable* Interactable, FString
     }
 
     InteractableActor = Interactable;
+    InteractableActor->StartHighlight();
 
     OnInteractionEnabled.Broadcast(Interactable, Message);
 }
 
 void ANLPlayerController::DisableInteraction()
 {
-    InteractableActor = nullptr;
+    if (IsValid(InteractableActor))
+    {
+        InteractableActor->EndHighlight();
+        InteractableActor = nullptr;
+    }
 
     bIsInteracting = false;
 

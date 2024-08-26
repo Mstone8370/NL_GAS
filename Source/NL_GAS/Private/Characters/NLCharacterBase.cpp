@@ -73,6 +73,16 @@ void ANLCharacterBase::OnDead(const FDeathInfo& Info)
     }
 }
 
+void ANLCharacterBase::Destroyed()
+{
+    if (NLCharacterComponent)
+    {
+        NLCharacterComponent->HandleOwnerDestroyed();
+    }
+
+    Super::Destroyed();
+}
+
 void ANLCharacterBase::EnableRagdoll()
 {
     GetMesh()->SetSimulatePhysics(true);

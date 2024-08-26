@@ -924,6 +924,11 @@ void UNLCharacterComponent::HandleOwnerDeath()
     ClearWeapons();
 }
 
+void UNLCharacterComponent::HandleOwnerDestroyed()
+{
+    ClearWeapons();
+}
+
 void UNLCharacterComponent::DropCurrentWeapon()
 {
     AWeaponActor* WeaponActor = GetCurrentWeaponActor();

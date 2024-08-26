@@ -23,6 +23,17 @@ void ANLGameMode::PostLogin(APlayerController* NewPlayer)
     }
 }
 
+void ANLGameMode::Logout(AController* Exiting)
+{
+    if (ANLPlayerController* NLPC = Cast<ANLPlayerController>(Exiting))
+    {
+        NLPC->OnPlayerDeath.RemoveAll(this);
+        NLPC->OnRequestRespawn.Unbind();
+    }
+
+    Super::Logout(Exiting);
+}
+
 void ANLGameMode::BeginPlay()
 {
     Super::BeginPlay();

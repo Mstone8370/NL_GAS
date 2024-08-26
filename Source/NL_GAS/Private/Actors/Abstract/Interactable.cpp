@@ -10,12 +10,15 @@
 AInteractable::AInteractable()
     : InteractionType(FGameplayTag::EmptyTag)
     , bShouldHoldKeyPress(false)
+    , bHighlight(true)
+    , HighlightStencilValue(256)
     , bIsInteracting(false)
 {
  	PrimaryActorTick.bCanEverTick = false;
     bReplicates = true;
 
     RootMesh = CreateDefaultSubobject<UStaticMeshComponent>(FName("Root Mesh"));
+    RootMesh->SetCustomDepthStencilValue(HighlightStencilValue);
     SetRootComponent(RootMesh);
 
     SphereCollision = CreateDefaultSubobject<USphereComponent>(FName("SphereCollision"));
@@ -100,4 +103,20 @@ void AInteractable::EndInteraction()
     bIsInteracting = false;
 
     OnEndInteraction();
+}
+
+void AInteractable::StartHighlight()
+{
+    if (bHighlight && RootMesh)
+    {
+        RootMesh->SetRenderCustomDepth(true);
+    }
+}
+
+void AInteractable::EndHighlight()
+{
+    if (bHighlight && RootMesh)
+    {
+        RootMesh->SetRenderCustomDepth(false);
+    }
 }

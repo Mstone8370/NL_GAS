@@ -20,6 +20,8 @@ class NL_GAS_API ANLGameMode : public AGameMode
 public:
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 
+	virtual void Logout(AController* Exiting) override;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	float PlayerRespawnTime = 3.f;
 

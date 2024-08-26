@@ -523,7 +523,10 @@ void ANLPlayerCharacter::OnStartSprint()
     if (GetWorldTimerManager().IsTimerActive(SprintStopTimer))
     {
         GetWorldTimerManager().ClearTimer(SprintStopTimer);
-        GetNLASC()->RemoveLooseGameplayTag(Ability_Sprint);
+        if (GetNLASC())
+        {
+            GetNLASC()->RemoveLooseGameplayTag(Ability_Sprint);
+        }
     }
     GetNLASC()->AddLooseGameplayTag(Ability_Sprint);
 }
@@ -534,7 +537,10 @@ void ANLPlayerCharacter::OnEndSprint()
     Dele.BindLambda(
         [this]()
         {
-            GetNLASC()->RemoveLooseGameplayTag(Ability_Sprint);
+            if (GetNLASC())
+            {
+                GetNLASC()->RemoveLooseGameplayTag(Ability_Sprint);
+            }
         }
     );
     GetWorldTimerManager().SetTimer(SprintStopTimer, Dele, .2f, false);
