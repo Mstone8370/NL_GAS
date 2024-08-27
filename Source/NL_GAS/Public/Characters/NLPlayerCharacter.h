@@ -68,6 +68,8 @@ public:
 	virtual void OnRep_PlayerState() override;
 	virtual void OnRep_Controller() override;
 
+	virtual void Destroyed() override;
+
 	void TryInitializeHUD();
 
 	void TryRequestStartupWeapons();

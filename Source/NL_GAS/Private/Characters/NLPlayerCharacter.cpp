@@ -199,6 +199,28 @@ void ANLPlayerCharacter::OnRep_Controller()
     TryRequestStartupWeapons();
 }
 
+void ANLPlayerCharacter::Destroyed()
+{
+    if (GetWorldTimerManager().IsTimerActive(SprintStopTimer))
+    {
+        GetWorldTimerManager().ClearTimer(SprintStopTimer);
+    }
+    if (GetWorldTimerManager().IsTimerActive(LookPitchRepTimerHandle))
+    {
+        GetWorldTimerManager().ClearTimer(LookPitchRepTimerHandle);
+    }
+    if (GetWorldTimerManager().IsTimerActive(SlideTiltTimer))
+    {
+        GetWorldTimerManager().ClearTimer(SlideTiltTimer);
+    }
+    if (GetWorldTimerManager().IsTimerActive(WeaponRaiseTimer))
+    {
+        GetWorldTimerManager().ClearTimer(WeaponRaiseTimer);
+    }
+
+    Super::Destroyed();
+}
+
 void ANLPlayerCharacter::TryInitializeHUD()
 {
     if (GetNLPC() && GetPlayerState())
