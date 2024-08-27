@@ -61,6 +61,12 @@ protected:
 	UFUNCTION(BlueprintNativeEvent)
 	void OnEndInteraction();
 
+	UFUNCTION(BlueprintNativeEvent)
+	void OnFocused();
+
+	UFUNCTION(BlueprintNativeEvent)
+	void OnUnfocused();
+
 public:
 	UFUNCTION(BlueprintCallable)
 	virtual void StartInteraction(APawn* Interactor);
@@ -83,7 +89,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void DisableHighlight();
 
-	virtual void OnFocused();
+	UFUNCTION(BlueprintCallable)
+	void Focused();
 
-	virtual void OnUnfocused();
+	UFUNCTION(BlueprintCallable)
+	void Unfocused();
 };

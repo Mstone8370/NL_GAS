@@ -93,6 +93,16 @@ void AInteractable::OnEndInteraction_Implementation()
     EnableHighlight();
 }
 
+void AInteractable::OnFocused_Implementation()
+{
+    RootMesh->SetCustomDepthStencilValue(HighlightStencilValue_Focused);
+}
+
+void AInteractable::OnUnfocused_Implementation()
+{
+    RootMesh->SetCustomDepthStencilValue(HighlightStencilValue);
+}
+
 void AInteractable::StartInteraction(APawn* Interactor)
 {
     if (!CanInteract())
@@ -133,12 +143,12 @@ void AInteractable::DisableHighlight()
     }
 }
 
-void AInteractable::OnFocused()
+void AInteractable::Focused()
 {
-    RootMesh->SetCustomDepthStencilValue(HighlightStencilValue_Focused);
+    OnFocused();
 }
 
-void AInteractable::OnUnfocused()
+void AInteractable::Unfocused()
 {
-    RootMesh->SetCustomDepthStencilValue(HighlightStencilValue);
+    OnUnfocused();
 }
