@@ -570,8 +570,12 @@ void ANLPlayerController::EnableInteraction(AInteractable* Interactable, FString
         return;
     }
 
+    if (IsValid(InteractableActor))
+    {
+        InteractableActor->OnUnfocused();
+    }
     InteractableActor = Interactable;
-    InteractableActor->StartHighlight();
+    InteractableActor->OnFocused();
 
     OnInteractionEnabled.Broadcast(Interactable, Message);
 }
@@ -580,7 +584,7 @@ void ANLPlayerController::DisableInteraction()
 {
     if (IsValid(InteractableActor))
     {
-        InteractableActor->EndHighlight();
+        InteractableActor->OnUnfocused();
         InteractableActor = nullptr;
     }
 

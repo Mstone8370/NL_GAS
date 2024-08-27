@@ -134,6 +134,7 @@ void AWeaponActor::SetWeaponState(bool bInIsEuipped)
 		RootMesh->MarkRenderStateDirty();
 		RootMesh->SetSimulatePhysics(false);
 		RootMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		DisableHighlight();
 
 		SphereCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 		
@@ -155,6 +156,7 @@ void AWeaponActor::SetWeaponState(bool bInIsEuipped)
 		RootMesh->MarkRenderStateDirty();
 		RootMesh->SetSimulatePhysics(true);
 		RootMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		EnableHighlight();
 
 		SphereCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 
@@ -171,11 +173,15 @@ bool AWeaponActor::CanInteract() const
 
 void AWeaponActor::OnStartInteraction_Implementation(APawn* Interactor)
 {
+	Super::OnStartInteraction_Implementation(Interactor);
+
 	SetWeaponState(true);
 }
 
 void AWeaponActor::OnEndInteraction_Implementation()
 {
+	Super::OnEndInteraction_Implementation();
+
 	SetOwner(nullptr);
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	SetWeaponState(false);

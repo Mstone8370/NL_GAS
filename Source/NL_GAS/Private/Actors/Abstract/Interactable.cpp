@@ -11,7 +11,8 @@ AInteractable::AInteractable()
     : InteractionType(FGameplayTag::EmptyTag)
     , bShouldHoldKeyPress(false)
     , bHighlight(true)
-    , HighlightStencilValue(256)
+    , HighlightStencilValue(1)
+    , HighlightStencilValue_Focused(2)
     , bIsInteracting(false)
 {
  	PrimaryActorTick.bCanEverTick = false;
@@ -40,6 +41,11 @@ void AInteractable::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 void AInteractable::BeginPlay()
 {
     Super::BeginPlay();
+
+    if (bHighlight && !bIsInteracting)
+    {
+        EnableHighlight();
+    }
 
     SphereCollision->OnComponentBeginOverlap.AddDynamic(this, &AInteractable::OnInteractorEnter);
     SphereCollision->OnComponentEndOverlap.AddDynamic(this, &AInteractable::OnInteractorExit);
@@ -77,9 +83,15 @@ void AInteractable::OnRep_IsInteracting()
     }
 }
 
-void AInteractable::OnStartInteraction_Implementation(APawn* Interactor) {}
+void AInteractable::OnStartInteraction_Implementation(APawn* Interactor)
+{
+    DisableHighlight();
+}
 
-void AInteractable::OnEndInteraction_Implementation() {}
+void AInteractable::OnEndInteraction_Implementation()
+{
+    EnableHighlight();
+}
 
 void AInteractable::StartInteraction(APawn* Interactor)
 {
@@ -105,7 +117,7 @@ void AInteractable::EndInteraction()
     OnEndInteraction();
 }
 
-void AInteractable::StartHighlight()
+void AInteractable::EnableHighlight()
 {
     if (bHighlight && RootMesh)
     {
@@ -113,10 +125,20 @@ void AInteractable::StartHighlight()
     }
 }
 
-void AInteractable::EndHighlight()
+void AInteractable::DisableHighlight()
 {
     if (bHighlight && RootMesh)
     {
         RootMesh->SetRenderCustomDepth(false);
     }
+}
+
+void AInteractable::OnFocused()
+{
+    RootMesh->SetCustomDepthStencilValue(HighlightStencilValue_Focused);
+}
+
+void AInteractable::OnUnfocused()
+{
+    RootMesh->SetCustomDepthStencilValue(HighlightStencilValue);
 }

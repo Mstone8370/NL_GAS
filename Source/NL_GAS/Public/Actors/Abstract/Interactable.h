@@ -40,6 +40,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ClampMin = 0, ClampMax = 256, UIMin = 0, UIMax = 256))
 	float HighlightStencilValue;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ClampMin = 0, ClampMax = 256, UIMin = 0, UIMax = 256))
+	float HighlightStencilValue_Focused;
+
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_IsInteracting)
 	bool bIsInteracting;
 
@@ -75,8 +78,12 @@ public:
 	virtual bool ShouldHoldKeyPress() const { return bShouldHoldKeyPress; }
 
 	UFUNCTION(BlueprintCallable)
-	void StartHighlight();
+	void EnableHighlight();
 	
 	UFUNCTION(BlueprintCallable)
-	void EndHighlight();
+	void DisableHighlight();
+
+	virtual void OnFocused();
+
+	virtual void OnUnfocused();
 };

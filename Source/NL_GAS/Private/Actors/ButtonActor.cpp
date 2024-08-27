@@ -5,8 +5,10 @@
 
 void AButtonActor::OnStartInteraction_Implementation(APawn* Interactor)
 {
+    Super::OnStartInteraction_Implementation(Interactor);
 }
 
 void AButtonActor::OnEndInteraction_Implementation()
 {
+    Super::OnEndInteraction_Implementation();
 }
