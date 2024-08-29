@@ -11,6 +11,8 @@
 class UAbilitySystemComponent;
 class UAttributeSet;
 
+DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnPlayerStatUpdatedSignature, const APlayerState* /*PlayerState*/, const FGameplayTag& /*StatTag*/, int32 /*Value*/);
+
 /**
  * 
  */
@@ -36,6 +38,8 @@ protected:
 
 	FString PlayerName;
 
+	FOnPlayerStatUpdatedSignature OnPlayerStatUpdated;
+
 public:
 	//~ Begin AbilitySystemInterface
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
@@ -44,4 +48,19 @@ public:
 	FORCEINLINE UAttributeSet* GetAttributeSet() const { return AttributeSet; }
 
 	virtual FString GetPlayerNameCustom() const override;
+
+	// Player Stats
+	UFUNCTION(BlueprintCallable, Category = "PlayerStats")
+	virtual void SetPlayerStat(FGameplayTag StatTag, int32 Value) {};
+
+	UFUNCTION(BlueprintCallable, Category = "PlayerStats")
+	virtual void AddPlayerStat(FGameplayTag StatTag, int32 ValueAdded = 1) {};
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "PlayerStats")
+	virtual int32 GetPlayerStat(FGameplayTag StatTag) const { return 0; }
+
+	UFUNCTION(BlueprintCallable, Category = "PlayerStats")
+	virtual void BroadcastAllPlayerStats() const {};
+
+	FOnPlayerStatUpdatedSignature& GetPlayerStatUpdatedDelegate() { return OnPlayerStatUpdated; }
 };

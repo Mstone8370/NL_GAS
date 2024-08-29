@@ -180,12 +180,9 @@ bool UNLFunctionLibrary::AssetExists(FString FullPath)
 
 FString UNLFunctionLibrary::GetPlayerName(AActor* Actor)
 {
-    if (APawn* Pawn = Cast<APawn>(Actor))
+    if (APlayerState* PS = GetPlayerStateFromActor(Actor))
     {
-        if (APlayerState* PS = Pawn->GetPlayerState())
-        {
-            return PS->GetPlayerNameCustom();
-        }
+        return PS->GetPlayerNameCustom();
     }
     return GetNameSafe(Actor);
 }
@@ -216,6 +213,19 @@ APlayerController* UNLFunctionLibrary::GetAbilitySystemPlayerController(UAbility
     if (AController* Controller = GetAbilitySystemController(ASC))
     {
         return Cast<APlayerController>(Controller);
+    }
+    return nullptr;
+}
+
+APlayerState* UNLFunctionLibrary::GetPlayerStateFromActor(AActor* PawnOrController)
+{
+    if (APawn* Pawn = Cast<APawn>(PawnOrController))
+    {
+        return Pawn->GetPlayerState();
+    }
+    if (AController* Controller = Cast<AController>(PawnOrController))
+    {
+        return Controller->GetPlayerState<APlayerState>();
     }
     return nullptr;
 }

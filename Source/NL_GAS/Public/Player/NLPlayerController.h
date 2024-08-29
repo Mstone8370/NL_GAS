@@ -71,8 +71,8 @@ protected:
 	void Respawn();
 
 public:
-	UNLAbilitySystemComponent* GetNLAbilitySystemComponent();
-	ANLPlayerState* GetNLPlayerState();
+	UNLAbilitySystemComponent* GetNLASC();
+	ANLPlayerState* GetNLPS();
 	ANLPlayerCharacter* GetNLPlayerCharacter();
 	ANLHUD* GetNLHUD();
 

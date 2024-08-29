@@ -7,6 +7,7 @@
 #include "AbilitySystem/NLAbilitySystemComponent.h"
 #include "AbilitySystem/AttributeSet/NLAttributeSet.h"
 #include "Player/NLPlayerController.h"
+#include "Player/NLPlayerState.h"
 
 void UOverlayWidgetController::BindEvents()
 {
@@ -87,6 +88,13 @@ void UOverlayWidgetController::BindEvents()
             InteractionEnd.Broadcast();
         }
     );
+
+    GetNLPS()->GetPlayerStatUpdatedDelegate().AddLambda(
+        [this](const APlayerState* PS, const FGameplayTag& Tag, int32 Value)
+        {
+            PlayerStatUpdated.Broadcast(PS, Tag, Value);
+        }
+    );
 }
 
 void UOverlayWidgetController::BroadcastInitialValues()
@@ -98,6 +106,11 @@ void UOverlayWidgetController::BroadcastInitialValues()
     
     MaxHealthUpdated.Broadcast(GetNLAS()->GetMaxHealth());
     HealthUpdated.Broadcast(GetNLAS()->GetHealth());
+
+    if (GetNLPS())
+    {
+        GetNLPS()->BroadcastAllPlayerStats();
+    }
 }
 
 void UOverlayWidgetController::OnWeaponSlotChanged(const TArray<FGameplayTag>& WeaponTagSlot)

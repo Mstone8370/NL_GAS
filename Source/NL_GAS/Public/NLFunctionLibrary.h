@@ -54,6 +54,9 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "NLFunctionLibrary")
 	static APlayerController* GetAbilitySystemPlayerController(UAbilitySystemComponent* ASC);
 
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "NLFunctionLibrary")
+	static APlayerState* GetPlayerStateFromActor(AActor* PawnOrController);
+
 	UFUNCTION(BlueprintCallable, Category = "NLFunctionLibrary|Particles")
 	static void SpawnSingleParticleByParticleInfo(const UObject* WorldContextObject, const FParticleInfo& ParticleInfo, const FParticleSpawnInfo& SpawnInfo);
 	

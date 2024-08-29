@@ -96,3 +96,10 @@ UE_DEFINE_GAMEPLAY_TAG(Projectile_Bullet_Default, "Projectile.Bullet.Default");
 UE_DEFINE_GAMEPLAY_TAG(Interaction_Pickup, "Interaction.Pickup");
 UE_DEFINE_GAMEPLAY_TAG(Interaction_Pickup_Weapon, "Interaction.Pickup.Weapon");
 UE_DEFINE_GAMEPLAY_TAG(Interaction_Button, "Interaction.Button");
+
+// Player Stat Tag
+UE_DEFINE_GAMEPLAY_TAG(Stat_Fire, "Stat.Fire");
+UE_DEFINE_GAMEPLAY_TAG(Stat_Hit, "Stat.Hit");
+UE_DEFINE_GAMEPLAY_TAG(Stat_Hit_Critical, "Stat.Hit.Critical");
+UE_DEFINE_GAMEPLAY_TAG(Stat_Kill, "Stat.Kill");
+UE_DEFINE_GAMEPLAY_TAG(Stat_Death, "Stat.Death");

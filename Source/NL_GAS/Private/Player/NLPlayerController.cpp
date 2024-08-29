@@ -68,23 +68,23 @@ void ANLPlayerController::PostProcessInput(const float DeltaTime, const bool bGa
 
     if (!InputEnabled())
     {
-        if (GetNLAbilitySystemComponent())
+        if (GetNLASC())
         {
-            GetNLAbilitySystemComponent()->ClearAbilityInput();
+            GetNLASC()->ClearAbilityInput();
         }
         RotationInput = FRotator::ZeroRotator;
         return;
     }
 
-    if (GetNLAbilitySystemComponent())
+    if (GetNLASC())
     {
         if (bIsInteracting)
         {
-            GetNLAbilitySystemComponent()->ClearAbilityInput();
+            GetNLASC()->ClearAbilityInput();
         }
         else
         {
-            GetNLAbilitySystemComponent()->ProcessAbilityInput(DeltaTime, bGamePaused);
+            GetNLASC()->ProcessAbilityInput(DeltaTime, bGamePaused);
         }
     }
 
@@ -307,17 +307,17 @@ void ANLPlayerController::EndInteraction()
 
 void ANLPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)
 {
-    if (GetNLAbilitySystemComponent())
+    if (GetNLASC())
     {
-        GetNLAbilitySystemComponent()->AbilityInputTagPressed(InputTag);
+        GetNLASC()->AbilityInputTagPressed(InputTag);
     }
 }
 
 void ANLPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 {
-    if (GetNLAbilitySystemComponent())
+    if (GetNLASC())
     {
-        GetNLAbilitySystemComponent()->AbilityInputTagReleased(InputTag);
+        GetNLASC()->AbilityInputTagReleased(InputTag);
     }
 }
 
@@ -326,7 +326,7 @@ void ANLPlayerController::Respawn()
     Server_RespawnRequested(this);
 }
 
-UNLAbilitySystemComponent* ANLPlayerController::GetNLAbilitySystemComponent()
+UNLAbilitySystemComponent* ANLPlayerController::GetNLASC()
 {
     if (!LNAbilitySystemComponent)
     {
@@ -337,7 +337,7 @@ UNLAbilitySystemComponent* ANLPlayerController::GetNLAbilitySystemComponent()
     return LNAbilitySystemComponent;
 }
 
-ANLPlayerState* ANLPlayerController::GetNLPlayerState()
+ANLPlayerState* ANLPlayerController::GetNLPS()
 {
     if (!NLPlayerState)
     {
@@ -490,6 +490,15 @@ void ANLPlayerController::GetPlayerAimPoint(FVector& ViewLocation, FRotator& Vie
 void ANLPlayerController::OnCausedDamage(float InDamage, bool bInIsCriticalHit, AActor* DamagedActor)
 {
     Client_ShowDamageCauseIndicator(InDamage, bInIsCriticalHit, DamagedActor);
+
+    if (ANLPlayerState* NLPS = GetNLPS())
+    {
+        NLPS->AddPlayerStat(Stat_Hit);
+        if (bInIsCriticalHit)
+        {
+            NLPS->AddPlayerStat(Stat_Hit_Critical);
+        }
+    }
 }
 
 void ANLPlayerController::OnTakenDamage(const FHitResult* InHitResult, FVector DamageOrigin, bool bIsCriticalHit, const FGameplayTag& DamageType)
@@ -506,6 +515,11 @@ void ANLPlayerController::OnTakenDamage(const FHitResult* InHitResult, FVector D
 void ANLPlayerController::OnKilled(AActor* TargetActor)
 {
     Client_OnKilled(TargetActor);
+
+    if (ANLPlayerState* NLPS = GetNLPS())
+    {
+        NLPS->AddPlayerStat(Stat_Kill);
+    }
 }
 
 void ANLPlayerController::Server_RespawnRequested_Implementation(APlayerController* PC)
@@ -540,6 +554,11 @@ void ANLPlayerController::OnDead(AActor* SourceActor, FGameplayTag DamageType)
     SetupDeathCam(SourceActor);
 
     OnPlayerDeath.Broadcast(SourceActor, GetPawn(), DamageType);
+
+    if (ANLPlayerState* NLPS = GetNLPS())
+    {
+        NLPS->AddPlayerStat(Stat_Death);
+    }
 }
 
 void ANLPlayerController::AddKillLog_Implementation(AActor* SourceActor, AActor* TargetActor, FGameplayTag DamageType)

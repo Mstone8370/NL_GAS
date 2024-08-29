@@ -21,6 +21,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInteractionEnabledSignature, AActo
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInteractionDisabledSignature);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInteractionBeginSignature);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInteractionEndSignature);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FPlayerStatUpdatedSignature, const APlayerState*, PlayerState, const FGameplayTag&, StatTag, int32, Value);
 
 /**
  * 
@@ -76,6 +77,9 @@ public:
 	FInteractionBeginSignature InteractionBegin;
 	UPROPERTY(BlueprintAssignable)
 	FInteractionEndSignature InteractionEnd;
+
+	UPROPERTY(BlueprintAssignable)
+	FPlayerStatUpdatedSignature PlayerStatUpdated;
 
 protected:
 	UFUNCTION()
