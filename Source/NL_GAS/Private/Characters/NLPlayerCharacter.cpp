@@ -12,6 +12,7 @@
 #include "Player/NLPlayerController.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystem/NLAbilitySystemComponent.h"
+#include "AbilitySystem/AttributeSet/NLAttributeSet.h"
 #include "Net/UnrealNetwork.h"
 #include "NLFunctionLibrary.h"
 #include "Data/WeaponInfo.h"
@@ -146,6 +147,13 @@ void ANLPlayerCharacter::InitAbilityActorInfo()
 
     AbilitySystemComponent->RegisterGameplayTagEvent(Ability_Weapon_Secondary, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ANLPlayerCharacter::OnGameplayTagCountChanged);
     AbilitySystemComponent->RegisterGameplayTagEvent(Ability_Block_Sprint, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ANLPlayerCharacter::OnGameplayTagCountChanged);
+    AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(GetNLAS()->GetHealthAttribute()).AddLambda(
+        [&](const FOnAttributeChangeData& Data)
+        {
+            const float& MaxHealth = GetNLAS()->GetMaxHealth();
+            CameraComponent->OnPlayerHealthChanged(UKismetMathLibrary::SafeDivide(Data.NewValue, MaxHealth));
+        }
+    );
 }
 
 void ANLPlayerCharacter::Tick(float DeltaSeconds)
@@ -1050,6 +1058,15 @@ UNLAbilitySystemComponent* ANLPlayerCharacter::GetNLASC()
         NLAbilitySystemComponent = Cast<UNLAbilitySystemComponent>(AbilitySystemComponent);
     }
     return NLAbilitySystemComponent;
+}
+
+UNLAttributeSet* ANLPlayerCharacter::GetNLAS()
+{
+    if (!NLAttributeSet)
+    {
+        NLAttributeSet = Cast<UNLAttributeSet>(AttributeSet);
+    }
+    return NLAttributeSet;
 }
 
 void ANLPlayerCharacter::UpdateViewWeaponAndAnimLayer(USkeletalMesh* NewWeaponMesh, TSubclassOf<UAnimInstance> WeaponAnimInstanceClass, TSubclassOf<UAnimInstance> NewAnimLayerClass)

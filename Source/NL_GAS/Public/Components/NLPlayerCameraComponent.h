@@ -17,7 +17,18 @@ class NL_GAS_API UNLPlayerCameraComponent : public UCameraComponent
 public:
 	UNLPlayerCameraComponent();
 
+	virtual void BeginPlay() override;
+
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TObjectPtr<UMaterialInstance> HealthPPMaterial;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float HealthPPMatThresholdMax;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float HealthPPMatThresholdMin;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float InterpSpeed;
@@ -35,6 +46,9 @@ protected:
 
 	float CurrentInterpSpeed;
 
+	UPROPERTY(BlueprintReadOnly)
+	TObjectPtr<UMaterialInstanceDynamic> HealthPPMatInst;
+
 public:
 	UFUNCTION(BlueprintCallable)
 	void SetBaseFOV(float InBaseFOV);
@@ -44,4 +58,5 @@ public:
 
 	FORCEINLINE float GetBaseFOV() const { return BaseFOV; }
 
+	void OnPlayerHealthChanged(float HealthPercent);
 };

@@ -17,6 +17,7 @@ class UControlShakeManager;
 class UMaterialInstanceDynamic;
 class UNLViewSkeletalMeshComponent;
 class UNLAbilitySystemComponent;
+class UNLAttributeSet;
 class AInteractable;
 
 USTRUCT()
@@ -167,11 +168,17 @@ public:
 	FORCEINLINE FVector GetLedgeClimbTargetLocation() const { return LedgeClimbData.TargetLocation; }
 
 protected:
+	UPROPERTY(BlueprintReadOnly)
 	TObjectPtr<UNLCharacterMovementComponent> NLCharacterMovementComponent;
 
+	UPROPERTY(BlueprintReadOnly)
 	TObjectPtr<ANLPlayerController> NLPlayerController;
 
+	UPROPERTY(BlueprintReadOnly)
 	TObjectPtr<UNLAbilitySystemComponent> NLAbilitySystemComponent;
+
+	UPROPERTY(BlueprintReadOnly)
+	TObjectPtr<UNLAttributeSet> NLAttributeSet;
 
 	void SeekInteractable();
 
@@ -274,6 +281,8 @@ public:
 	ANLPlayerController* GetNLPC();
 
 	UNLAbilitySystemComponent* GetNLASC();
+
+	UNLAttributeSet* GetNLAS();
 
 	void UpdateViewWeaponAndAnimLayer(USkeletalMesh* NewWeaponMesh, TSubclassOf<UAnimInstance> WeaponAnimInstanceClass, TSubclassOf<UAnimInstance> NewAnimLayerClass);
 
