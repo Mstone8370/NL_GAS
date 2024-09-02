@@ -131,6 +131,11 @@ bool ANLPlayerCharacter::CanJumpInternal_Implementation() const
 
 void ANLPlayerCharacter::InitAbilityActorInfo()
 {
+    if (AbilitySystemComponent && AttributeSet)
+    {
+        return;
+    }
+
     ANLPlayerState* PS = GetPlayerState<ANLPlayerState>();
 
     check(PS);
@@ -178,8 +183,7 @@ void ANLPlayerCharacter::PossessedBy(AController* NewController)
 
     if (NewController->IsLocalPlayerController())
     {
-        NLCharacterComponent->AddStartupWeapons();
-        NLCharacterComponent->ValidateStartupWeapons();
+        TryRequestStartupWeapons();
     }
 }
 
@@ -194,6 +198,7 @@ void ANLPlayerCharacter::OnRep_PlayerState()
     NLCharacterComponent->ValidateStartupWeapons();
 
     TryInitializeHUD();
+
     TryRequestStartupWeapons();
 }
 
@@ -998,8 +1003,11 @@ void ANLPlayerCharacter::OnRespawned_Internal(bool bSimulated)
 
     if (HasAuthority())
     {
+        /*
         NLCharacterComponent->AddStartupWeapons();
         NLCharacterComponent->ValidateStartupWeapons();
+        */
+        TryRequestStartupWeapons();
     }
 
     if (!bSimulated && GetLocalViewingPlayerController())

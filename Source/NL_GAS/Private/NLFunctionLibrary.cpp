@@ -317,7 +317,10 @@ ANLProjectile* UNLFunctionLibrary::SpawnSingleProjectileByProjectileInfo(const U
                 SpawnInfo.Direction.Rotation(),
                 SpawnParam
             );
-            Ret->Id = SpawnInfo.Id;
+            if (Ret)
+            {
+                Ret->Id = SpawnInfo.Id;
+            }
         }
     }
 

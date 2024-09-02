@@ -24,7 +24,8 @@ public class NL_GAS : ModuleRules
             "JsonUtilities",
             "Json",
             "Blutility",
-            "AssetRegistry"
+            "AssetRegistry",
+            "OnlineSubsystem"
         });
 
         PrivateDependencyModuleNames.AddRange(new string[] {  });

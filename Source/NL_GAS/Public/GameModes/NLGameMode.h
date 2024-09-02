@@ -8,6 +8,7 @@
 
 class AParticleReplicationManager;
 class AProjectileReplicationManager;
+class ARespawnArea;
 
 /**
  * 
@@ -22,8 +23,7 @@ public:
 
 	virtual void Logout(AController* Exiting) override;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	float PlayerRespawnTime = 3.f;
+	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
 
 protected:
 	virtual void BeginPlay() override;
@@ -37,6 +37,8 @@ protected:
 
 	virtual void RespawnPlayer(APlayerController* PC);
 
+	void FindAllRespawnAreas();
+
 private:
 	UPROPERTY()
 	TObjectPtr<AParticleReplicationManager> ParticleReplicationManager;
@@ -45,6 +47,9 @@ private:
 	TObjectPtr<AProjectileReplicationManager> ProjectileReplicationManager;
 
 	void SpawnOrGetSingleton(AActor*& OutActor, TSubclassOf<AActor> ActorClass);
+
+	UPROPERTY()
+	TArray<ARespawnArea*> RespawnAreas;
 
 public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)

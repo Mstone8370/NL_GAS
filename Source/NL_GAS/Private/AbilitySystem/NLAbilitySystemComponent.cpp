@@ -160,6 +160,12 @@ void UNLAbilitySystemComponent::AddAbilities(const TMap<FGameplayTag, TSubclassO
 	{
 		const FGameplayTag& InputTag = AbilityInfo.Key;
 		const TSubclassOf<UGameplayAbility> AbilityClass = AbilityInfo.Value;
+
+		if (FindAbilitySpecFromClass(AbilityClass))
+		{
+			continue;
+		}
+
 		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(AbilityClass, 1);
 		AbilitySpec.DynamicAbilityTags.AddTag(InputTag);
 		GiveAbility(AbilitySpec);

@@ -179,7 +179,7 @@ void ANLPlayerController::RemoveIMC(TSoftObjectPtr<UInputMappingContext> IMC, UE
 
 void ANLPlayerController::Move(const FInputActionValue& Value)
 {
-    if (!InputEnabled())
+    if (!InputEnabled() || !IsValid(GetPawn()))
     {
         return;
     }
@@ -190,7 +190,7 @@ void ANLPlayerController::Move(const FInputActionValue& Value)
     const FVector ForwardDirection = MovementRotation.Vector();
     const FVector MoveDirection = ForwardDirection.RotateAngleAxis(VectorValue.Rotation().Yaw, FVector::UpVector);
 
-    GetCharacter()->AddMovementInput(MoveDirection);
+    GetPawn()->AddMovementInput(MoveDirection);
 }
 
 void ANLPlayerController::Look(const FInputActionValue& Value)
@@ -202,7 +202,7 @@ void ANLPlayerController::Look(const FInputActionValue& Value)
 
 void ANLPlayerController::Jump()
 {
-    if (!InputEnabled())
+    if (!InputEnabled() || !IsValid(GetCharacter()))
     {
         return;
     }
@@ -212,7 +212,7 @@ void ANLPlayerController::Jump()
 
 void ANLPlayerController::Crouch()
 {
-    if (!InputEnabled())
+    if (!InputEnabled() || !IsValid(GetCharacter()))
     {
         return;
     }
@@ -222,7 +222,7 @@ void ANLPlayerController::Crouch()
 
 void ANLPlayerController::UnCrouch()
 {
-    if (!InputEnabled())
+    if (!InputEnabled() || !IsValid(GetCharacter()))
     {
         return;
     }
@@ -232,7 +232,7 @@ void ANLPlayerController::UnCrouch()
 
 void ANLPlayerController::CrouchToggle()
 {
-    if (!InputEnabled())
+    if (!InputEnabled() || !IsValid(GetCharacter()))
     {
         return;
     }
@@ -249,7 +249,7 @@ void ANLPlayerController::CrouchToggle()
 
 void ANLPlayerController::Interaction()
 {
-    if (!bIsInteracting || !IsValid(InteractableActor))
+    if (!bIsInteracting || !IsValid(InteractableActor) || !InputEnabled() || !IsValid(GetCharacter()))
     {
         return;
     }
@@ -266,7 +266,7 @@ void ANLPlayerController::OnInteractionHoldTriggered()
 
 void ANLPlayerController::BeginInteraction()
 {
-    if (!IsValid(InteractableActor))
+    if (!IsValid(InteractableActor) || !InputEnabled() || !IsValid(GetCharacter()))
     {
         bIsInteracting = false;
         return;
@@ -295,7 +295,7 @@ void ANLPlayerController::BeginInteraction()
 
 void ANLPlayerController::EndInteraction()
 {
-    if (!IsValid(InteractableActor))
+    if (!IsValid(InteractableActor) || !InputEnabled() || !IsValid(GetCharacter()))
     {
         return;
     }
