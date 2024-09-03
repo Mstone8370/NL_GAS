@@ -45,6 +45,32 @@ void ANLGameState_Team::AssignTeamToPlayer(APlayerState* PlayerState)
     }
 }
 
+bool ANLGameState_Team::IsSameTeam(const APlayerState* A, const APlayerState* B) const
+{
+    int32 Team_A = 0;
+    int32 Team_B = 0;
+
+    if (TeamInfo.Team_1.Contains(A))
+    {
+        Team_A = 1;
+    }
+    else if (TeamInfo.Team_2.Contains(A))
+    {
+        Team_A = 2;
+    }
+
+    if (TeamInfo.Team_1.Contains(B))
+    {
+        Team_B = 1;
+    }
+    else if (TeamInfo.Team_2.Contains(B))
+    {
+        Team_B = 2;
+    }
+
+    return (Team_A != 0 && Team_A == Team_B);
+}
+
 int32 ANLGameState_Team::ChooseTeam(APlayerState* Player)
 {
     int32 Ret = 0;
@@ -69,7 +95,6 @@ int32 ANLGameState_Team::ChooseTeam(APlayerState* Player)
 
 void ANLGameState_Team::OnRep_TeamInfo(FTeamInfo& OldTeamInfo)
 {
-    /*
     TSet<APlayerState*> Checked;
 
     for (APlayerState* PS : TeamInfo.Team_1)
@@ -100,5 +125,4 @@ void ANLGameState_Team::OnRep_TeamInfo(FTeamInfo& OldTeamInfo)
             }
         }
     }
-    */
 }

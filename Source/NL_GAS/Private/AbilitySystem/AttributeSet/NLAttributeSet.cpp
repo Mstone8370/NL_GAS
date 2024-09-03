@@ -16,6 +16,7 @@
 #include "NLGameplayTags.h"
 #include "Components/HitboxComponent.h"
 #include "Interface/CombatInterface.h"
+#include "NLFunctionLibrary.h"
 
 void UNLAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -119,13 +120,10 @@ void UNLAttributeSet::HandleDamage(FEffectContextParams& Params)
     ICombatInterface* SourceCI = Cast<ICombatInterface>(Params.SourceAvatarActor);
     ICombatInterface* TargetCI = Cast<ICombatInterface>(Params.TargetAvatarActor);
 
-    ANLPlayerState* SourceNLPS = SourceNLPC->GetPlayerState<ANLPlayerState>();
-    ANLPlayerState* TargetNLPS = TargetNLPC->GetPlayerState<ANLPlayerState>();
-
     float LocalIncomingDamage = GetIncomingDamage();
     SetIncomingDamage(0.f);
     
-    if (SourceNLPS && TargetNLPS && SourceNLPS->GetTeam() && TargetNLPS->GetTeam() && SourceNLPS->GetTeam() == TargetNLPS->GetTeam())
+    if (UNLFunctionLibrary::IsSameTeam(SourceNLPC, TargetNLPC))
     {
         return;
     }

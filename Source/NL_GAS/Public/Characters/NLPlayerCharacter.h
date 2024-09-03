@@ -282,12 +282,16 @@ public:
 
 	bool IsListenServerControlledCharacter();
 
+	UFUNCTION(BlueprintCallable, BlueprintPure)
 	ANLPlayerController* GetNLPC();
 
+	UFUNCTION(BlueprintCallable, BlueprintPure)
 	ANLPlayerState* GetNLPS();
 
+	UFUNCTION(BlueprintCallable, BlueprintPure)
 	UNLAbilitySystemComponent* GetNLASC();
 
+	UFUNCTION(BlueprintCallable, BlueprintPure)
 	UNLAttributeSet* GetNLAS();
 
 	void UpdateViewWeaponAndAnimLayer(USkeletalMesh* NewWeaponMesh, TSubclassOf<UAnimInstance> WeaponAnimInstanceClass, TSubclassOf<UAnimInstance> NewAnimLayerClass);

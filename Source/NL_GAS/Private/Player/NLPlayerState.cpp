@@ -12,7 +12,6 @@
 #include "Characters/NLPlayerCharacter.h"
 #include "NLGameplayTags.h"
 #include "Actors/WeaponActor.h"
-#include "Kismet/GameplayStatics.h"
 #include "GameFramework/GameState.h"
 
 ANLPlayerState::ANLPlayerState()
@@ -56,7 +55,6 @@ FString ANLPlayerState::GetPlayerNameCustom() const
 
 void ANLPlayerState::TeamAssigned(int32 NewTeam, bool bOnRepTeam)
 {
-    
     Team = NewTeam;
     
     if (!IsValid(GetPawn()))
@@ -70,18 +68,21 @@ void ANLPlayerState::TeamAssigned(int32 NewTeam, bool bOnRepTeam)
         ANLCharacterBase* NLCharacter = Cast<ANLCharacterBase>(GetPawn());
 
         int32 LocalPlayerTeam = UNLFunctionLibrary::GetLocalPlayerTeam(this);
-        if (NewTeam == LocalPlayerTeam)
+        if (LocalPlayerTeam >= 0)
         {
-            if (NLCharacter)
+            if (NewTeam == LocalPlayerTeam)
             {
-                NLCharacter->SetAsFriendly();
+                if (NLCharacter)
+                {
+                    NLCharacter->SetAsFriendly();
+                }
             }
-        }
-        else
-        {
-            if (NLCharacter)
+            else
             {
-                NLCharacter->SetAsEnemy();
+                if (NLCharacter)
+                {
+                    NLCharacter->SetAsEnemy();
+                }
             }
         }
     }

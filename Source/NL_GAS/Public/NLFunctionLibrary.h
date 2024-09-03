@@ -83,4 +83,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "NLFunctionLibrary")
 	static int32 GetLocalPlayerTeam(const UObject* WorldContextObject);
+
+	UFUNCTION(BlueprintCallable, Category = "NLFunctionLibrary")
+	static bool IsSameTeam(const APlayerController* SourcePC, const APlayerController* TargetPC);
 };

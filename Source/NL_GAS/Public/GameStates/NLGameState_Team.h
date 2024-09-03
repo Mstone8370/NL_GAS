@@ -31,6 +31,8 @@ public:
 
 	virtual void AssignTeamToPlayer(APlayerState* PlayerState);
 
+	bool IsSameTeam(const APlayerState* A, const APlayerState* B) const;
+
 protected:
 	int32 ChooseTeam(APlayerState* Player);
 

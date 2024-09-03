@@ -24,6 +24,7 @@
 #include "Data/ProjectileData.h"
 #include "Actors/NLProjectile.h"
 #include "Player/NLPlayerState.h"
+#include "GameStates/NLGameState_Team.h"
 
 const FWeaponInfo* UNLFunctionLibrary::GetWeaponInfoByTag(const UObject* WorldContextObject, const FGameplayTag& WeaponTag)
 {
@@ -381,7 +382,7 @@ void UNLFunctionLibrary::SpawnMultipleProjectileByTag(const UObject* WorldContex
 
 int32 UNLFunctionLibrary::GetLocalPlayerTeam(const UObject* WorldContextObject)
 {
-    int32 LocalPlayerTeam = 0;
+    int32 LocalPlayerTeam = -1;
     if (UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(WorldContextObject))
     {
         const TArray<ULocalPlayer*>& LocalPlayers = GameInstance->GetLocalPlayers();
@@ -397,4 +398,32 @@ int32 UNLFunctionLibrary::GetLocalPlayerTeam(const UObject* WorldContextObject)
         }
     }
     return LocalPlayerTeam;
+}
+
+bool UNLFunctionLibrary::IsSameTeam(const APlayerController* SourcePC, const APlayerController* TargetPC)
+{
+    // On Server
+
+    const ANLPlayerState* SourcePS = SourcePC->GetPlayerState<ANLPlayerState>();
+    const ANLPlayerState* TargetPS = TargetPC->GetPlayerState<ANLPlayerState>();
+
+    if (IsValid(SourcePS) && IsValid(TargetPS))
+    {
+        const AGameStateBase* GameStateBase = UGameplayStatics::GetGameState(TargetPS);
+        if (const ANLGameState_Team* NLGameStateTeam = Cast<ANLGameState_Team>(GameStateBase))
+        {
+            return NLGameStateTeam->IsSameTeam(SourcePS, TargetPS);
+        }
+        else
+        {
+            const int32& SourceTeam = SourcePS->GetTeam();
+            const int32& TargetTeam = TargetPS->GetTeam();
+
+            if (SourceTeam != 0 && SourceTeam == TargetTeam)
+            {
+                return true;
+            }
+        }
+    }
+    return false;
 }
