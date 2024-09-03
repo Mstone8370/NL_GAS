@@ -10,6 +10,7 @@
 #include "GameplayEffectExtension.h"
 #include "AbilitySystem/NLAbilitySystemTypes.h"
 #include "Player/NLPlayerController.h"
+#include "Player/NLPlayerState.h"
 #include "AbilitySystem/NLAbilitySystemTypes.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "NLGameplayTags.h"
@@ -118,8 +119,17 @@ void UNLAttributeSet::HandleDamage(FEffectContextParams& Params)
     ICombatInterface* SourceCI = Cast<ICombatInterface>(Params.SourceAvatarActor);
     ICombatInterface* TargetCI = Cast<ICombatInterface>(Params.TargetAvatarActor);
 
+    ANLPlayerState* SourceNLPS = SourceNLPC->GetPlayerState<ANLPlayerState>();
+    ANLPlayerState* TargetNLPS = TargetNLPC->GetPlayerState<ANLPlayerState>();
+
     float LocalIncomingDamage = GetIncomingDamage();
     SetIncomingDamage(0.f);
+    
+    if (SourceNLPS && TargetNLPS && SourceNLPS->GetTeam() && TargetNLPS->GetTeam() && SourceNLPS->GetTeam() == TargetNLPS->GetTeam())
+    {
+        return;
+    }
+
     LocalIncomingDamage = FMath::Floor(LocalIncomingDamage);
     if (LocalIncomingDamage <= 0.f)
     {

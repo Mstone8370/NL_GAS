@@ -12,6 +12,7 @@ class USpringArmComponent;
 class UNLPlayerCameraComponent;
 class UNLCharacterMovementComponent;
 class ANLPlayerController;
+class ANLPlayerState;
 class UAnimMontage;
 class UControlShakeManager;
 class UMaterialInstanceDynamic;
@@ -175,6 +176,9 @@ protected:
 	TObjectPtr<ANLPlayerController> NLPlayerController;
 
 	UPROPERTY(BlueprintReadOnly)
+	TObjectPtr<ANLPlayerState> NLPlayerState;
+
+	UPROPERTY(BlueprintReadOnly)
 	TObjectPtr<UNLAbilitySystemComponent> NLAbilitySystemComponent;
 
 	UPROPERTY(BlueprintReadOnly)
@@ -279,6 +283,8 @@ public:
 	bool IsListenServerControlledCharacter();
 
 	ANLPlayerController* GetNLPC();
+
+	ANLPlayerState* GetNLPS();
 
 	UNLAbilitySystemComponent* GetNLASC();
 

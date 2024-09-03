@@ -23,6 +23,7 @@
 #include "NiagaraComponent.h"
 #include "Data/ProjectileData.h"
 #include "Actors/NLProjectile.h"
+#include "Player/NLPlayerState.h"
 
 const FWeaponInfo* UNLFunctionLibrary::GetWeaponInfoByTag(const UObject* WorldContextObject, const FGameplayTag& WeaponTag)
 {
@@ -376,4 +377,24 @@ void UNLFunctionLibrary::SpawnMultipleProjectileByTag(const UObject* WorldContex
             }
         }
     }
+}
+
+int32 UNLFunctionLibrary::GetLocalPlayerTeam(const UObject* WorldContextObject)
+{
+    int32 LocalPlayerTeam = 0;
+    if (UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(WorldContextObject))
+    {
+        const TArray<ULocalPlayer*>& LocalPlayers = GameInstance->GetLocalPlayers();
+        for (ULocalPlayer* LocalPlayer : LocalPlayers)
+        {
+            if (APlayerController* PC = LocalPlayer->PlayerController)
+            {
+                if (ANLPlayerState* NLPS = PC->GetPlayerState<ANLPlayerState>())
+                {
+                    LocalPlayerTeam = NLPS->GetTeam();
+                }
+            }
+        }
+    }
+    return LocalPlayerTeam;
 }

@@ -136,7 +136,7 @@ void ANLPlayerCharacter::InitAbilityActorInfo()
         return;
     }
 
-    ANLPlayerState* PS = GetPlayerState<ANLPlayerState>();
+    ANLPlayerState* PS = GetNLPS();
 
     check(PS);
 
@@ -200,6 +200,14 @@ void ANLPlayerCharacter::OnRep_PlayerState()
     TryInitializeHUD();
 
     TryRequestStartupWeapons();
+
+    if (GetNLPS())
+    {
+        if (GetNLPS()->GetTeam())
+        {
+            GetNLPS()->TeamAssigned(GetNLPS()->GetTeam());
+        }
+    }
 }
 
 void ANLPlayerCharacter::OnRep_Controller()
@@ -1057,6 +1065,15 @@ ANLPlayerController* ANLPlayerCharacter::GetNLPC()
         NLPlayerController = Cast<ANLPlayerController>(GetController());
     }
     return NLPlayerController;
+}
+
+ANLPlayerState* ANLPlayerCharacter::GetNLPS()
+{
+    if (!NLPlayerState)
+    {
+        NLPlayerState = Cast<ANLPlayerState>(GetPlayerState());
+    }
+    return NLPlayerState;
 }
 
 UNLAbilitySystemComponent* ANLPlayerCharacter::GetNLASC()

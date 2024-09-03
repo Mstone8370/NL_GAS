@@ -40,6 +40,12 @@ protected:
 
 	FOnPlayerStatUpdatedSignature OnPlayerStatUpdated;
 
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_Team)
+	int32 Team;
+
+	UFUNCTION()
+	void OnRep_Team();
+
 public:
 	//~ Begin AbilitySystemInterface
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
@@ -63,4 +69,9 @@ public:
 	virtual void BroadcastAllPlayerStats() const {};
 
 	FOnPlayerStatUpdatedSignature& GetPlayerStatUpdatedDelegate() { return OnPlayerStatUpdated; }
+
+	virtual void TeamAssigned(int32 NewTeam, bool bOnRepTeam = false);
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	int32 GetTeam() const { return Team; }
 };

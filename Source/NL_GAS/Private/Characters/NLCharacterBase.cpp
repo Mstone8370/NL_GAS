@@ -231,3 +231,13 @@ bool ANLCharacterBase::IsWeaponSlotFull() const
     }
     return false;
 }
+
+void ANLCharacterBase::SetAsEnemy_Implementation()
+{
+    
+}
+
+void ANLCharacterBase::SetAsFriendly_Implementation()
+{
+
+}

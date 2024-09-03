@@ -106,4 +106,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	bool IsWeaponSlotFull() const;
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	void SetAsEnemy();
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	void SetAsFriendly();
 };
