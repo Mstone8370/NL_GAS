@@ -8,7 +8,7 @@
 
 class AParticleReplicationManager;
 class AProjectileReplicationManager;
-class ARespawnArea;
+class APlayerStart;
 
 /**
  * 
@@ -23,8 +23,6 @@ public:
 
 	virtual void Logout(AController* Exiting) override;
 
-	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
-
 protected:
 	virtual void BeginPlay() override;
 
@@ -37,7 +35,9 @@ protected:
 
 	virtual void RespawnPlayer(APlayerController* PC);
 
-	void FindAllRespawnAreas();
+	virtual AActor* ChoosePlayerStartByCondition(APlayerController* Player, bool bInitial, bool bCheckTeam);
+
+	virtual bool CheckPlayerStartCondition(APlayerStart* PlayerStart, APlayerController* Player, bool bInitial, bool bCheckTeam);
 
 private:
 	UPROPERTY()
@@ -47,9 +47,6 @@ private:
 	TObjectPtr<AProjectileReplicationManager> ProjectileReplicationManager;
 
 	void SpawnOrGetSingleton(AActor*& OutActor, TSubclassOf<AActor> ActorClass);
-
-	UPROPERTY()
-	TArray<ARespawnArea*> RespawnAreas;
 
 public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)

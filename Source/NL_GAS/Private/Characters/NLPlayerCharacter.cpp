@@ -185,6 +185,14 @@ void ANLPlayerCharacter::PossessedBy(AController* NewController)
     {
         TryRequestStartupWeapons();
     }
+
+    if (GetNLPS())
+    {
+        if (GetNLPS()->GetTeam())
+        {
+            GetNLPS()->TeamAssigned(GetNLPS()->GetTeam());
+        }
+    }
 }
 
 void ANLPlayerCharacter::OnRep_PlayerState()
@@ -204,6 +212,14 @@ void ANLPlayerCharacter::OnRep_PlayerState()
     if (GetPlayerState())
     {
         OnUserNameSet(GetPlayerState()->GetPlayerNameCustom());
+
+        if (GetNLPS())
+        {
+            if (GetNLPS()->GetTeam())
+            {
+                GetNLPS()->TeamAssigned(GetNLPS()->GetTeam());
+            }
+        }
     }
 }
 

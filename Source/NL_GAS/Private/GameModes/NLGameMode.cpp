@@ -7,10 +7,13 @@
 #include "GameFramework/Character.h"
 #include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "GameFramework/PlayerStart.h"
+#include "EngineUtils.h"
 
 #include "Actors/Volumes/RespawnArea.h"
 #include "Actors/Singletons/ParticleReplicationManager.h"
 #include "Actors/Singletons/ProjectileReplicationManager.h"
+#include "Actors/NLPlayerStart.h"
 
 void ANLGameMode::PostLogin(APlayerController* NewPlayer)
 {
@@ -34,19 +37,6 @@ void ANLGameMode::Logout(AController* Exiting)
     Super::Logout(Exiting);
 }
 
-/**
-* TODO: 이 함수는 플레이어가 처음 접속했을때 사용되지만, 이 게임의 리스폰을 구현하는데에는 적절하지 않음.
-* RestartPlayer 같은 함수들은 컨트롤러가 이미 폰을 가지고있는 경우에는 PlayerStart의 회전만 적용하기 때문임.
-* (그마저도 액터의 로테이션을 변경하므로, control rotation을 변경해야하는 이 게임의 캐릭터에는 적용이 안됨.)
-* RestartPlayer 함수들을 오버라이드해서 수정해도 되지만, 이미 잘 작동하는 구현된 리스폰 함수가 있으니
-* 게임 진행중의 리스폰은 그 함수를 사용하고, 처음 접속할때에는 아래의 함수를 적절하게 사용해서 처리해야함.
-*/
-AActor* ANLGameMode::ChoosePlayerStart_Implementation(AController* Player)
-{
-    UE_LOG(LogTemp, Warning, TEXT("ChoosePlayerStart override"));
-    return Super::ChoosePlayerStart_Implementation(Player);
-}
-
 void ANLGameMode::BeginPlay()
 {
     Super::BeginPlay();
@@ -58,8 +48,6 @@ void ANLGameMode::BeginPlay()
     AActor* ProjRepManager = nullptr;
     SpawnOrGetSingleton(ProjRepManager, AProjectileReplicationManager::StaticClass());
     ProjectileReplicationManager = Cast<AProjectileReplicationManager>(ProjRepManager);
-
-    FindAllRespawnAreas();
 }
 
 void ANLGameMode::OnPlayerDead(AActor* SourceActor, AActor* TargetActor, FGameplayTag DamageType)
@@ -96,67 +84,90 @@ void ANLGameMode::MulticastKillLog(AActor* SourceActor, AActor* TargetActor, FGa
 
 void ANLGameMode::RespawnPlayer(APlayerController* PC)
 {
-    float HalfHeight = 0.f;
-    float Radius = 0.f;
-    if (APawn* PCPawn = PC->GetPawn())
+    AActor* Start = ChoosePlayerStartByCondition(PC, false, false);
+    if (IsValid(Start))
     {
-        if (ACharacter* DefaultCharacter = Cast<ACharacter>(PCPawn->GetClass()->GetDefaultObject()))
+        if (APawn* PCPawn = PC->GetPawn())
         {
-            DefaultCharacter->GetCapsuleComponent()->GetScaledCapsuleSize(Radius, HalfHeight);
+            PCPawn->SetActorLocation(Start->GetActorLocation());
+        }
+        if (ANLPlayerController* NLPC = Cast<ANLPlayerController>(PC))
+        {
+            NLPC->OnRespawned(Start->GetActorForwardVector());
         }
     }
-
-    TArray<AActor*> Actors;
-    UGameplayStatics::GetAllActorsOfClass(this, ARespawnArea::StaticClass(), Actors);
-
-    // Shuffle Array from UKismetArrayLibrary::GenericArray_Shuffle
-    int32 LastIndex = Actors.Num() - 1;
-    for (int32 i = 0; i <= LastIndex; ++i)
+    else
     {
-        int32 Index = FMath::RandRange(i, LastIndex);
-        if (i != Index)
-        {
-            Swap(Actors[i], Actors[Index]);
-        }
-    }
-
-    FVector RespawnLocation = FVector::ZeroVector;
-    FVector RespawnDirection = FVector::XAxisVector;
-    for (AActor* Actor : Actors)
-    {
-        if (ARespawnArea* RespawnArea = Cast<ARespawnArea>(Actor))
-        {
-            if (RespawnArea->GetRespawnableLocation(HalfHeight, Radius, RespawnLocation))
-            {
-                RespawnDirection = RespawnArea->GetDirection();
-                break;
-            }
-        }
-    }
-
-    if (APawn* PCPawn = PC->GetPawn())
-    {
-        PCPawn->SetActorLocation(RespawnLocation);
-    }
-    if (ANLPlayerController* NLPC = Cast<ANLPlayerController>(PC))
-    {
-        NLPC->OnRespawned(RespawnDirection);
+        UE_LOG(LogTemp, Error, TEXT("Failed to find PlayerStart"));
     }
 }
 
-void ANLGameMode::FindAllRespawnAreas()
+AActor* ANLGameMode::ChoosePlayerStartByCondition(APlayerController* Player, bool bInitial, bool bCheckTeam)
 {
-    TArray<AActor*> Actors;
-    UGameplayStatics::GetAllActorsOfClass(this, ARespawnArea::StaticClass(), Actors);
+    // Codes from AGameModeBase::ChoosePlayerStart_Implementation
+    
+    APlayerStart* FoundPlayerStart = nullptr;
 
-    RespawnAreas.Empty();
-    for (int32 i = 0; i < RespawnAreas.Num(); i++)
+    UClass* PawnClass = GetDefaultPawnClassForController(Player);
+    APawn* PawnToFit = PawnClass ? PawnClass->GetDefaultObject<APawn>() : nullptr;
+
+    TArray<APlayerStart*> UnOccupiedStartPoints;
+    TArray<APlayerStart*> OccupiedStartPoints;
+
+    UWorld* World = GetWorld();
+    for (TActorIterator<APlayerStart> It(World); It; ++It)
     {
-        if (ARespawnArea* RA = Cast<ARespawnArea>(Actors[i]))
+        APlayerStart* PlayerStart = *It;
+        if (!CheckPlayerStartCondition(PlayerStart, Player, bInitial, bCheckTeam))
         {
-            RespawnAreas.Add(RA);
+            continue;
+        }
+        
+        FVector ActorLocation = PlayerStart->GetActorLocation();
+        const FRotator ActorRotation = PlayerStart->GetActorRotation();
+        if (!World->EncroachingBlockingGeometry(PawnToFit, ActorLocation, ActorRotation))
+        {
+            UnOccupiedStartPoints.Add(PlayerStart);
+        }
+        else if (World->FindTeleportSpot(PawnToFit, ActorLocation, ActorRotation))
+        {
+            OccupiedStartPoints.Add(PlayerStart);
         }
     }
+
+    if (FoundPlayerStart == nullptr)
+    {
+        if (UnOccupiedStartPoints.Num() > 0)
+        {
+            FoundPlayerStart = UnOccupiedStartPoints[FMath::RandRange(0, UnOccupiedStartPoints.Num() - 1)];
+        }
+        else if (OccupiedStartPoints.Num() > 0)
+        {
+            FoundPlayerStart = OccupiedStartPoints[FMath::RandRange(0, OccupiedStartPoints.Num() - 1)];
+        }
+    }
+
+    return FoundPlayerStart;
+}
+
+bool ANLGameMode::CheckPlayerStartCondition(APlayerStart* PlayerStart, APlayerController* Player, bool bInitial, bool bCheckTeam)
+{
+    if (!IsValid(PlayerStart))
+    {
+        return false;
+    }
+
+    if (bInitial)
+    {
+        if (ANLPlayerStart* NLPlayerStart = Cast<ANLPlayerStart>(PlayerStart))
+        {
+            if (bInitial && !NLPlayerStart->bInitial)
+            {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 void ANLGameMode::SpawnOrGetSingleton(AActor*& OutActor, TSubclassOf<AActor> ActorClass)

@@ -14,11 +14,12 @@ class NL_GAS_API ANLGameMode_Team : public ANLGameMode
 {
 	GENERATED_BODY()
 	
-public:public:
+public:
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 
-	virtual void AssignTeamToPlayers();
-
 protected:
-	virtual void HandleMatchHasStarted() override;
+	virtual void RespawnPlayer(APlayerController* PC);
+
+	virtual bool CheckPlayerStartCondition(APlayerStart* PlayerStart, APlayerController* Player, bool bInitial, bool bCheckTeam) override;
+
 };

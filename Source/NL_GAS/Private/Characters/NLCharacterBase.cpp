@@ -262,7 +262,7 @@ void ANLCharacterBase::SetAsEnemy_Implementation()
     
 }
 
-void ANLCharacterBase::SetAsFriendly_Implementation()
+void ANLCharacterBase::SetAsFriendly_Implementation(bool bSelf)
 {
 
 }

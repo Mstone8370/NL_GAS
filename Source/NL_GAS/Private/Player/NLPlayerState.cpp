@@ -95,7 +95,7 @@ void ANLPlayerState::TeamAssigned(int32 NewTeam, bool bOnRepTeam)
 
         if (NLCharacter)
         {
-            NLCharacter->SetAsFriendly();
+            NLCharacter->SetAsFriendly(true);
         }
     }
 }

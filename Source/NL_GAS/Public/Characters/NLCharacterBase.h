@@ -118,7 +118,7 @@ public:
 	void SetAsEnemy();
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	void SetAsFriendly();
+	void SetAsFriendly(bool bSelf = false);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void SetAsNeutral();

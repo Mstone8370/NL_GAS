@@ -71,6 +71,38 @@ bool ANLGameState_Team::IsSameTeam(const APlayerState* A, const APlayerState* B)
     return (Team_A != 0 && Team_A == Team_B);
 }
 
+int32 ANLGameState_Team::FindTeam(const APlayerState* PlayerState)
+{
+    if (PlayerState)
+    {
+        if (TeamInfo.Team_1.Contains(PlayerState))
+        {
+            return 1;
+        }
+        if (TeamInfo.Team_2.Contains(PlayerState))
+        {
+            return 2;
+        }
+        if (PlayerArray.Contains(PlayerState))
+        {
+            return 0;
+        }
+    }
+    return -1;
+}
+
+int32 ANLGameState_Team::FindTeam(const APlayerController* PlayerController)
+{
+    if (PlayerController)
+    {
+        if (APlayerState* PS = PlayerController->GetPlayerState<APlayerState>())
+        {
+            return FindTeam(PS);
+        }
+    }
+    return -1;
+}
+
 int32 ANLGameState_Team::ChooseTeam(APlayerState* Player)
 {
     int32 Ret = 0;

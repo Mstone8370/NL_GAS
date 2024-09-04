@@ -33,6 +33,9 @@ public:
 
 	bool IsSameTeam(const APlayerState* A, const APlayerState* B) const;
 
+	int32 FindTeam(const APlayerState* PlayerState);
+	int32 FindTeam(const APlayerController* PlayerController);
+
 protected:
 	int32 ChooseTeam(APlayerState* Player);
 
