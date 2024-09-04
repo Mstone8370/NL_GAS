@@ -25,6 +25,7 @@
 #include "Actors/NLProjectile.h"
 #include "Player/NLPlayerState.h"
 #include "GameStates/NLGameState_Team.h"
+#include "Characters/NLCharacterBase.h"
 
 const FWeaponInfo* UNLFunctionLibrary::GetWeaponInfoByTag(const UObject* WorldContextObject, const FGameplayTag& WeaponTag)
 {
@@ -426,4 +427,47 @@ bool UNLFunctionLibrary::IsSameTeam(const APlayerController* SourcePC, const APl
         }
     }
     return false;
+}
+
+void UNLFunctionLibrary::ApplyTeamAppearanceToOtherPlayers(const APlayerState* LocalPlayerState, const int32 LocalPlayerTeam)
+{
+    if (!IsValid(LocalPlayerState))
+    {
+        return;
+    }
+
+    AGameStateBase* GameState = LocalPlayerState->GetWorld()->GetGameState();
+    if (!GameState)
+    {
+        return;
+    }
+
+    for (APlayerState* PS : GameState->PlayerArray)
+    {
+        if (PS == LocalPlayerState)
+        {
+            continue;
+        }
+
+        ANLPlayerState* NLPS = Cast<ANLPlayerState>(PS);
+        ANLCharacterBase* NLCharacter = Cast<ANLCharacterBase>(PS->GetPawn());
+        if (NLPS && NLCharacter)
+        {
+            if (NLPS->GetTeam() == 0)
+            {
+                NLCharacter->SetAsNeutral();
+            }
+            else
+            {
+                if (NLPS->GetTeam() == LocalPlayerTeam)
+                {
+                    NLCharacter->SetAsFriendly();
+                }
+                else
+                {
+                    NLCharacter->SetAsEnemy();
+                }
+            }
+        }
+    }
 }

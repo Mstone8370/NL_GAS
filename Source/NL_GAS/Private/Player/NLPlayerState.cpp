@@ -61,12 +61,12 @@ void ANLPlayerState::TeamAssigned(int32 NewTeam, bool bOnRepTeam)
     {
         return;
     }
+    
+    ANLCharacterBase* NLCharacter = Cast<ANLCharacterBase>(GetPawn());
 
     if (GetPawn()->GetLocalRole() == ROLE_SimulatedProxy)
     {
         // 로컬 플레이어의 팀 정보를 기반으로 폰 외형 설정
-        ANLCharacterBase* NLCharacter = Cast<ANLCharacterBase>(GetPawn());
-
         int32 LocalPlayerTeam = UNLFunctionLibrary::GetLocalPlayerTeam(this);
         if (LocalPlayerTeam >= 0)
         {
@@ -91,28 +91,11 @@ void ANLPlayerState::TeamAssigned(int32 NewTeam, bool bOnRepTeam)
         // Autonomous proxy or Authority
 
         // 다른 시뮬레이티드 프록시 폰 외형 업데이트
-        if (AGameStateBase* GameState = GetWorld()->GetGameState())
+        UNLFunctionLibrary::ApplyTeamAppearanceToOtherPlayers(this, NewTeam);
+
+        if (NLCharacter)
         {
-            for (APlayerState* PS : GameState->PlayerArray)
-            {
-                if (ANLPlayerState* NLPS = Cast<ANLPlayerState>(PS))
-                {
-                    if (NLPS != this && NLPS->GetTeam() != 0)
-                    {
-                        if (ANLCharacterBase* NLCharacter = Cast<ANLCharacterBase>(NLPS->GetPawn()))
-                        {
-                            if (NLPS->GetTeam() == Team)
-                            {
-                                NLCharacter->SetAsFriendly();
-                            }
-                            else
-                            {
-                                NLCharacter->SetAsEnemy();
-                            }
-                        }
-                    }
-                }
-            }
+            NLCharacter->SetAsFriendly();
         }
     }
 }

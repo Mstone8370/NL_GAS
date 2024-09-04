@@ -201,12 +201,9 @@ void ANLPlayerCharacter::OnRep_PlayerState()
 
     TryRequestStartupWeapons();
 
-    if (GetNLPS())
+    if (GetPlayerState())
     {
-        if (GetNLPS()->GetTeam())
-        {
-            GetNLPS()->TeamAssigned(GetNLPS()->GetTeam());
-        }
+        OnUserNameSet(GetPlayerState()->GetPlayerNameCustom());
     }
 }
 

@@ -15,6 +15,7 @@ class UGameplayAbility;
 class UNLCharacterComponent;
 class UGameplayEffect;
 class UDamageTextWidgetComponent;
+class UNLWidgetComponent;
 
 UCLASS(Abstract)
 class NL_GAS_API ANLCharacterBase : public ACharacter, public IAbilitySystemInterface, public ICombatInterface
@@ -28,6 +29,9 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void BP_OnCharacterNameWidgetInitialized();
 
 public:
 	//~Begin AbilitySystemInterface
@@ -68,6 +72,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UNLCharacterComponent> NLCharacterComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UNLWidgetComponent> CharacterNameWidgetComponent;
 
 	virtual void InitAbilityActorInfo();
 
@@ -112,4 +119,7 @@ public:
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void SetAsFriendly();
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	void SetAsNeutral();
 };

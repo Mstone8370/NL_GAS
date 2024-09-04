@@ -63,6 +63,9 @@ protected:
 
 	virtual void InitAbilityActorInfo() override;
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnUserNameSet(const FString& UserName);
+
 public:
 	virtual void Tick(float DeltaSeconds) override;
 

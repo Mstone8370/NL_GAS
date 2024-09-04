@@ -86,4 +86,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "NLFunctionLibrary")
 	static bool IsSameTeam(const APlayerController* SourcePC, const APlayerController* TargetPC);
+
+	// Only for Local player
+	static void ApplyTeamAppearanceToOtherPlayers(const APlayerState* LocalPlayerState, const int32 LocalPlayerTeam);
 };

@@ -10,6 +10,7 @@
 #include "Net/UnrealNetwork.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/NLWidgetComponent.h"
 
 ANLCharacterBase::ANLCharacterBase(const FObjectInitializer& ObjectInitializer)
     : Super(ObjectInitializer)
@@ -19,6 +20,9 @@ ANLCharacterBase::ANLCharacterBase(const FObjectInitializer& ObjectInitializer)
     bReplicates = true;
 
     NLCharacterComponent = CreateDefaultSubobject<UNLCharacterComponent>(FName("NLCharacterComponent"));
+
+    CharacterNameWidgetComponent = CreateDefaultSubobject<UNLWidgetComponent>(FName("CharacterNameWidgetComponent"));
+    CharacterNameWidgetComponent->SetupAttachment(GetMesh());
 }
 
 void ANLCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -35,6 +39,23 @@ void ANLCharacterBase::BeginPlay()
     if (HasAuthority())
     {
         UNLFunctionLibrary::LoadHitboxComponents(GetMesh());
+    }
+
+    if (CharacterNameWidgetComponent)
+    {
+        if (CharacterNameWidgetComponent->IsWidgetInitialized())
+        {
+            BP_OnCharacterNameWidgetInitialized();
+        }
+        else
+        {
+            CharacterNameWidgetComponent->OnWidgetInitialized.AddLambda(
+                [this]()
+                {
+                    BP_OnCharacterNameWidgetInitialized();
+                }
+            );
+        }
     }
 }
 
@@ -78,6 +99,10 @@ void ANLCharacterBase::Destroyed()
     if (NLCharacterComponent)
     {
         NLCharacterComponent->HandleOwnerDestroyed();
+    }
+    if (CharacterNameWidgetComponent)
+    {
+        CharacterNameWidgetComponent->OnWidgetInitialized.Clear();
     }
 
     Super::Destroyed();
@@ -238,6 +263,11 @@ void ANLCharacterBase::SetAsEnemy_Implementation()
 }
 
 void ANLCharacterBase::SetAsFriendly_Implementation()
+{
+
+}
+
+void ANLCharacterBase::SetAsNeutral_Implementation()
 {
 
 }
