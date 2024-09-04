@@ -131,6 +131,7 @@ bool ANLPlayerCharacter::CanJumpInternal_Implementation() const
 
 void ANLPlayerCharacter::InitAbilityActorInfo()
 {
+    // TODO: 이미 초기화된 경우를 확인하는 조건 안정화
     if (AbilitySystemComponent && AttributeSet)
     {
         return;
@@ -1024,10 +1025,6 @@ void ANLPlayerCharacter::OnRespawned_Internal(bool bSimulated)
 
     if (HasAuthority())
     {
-        /*
-        NLCharacterComponent->AddStartupWeapons();
-        NLCharacterComponent->ValidateStartupWeapons();
-        */
         TryRequestStartupWeapons();
     }
 

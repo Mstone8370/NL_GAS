@@ -86,12 +86,31 @@ void ANLCharacterBase::ShowDamageText_Implementation(float Value, bool bIsCritic
     LastDamageText->UpdateValue(Value, bIsCriticalHit);
 }
 
-void ANLCharacterBase::OnDead(const FDeathInfo& Info)
+void ANLCharacterBase::OnDead(const AActor* SourceActor)
 {
+    // On Server
+
+    // TODO: combat interface는 캐릭터가 상속받고, 플레이어가 아닌 캐릭터도 combat interface를 상속
+    // 받으면 사망처리를 해줘야하므로, 캐릭터에서 먼저 사망 처리를 하는게 맞는거같음.
+    // 근데 플레이어 스테이트도 해당 정보를 가지고있어야하므로 캐릭터에서 플레이어 스테이트에게 알려줘야함.
+    // 플레이어 스테이트에서는 동기화를 위해 bIsDead를 레플리케이트 되게 설정하는게 안전함.
+    // 사망했을때 처치한 액터도 전달해주기 위해 RPC를 사용할건데 이 정보는 플레이어 컨트롤러한테 필요할듯.
+    // 따라서 플레이어 컨트롤러가 RPC를 담당하고, 플레이어 스테이트가 레플리케이트 함.
+    // 서버에서는 캐릭터가 먼저 정보를 받는데 서버에서는 한 틱에 처리되므로 문제없을것.
+    // 서버에서는 캐릭터의 사망 처리를 제일 먼저 다루지만, 클라이언트에서는 플레이어 스테이트 또는 플레이어
+    // 컨트롤러에서 먼저 다루게 될테니 클라이언트에서는 캐릭터의 사망 처리 함수를 저 두 곳에서 호출해줘야함.
+    // 플레이어 스테이트에서 먼저 정보를 받으면 처치한 액터 정보 없이 진행하다가
+    // 플레이어 컨트롤러에서 처치 액터 정보 받으면 그때 관련 정보 처리. 그 반대의 경우에는 별 문제 없을것.
+    // 서버에서 캐릭터가 플레이어 스테이트에 사망 정보를 보내고, 플레이어 스테이트에서 캐릭터에게 사망 처리
+    // 함수를 호출하면 어차피 클라이언트에서도 레플리케이트 된 후에 캐릭터의 사망 처리 함수를 호출하지 않을까.
+    // 서버에서는 플레이어 컨트롤러에서 클라이언트 RPC외에 추가로 작업할것은 없음.
+
+    /*
     if (!DeathInfo.bIsDead && Info.bIsDead)
     {
         OnDead_Internal(Info);
     }
+    */
 }
 
 void ANLCharacterBase::Destroyed()

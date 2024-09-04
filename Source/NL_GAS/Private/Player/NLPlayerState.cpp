@@ -15,6 +15,9 @@
 #include "GameFramework/GameState.h"
 
 ANLPlayerState::ANLPlayerState()
+    : PlayerName(TEXT("Player"))
+    , Team(0)
+    , bIsDead(false)
 {
     AbilitySystemComponent = CreateDefaultSubobject<UNLAbilitySystemComponent>("AbilitySystemComponent");
     if (AbilitySystemComponent)
@@ -36,11 +39,17 @@ void ANLPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
     DOREPLIFETIME_CONDITION_NOTIFY(ANLPlayerState, Team, COND_None, REPNOTIFY_OnChanged);
+    DOREPLIFETIME_CONDITION_NOTIFY(ANLPlayerState, bIsDead, COND_None, REPNOTIFY_OnChanged);
 }
 
 void ANLPlayerState::OnRep_Team()
 {
-    TeamAssigned(Team, true);
+    TeamAssigned(Team);
+}
+
+void ANLPlayerState::OnRep_IsDead()
+{
+    
 }
 
 UAbilitySystemComponent* ANLPlayerState::GetAbilitySystemComponent() const
@@ -53,7 +62,7 @@ FString ANLPlayerState::GetPlayerNameCustom() const
     return Super::GetPlayerNameCustom();
 }
 
-void ANLPlayerState::TeamAssigned(int32 NewTeam, bool bOnRepTeam)
+void ANLPlayerState::TeamAssigned(int32 NewTeam)
 {
     Team = NewTeam;
     

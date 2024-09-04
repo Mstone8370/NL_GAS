@@ -41,7 +41,7 @@ public:
 	//~Begin CombatInterface
 	virtual void OnWeaponAdded(AWeaponActor* Weapon) override;
 	virtual void ShowDamageText_Implementation(float Value, bool bIsCriticalHit) override;
-	virtual void OnDead(const FDeathInfo& Info) override;
+	virtual void OnDead(const AActor* SourceActor) override;
 	virtual bool IsDead() const { return DeathInfo.bIsDead; }
 	//~End CombatInterface
 

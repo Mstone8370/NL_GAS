@@ -553,7 +553,7 @@ void ANLPlayerController::OnDead(AActor* SourceActor, FGameplayTag DamageType)
 
     SetupDeathCam(SourceActor);
 
-    OnPlayerDeath.Broadcast(SourceActor, GetPawn(), DamageType);
+    OnPlayerDeath.Broadcast(SourceActor, GetPawn(), DamageType); // TODO: 파라미터는 source만 있으면 됨
 
     if (ANLPlayerState* NLPS = GetNLPS())
     {

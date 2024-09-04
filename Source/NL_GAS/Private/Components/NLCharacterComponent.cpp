@@ -381,6 +381,10 @@ void UNLCharacterComponent::ClearWeapons()
         {
             if (IsValid(WeaponSlot.WeaponActorSlot[i]))
             {
+                if (GetNLASC())
+                {
+                    GetNLASC()->WeaponDropped(WeaponSlot.WeaponActorSlot[i]);
+                }
                 WeaponSlot.WeaponActorSlot[i]->Destroy();
             }
             WeaponSlot.WeaponActorSlot[i] = nullptr;

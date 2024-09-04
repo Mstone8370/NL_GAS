@@ -75,7 +75,7 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void AddAimPunch(const FTaggedAimPunch& AimPunchData, FVector HitDirection, bool bIsCriticalHit);
 
-	virtual void OnDead(const FDeathInfo& Info) = 0;
+	virtual void OnDead(const AActor* SourceActor) = 0;
 
 	virtual bool IsDead() const = 0;
 };

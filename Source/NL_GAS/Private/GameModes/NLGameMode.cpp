@@ -10,7 +10,6 @@
 #include "GameFramework/PlayerStart.h"
 #include "EngineUtils.h"
 
-#include "Actors/Volumes/RespawnArea.h"
 #include "Actors/Singletons/ParticleReplicationManager.h"
 #include "Actors/Singletons/ProjectileReplicationManager.h"
 #include "Actors/NLPlayerStart.h"
@@ -100,6 +99,10 @@ void ANLGameMode::RespawnPlayer(APlayerController* PC)
     {
         UE_LOG(LogTemp, Error, TEXT("Failed to find PlayerStart"));
     }
+}
+
+void ANLGameMode::ResetPlayer(APlayerController* PC)
+{
 }
 
 AActor* ANLGameMode::ChoosePlayerStartByCondition(APlayerController* Player, bool bInitial, bool bCheckTeam)

@@ -204,23 +204,13 @@ void UNLAttributeSet::HandleDamage(FEffectContextParams& Params)
 
     if (GetHealth() <= 0.f)
     {
-        FDeathInfo Info;
-        Info.bIsDead = true;
-        Info.SourceActor = Params.SourceAvatarActor;
-        Info.DamageType = NLContext->DamageType;
-        if (!Info.DamageType.IsValid())
-        {
-            Info.DamageType = TSharedPtr<FGameplayTag>(new FGameplayTag());
-        }
-
         if (SourceNLPC)
         {
             SourceNLPC->OnKilled(Params.TargetAvatarActor);
         }
-
         if (TargetCI)
         {
-            TargetCI->OnDead(Info);
+            TargetCI->OnDead(Params.SourceAvatarActor);
         }
     }
 }

@@ -46,6 +46,12 @@ protected:
 	UFUNCTION()
 	void OnRep_Team();
 
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_IsDead)
+	bool bIsDead;
+
+	UFUNCTION()
+	void OnRep_IsDead();
+
 public:
 	//~ Begin AbilitySystemInterface
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
@@ -69,9 +75,15 @@ public:
 	virtual void BroadcastAllPlayerStats() const {};
 
 	FOnPlayerStatUpdatedSignature& GetPlayerStatUpdatedDelegate() { return OnPlayerStatUpdated; }
+	// Player Stats
 
-	virtual void TeamAssigned(int32 NewTeam, bool bOnRepTeam = false);
+	virtual void TeamAssigned(int32 NewTeam);
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	int32 GetTeam() const { return Team; }
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	bool IsDead() const { return bIsDead; }
+
+	void HandleDeath(AActor* SourceActor);
 };
