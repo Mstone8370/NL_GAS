@@ -63,6 +63,8 @@ public:
 
 	virtual void OnRespawned();
 
+	virtual void OnResetted();
+
 protected:
 	UPROPERTY()
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
@@ -91,7 +93,7 @@ protected:
 	UFUNCTION()
 	void OnRep_DeathInfo(FDeathInfo OldDeathInfo);
 
-	virtual void OnDead_Internal(const FDeathInfo& Info, bool bSimulated = false);
+	virtual void HandleDeath(bool bSimulated = false);
 
 	FTimerHandle DeathRagdollTimerHandle;
 
@@ -101,7 +103,9 @@ protected:
 	UFUNCTION()
 	virtual void OnDeathRagdollTimeEnded();
 
-	virtual void OnRespawned_Internal(bool bSimulated = false);
+	virtual void HandleRespawn(bool bSimulated = false);
+
+	virtual void HandleReset(bool bSimulated = false);
 
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Ability")

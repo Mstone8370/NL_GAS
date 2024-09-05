@@ -26,9 +26,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual void RespawnPlayer(APlayerController* PC);
 
-	UFUNCTION(BlueprintCallable)
-	virtual void ResetPlayer(APlayerController* PC);
-
 protected:
 	virtual void BeginPlay() override;
 

@@ -542,7 +542,7 @@ void ANLPlayerController::Client_OnRespawned_Implementation()
     OnPlayerRespawn.Broadcast();
 }
 
-void ANLPlayerController::OnDead(AActor* SourceActor, FGameplayTag DamageType)
+void ANLPlayerController::OnPlayerDeath(AActor* SourceActor, FGameplayTag DamageType)
 {
     RemoveIMC(DefaultIMC);
 
@@ -553,7 +553,7 @@ void ANLPlayerController::OnDead(AActor* SourceActor, FGameplayTag DamageType)
 
     SetupDeathCam(SourceActor);
 
-    OnPlayerDeath.Broadcast(SourceActor, GetPawn(), DamageType); // TODO: 파라미터는 source만 있으면 됨
+    OnPlayerDeathDelegate.Broadcast(SourceActor, GetPawn(), DamageType);
 
     if (ANLPlayerState* NLPS = GetNLPS())
     {
@@ -580,6 +580,16 @@ void ANLPlayerController::OnRespawned(FVector Direction)
     
     ClientSetRotation(Direction.Rotation());
     Client_OnRespawned();
+}
+
+void ANLPlayerController::OnResetted(FVector Direction)
+{
+    if (GetNLPlayerCharacter())
+    {
+        GetNLPlayerCharacter()->OnResetted();
+    }
+
+    ClientSetRotation(Direction.Rotation());
 }
 
 void ANLPlayerController::EnableInteraction(AInteractable* Interactable, FString Message)

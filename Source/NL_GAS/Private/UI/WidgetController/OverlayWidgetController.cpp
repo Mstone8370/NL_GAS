@@ -34,7 +34,7 @@ void UOverlayWidgetController::BindEvents()
             OnTakenDamage(HitDirection);
         }
     );
-    GetNLPC()->OnPlayerDeath.AddLambda(
+    GetNLPC()->OnPlayerDeathDelegate.AddLambda(
         [this](AActor* SourceActor, AActor* TargetActor, FGameplayTag DamageType)
         {
             PlayerDeath.Broadcast();

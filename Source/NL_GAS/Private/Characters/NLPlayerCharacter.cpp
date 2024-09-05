@@ -984,23 +984,18 @@ void ANLPlayerCharacter::OnRep_IsSliding()
     }
 }
 
-void ANLPlayerCharacter::OnDead_Internal(const FDeathInfo& Info, bool bSimulated)
+void ANLPlayerCharacter::HandleDeath(bool bSimulated)
 {
-    Super::OnDead_Internal(Info, bSimulated);
-
-    if (!Info.bIsDead)
-    {
-        return;
-    }
+    Super::HandleDeath(bSimulated);
 
     if (!bSimulated)
     {
         FGameplayTag DamageType = FGameplayTag();
-        if (Info.DamageType.IsValid())
+        if (DeathInfo.DamageType.IsValid())
         {
-            DamageType = *Info.DamageType.Get();
+            DamageType = *DeathInfo.DamageType.Get();
         }
-        GetNLPC()->OnDead(Info.SourceActor.Get(), DamageType);
+        GetNLPC()->OnPlayerDeath(DeathInfo.SourceActor.Get(), DamageType);
 
         if (GetLocalViewingPlayerController())
         {
@@ -1013,15 +1008,14 @@ void ANLPlayerCharacter::OnDead_Internal(const FDeathInfo& Info, bool bSimulated
     {
         NLCharacterMovementComponent->bWantsToCrouch = false;
         NLCharacterMovementComponent->bWantsToSprint = false;
-        bPressedJump = false;
     }
 
     bRequestedStartupWeapons = false;
 }
 
-void ANLPlayerCharacter::OnRespawned_Internal(bool bSimulated)
+void ANLPlayerCharacter::HandleRespawn(bool bSimulated)
 {
-    Super::OnRespawned_Internal(bSimulated);
+    Super::HandleRespawn(bSimulated);
 
     if (HasAuthority())
     {
@@ -1033,6 +1027,24 @@ void ANLPlayerCharacter::OnRespawned_Internal(bool bSimulated)
         ArmMesh->SetVisibility(true, true);
         ViewWeaponMesh->SetVisibility(true, true);
     }
+}
+
+void ANLPlayerCharacter::HandleReset(bool bSimulated)
+{
+    Super::HandleReset(bSimulated);
+
+    bRequestedStartupWeapons = false;
+
+    Client_CharacterResetted();
+}
+
+void ANLPlayerCharacter::Client_CharacterResetted_Implementation()
+{
+    bRequestedStartupWeapons = false;
+
+    NLCharacterComponent->ClearWeapons();
+
+    TryRequestStartupWeapons();
 }
 
 float ANLPlayerCharacter::GetCrouchedHalfHeightDelta()

@@ -92,7 +92,9 @@ void ANLCharacterBase::OnDeath(const FDeathInfo& Info)
 
     if (!DeathInfo.bIsDead && Info.bIsDead)
     {
-        OnDead_Internal(Info);
+        DeathInfo = Info;
+
+        HandleDeath();
     }
 }
 
@@ -133,8 +135,17 @@ void ANLCharacterBase::DisableRagdoll()
 void ANLCharacterBase::OnRespawned()
 {
     // On Server
-    
-    OnRespawned_Internal();
+
+    DeathInfo = FDeathInfo(false);
+
+    HandleRespawn();
+}
+
+void ANLCharacterBase::OnResetted()
+{
+    // On Server
+
+    HandleReset();
 }
 
 void ANLCharacterBase::InitAbilityActorInfo() {}
@@ -177,17 +188,17 @@ void ANLCharacterBase::OnRep_DeathInfo(FDeathInfo OldDeathInfo)
 
     if (DeathInfo.bIsDead)
     {
-        OnDead_Internal(DeathInfo, GetLocalRole() == ROLE_SimulatedProxy);
+        HandleDeath(GetLocalRole() == ROLE_SimulatedProxy);
     }
     else
     {
-        OnRespawned_Internal(GetLocalRole() == ROLE_SimulatedProxy);
+        HandleRespawn(GetLocalRole() == ROLE_SimulatedProxy);
     }
 }
 
-void ANLCharacterBase::OnDead_Internal(const FDeathInfo& Info, bool bSimulated)
+void ANLCharacterBase::HandleDeath(bool bSimulated)
 {
-    DeathInfo = Info;
+    // On Server and Client
 
     EnableRagdoll();
     GetWorldTimerManager().SetTimer(DeathRagdollTimerHandle, this, &ANLCharacterBase::OnDeathRagdollTimeEnded, DeathRagdollTime, false);
@@ -204,6 +215,8 @@ void ANLCharacterBase::OnDead_Internal(const FDeathInfo& Info, bool bSimulated)
         GetCharacterMovement()->bWantsToCrouch = false;
         GetCharacterMovement()->DisableMovement();
     }
+
+    bPressedJump = false;
 }
 
 void ANLCharacterBase::OnDeathRagdollTimeEnded()
@@ -215,10 +228,8 @@ void ANLCharacterBase::OnDeathRagdollTimeEnded()
     SetActorLocation(FVector(0.f, 0.f, 0.f));
 }
 
-void ANLCharacterBase::OnRespawned_Internal(bool bSimulated)
+void ANLCharacterBase::HandleRespawn(bool bSimulated)
 {
-    DeathInfo = FDeathInfo(false);
-
     if (HasAuthority())
     {
         InitDefaultAttribute();
@@ -242,6 +253,14 @@ void ANLCharacterBase::OnRespawned_Internal(bool bSimulated)
     {
         GetCharacterMovement()->SetMovementMode(GetCharacterMovement()->DefaultLandMovementMode);
     }
+}
+
+void ANLCharacterBase::HandleReset(bool bSimulated)
+{
+    // On Server
+
+    InitDefaultAttribute();
+    NLCharacterComponent->ClearWeapons();
 }
 
 void ANLCharacterBase::GetAimPoint(FVector& OutViewLocation, FRotator& OutViewRotation) const

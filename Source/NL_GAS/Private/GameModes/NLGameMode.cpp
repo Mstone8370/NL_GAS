@@ -13,6 +13,7 @@
 #include "Actors/Singletons/ParticleReplicationManager.h"
 #include "Actors/Singletons/ProjectileReplicationManager.h"
 #include "Actors/NLPlayerStart.h"
+#include "Interface/CombatInterface.h"
 
 void ANLGameMode::PostLogin(APlayerController* NewPlayer)
 {
@@ -20,7 +21,7 @@ void ANLGameMode::PostLogin(APlayerController* NewPlayer)
 
     if (ANLPlayerController* NLPC = Cast<ANLPlayerController>(NewPlayer))
     {
-        NLPC->OnPlayerDeath.AddUObject(this, &ANLGameMode::OnPlayerDead);
+        NLPC->OnPlayerDeathDelegate.AddUObject(this, &ANLGameMode::OnPlayerDead);
         NLPC->OnRequestRespawn.BindUObject(this, &ANLGameMode::RespawnPlayer);
     }
 }
@@ -29,7 +30,7 @@ void ANLGameMode::Logout(AController* Exiting)
 {
     if (ANLPlayerController* NLPC = Cast<ANLPlayerController>(Exiting))
     {
-        NLPC->OnPlayerDeath.RemoveAll(this);
+        NLPC->OnPlayerDeathDelegate.RemoveAll(this);
         NLPC->OnRequestRespawn.Unbind();
     }
 
@@ -92,17 +93,27 @@ void ANLGameMode::RespawnPlayer(APlayerController* PC)
         }
         if (ANLPlayerController* NLPC = Cast<ANLPlayerController>(PC))
         {
-            NLPC->OnRespawned(Start->GetActorForwardVector());
+            if (ICombatInterface* IC = PC->GetPawn<ICombatInterface>())
+            {
+                if (IC->IsDead())
+                {
+                    NLPC->OnRespawned(Start->GetActorForwardVector());
+                }
+                else
+                {
+                    NLPC->OnResetted(Start->GetActorForwardVector());
+                }
+            }
+            else
+            {
+                NLPC->OnRespawned(Start->GetActorForwardVector());
+            }
         }
     }
     else
     {
         UE_LOG(LogTemp, Error, TEXT("Failed to find PlayerStart"));
     }
-}
-
-void ANLGameMode::ResetPlayer(APlayerController* PC)
-{
 }
 
 AActor* ANLGameMode::ChoosePlayerStartByCondition(APlayerController* Player, bool bInitial, bool bCheckTeam)

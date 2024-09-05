@@ -8,6 +8,7 @@
 #include "GameFramework/PlayerState.h"
 #include "GameFramework/PlayerStart.h"
 #include "Actors/NLPlayerStart.h"
+#include "Interface/CombatInterface.h"
 
 void ANLGameMode_Team::PostLogin(APlayerController* NewPlayer)
 {
@@ -33,7 +34,21 @@ void ANLGameMode_Team::RespawnPlayer(APlayerController* PC)
         }
         if (ANLPlayerController* NLPC = Cast<ANLPlayerController>(PC))
         {
-            NLPC->OnRespawned(Start->GetActorForwardVector());
+            if (ICombatInterface* IC = PC->GetPawn<ICombatInterface>())
+            {
+                if (IC->IsDead())
+                {
+                    NLPC->OnRespawned(Start->GetActorForwardVector());
+                }
+                else
+                {
+                    NLPC->OnResetted(Start->GetActorForwardVector());
+                }
+            }
+            else
+            {
+                NLPC->OnRespawned(Start->GetActorForwardVector());
+            }
         }
     }
     else

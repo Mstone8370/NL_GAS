@@ -93,8 +93,6 @@ protected:
 
 	void AttachWeaponToHand(AWeaponActor* Weapon);
 
-	void ClearWeapons();
-
 	/* 이 함수는 const가 아님에 주의해야함. current slot이 변경될 수 있음. */
 	void OnCurrentWeaponDropped(); // for local controlled player
 
@@ -117,6 +115,8 @@ public:
 	UAbilitySystemComponent* GetASC() const;
 
 	UNLAbilitySystemComponent* GetNLASC() const;
+
+	void ClearWeapons();
 
 	void UpdateWeaponTagSlot();
 

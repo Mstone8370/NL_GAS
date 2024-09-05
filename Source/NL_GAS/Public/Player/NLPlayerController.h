@@ -90,7 +90,7 @@ public:
 
 	FOnRequestRespawn OnRequestRespawn;
 
-	FOnPlayerDeathSignature OnPlayerDeath;
+	FOnPlayerDeathSignature OnPlayerDeathDelegate;
 
 	FOnPlayerRespawnSignature OnPlayerRespawn;
 
@@ -191,7 +191,7 @@ public:
 
 	void OnKilled(AActor* TargetActor);
 
-	void OnDead(AActor* SourceActor, FGameplayTag DamageType);
+	void OnPlayerDeath(AActor* SourceActor, FGameplayTag DamageType);
 
 	UFUNCTION(Client, Unreliable)
 	void AddKillLog(AActor* SourceActor, AActor* TargetActor, FGameplayTag DamageType);
@@ -199,6 +199,8 @@ public:
 	void SetRespawnTime(float RespawnTime);
 
 	void OnRespawned(FVector Direction);
+
+	void OnResetted(FVector Direction);
 
 	void EnableInteraction(AInteractable* Interactable, FString Message);
 

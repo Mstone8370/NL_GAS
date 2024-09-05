@@ -272,9 +272,14 @@ protected:
 
 	FTimerHandle WeaponRaiseTimer;
 
-	virtual void OnDead_Internal(const FDeathInfo& Info, bool bSimulated = false) override;
+	virtual void HandleDeath(bool bSimulated = false) override;
 
-	virtual void OnRespawned_Internal(bool bSimulated = false) override;
+	virtual void HandleRespawn(bool bSimulated = false) override;
+
+	virtual void HandleReset(bool bSimulated = false) override;
+
+	UFUNCTION(Client, Reliable)
+	void Client_CharacterResetted();
 
 public:
 	float GetCrouchedHalfHeightDelta();
