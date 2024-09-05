@@ -24,7 +24,7 @@ public:
 	virtual void Logout(AController* Exiting) override;
 
 	UFUNCTION(BlueprintCallable)
-	virtual void RespawnPlayer(APlayerController* PC);
+	virtual void RespawnPlayer(APlayerController* PC, bool bInitial = false);
 
 protected:
 	virtual void BeginPlay() override;
@@ -36,9 +36,9 @@ protected:
 
 	virtual void MulticastKillLog(AActor* SourceActor, AActor* TargetActor, FGameplayTag DamageType);
 
-	virtual AActor* ChoosePlayerStartByCondition(APlayerController* Player, bool bInitial, bool bCheckTeam);
+	virtual AActor* ChoosePlayerStartByCondition(APlayerController* Player, bool bInitial);
 
-	virtual bool CheckPlayerStartCondition(APlayerStart* PlayerStart, APlayerController* Player, bool bInitial, bool bCheckTeam);
+	virtual bool CheckPlayerStartCondition(APlayerStart* PlayerStart, APlayerController* Player, bool bInitial);
 
 private:
 	UPROPERTY()

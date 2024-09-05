@@ -27,7 +27,7 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnTakenDamageSignature, FVector);
 DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnReceivedKillLogSignature, AActor* /*SourceActor*/, AActor* /*TargetActor*/, FGameplayTag /*DamageType*/);
 DECLARE_MULTICAST_DELEGATE(FOnRespawnableSignature);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnKillSignature, AActor* /*TargetActor*/);
-DECLARE_DELEGATE_OneParam(FOnRequestRespawn, APlayerController* /*PC*/);
+DECLARE_DELEGATE_TwoParams(FOnRequestRespawn, APlayerController* /*PC*/, bool /*bInitial*/);
 DECLARE_EVENT_ThreeParams(ANLPlayerController, FOnPlayerDeathSignature, AActor* /*SourceActor*/, AActor* /*TargetActor*/, FGameplayTag /*DamageType*/);
 DECLARE_EVENT(ANLPlayerController, FOnPlayerRespawnSignature);
 DECLARE_EVENT_TwoParams(ANLPlayerController, FOnInteractionEnabledSignature, AActor* /*Interactable*/, FString /*Message*/);

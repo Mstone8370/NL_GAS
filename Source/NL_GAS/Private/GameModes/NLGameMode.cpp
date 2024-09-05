@@ -82,9 +82,9 @@ void ANLGameMode::MulticastKillLog(AActor* SourceActor, AActor* TargetActor, FGa
     }
 }
 
-void ANLGameMode::RespawnPlayer(APlayerController* PC)
+void ANLGameMode::RespawnPlayer(APlayerController* PC, bool bInitial)
 {
-    AActor* Start = ChoosePlayerStartByCondition(PC, false, false);
+    AActor* Start = ChoosePlayerStartByCondition(PC, bInitial);
     if (IsValid(Start))
     {
         if (APawn* PCPawn = PC->GetPawn())
@@ -93,16 +93,10 @@ void ANLGameMode::RespawnPlayer(APlayerController* PC)
         }
         if (ANLPlayerController* NLPC = Cast<ANLPlayerController>(PC))
         {
-            if (ICombatInterface* IC = PC->GetPawn<ICombatInterface>())
+            ICombatInterface* IC = PC->GetPawn<ICombatInterface>();
+            if (IC && !IC->IsDead())
             {
-                if (IC->IsDead())
-                {
-                    NLPC->OnRespawned(Start->GetActorForwardVector());
-                }
-                else
-                {
-                    NLPC->OnResetted(Start->GetActorForwardVector());
-                }
+                NLPC->OnResetted(Start->GetActorForwardVector());
             }
             else
             {
@@ -112,11 +106,11 @@ void ANLGameMode::RespawnPlayer(APlayerController* PC)
     }
     else
     {
-        UE_LOG(LogTemp, Error, TEXT("Failed to find PlayerStart"));
+        UE_LOG(LogTemp, Error, TEXT("[NLGameMode] Failed to find PlayerStart"));
     }
 }
 
-AActor* ANLGameMode::ChoosePlayerStartByCondition(APlayerController* Player, bool bInitial, bool bCheckTeam)
+AActor* ANLGameMode::ChoosePlayerStartByCondition(APlayerController* Player, bool bInitial)
 {
     // Codes from AGameModeBase::ChoosePlayerStart_Implementation
     
@@ -132,7 +126,7 @@ AActor* ANLGameMode::ChoosePlayerStartByCondition(APlayerController* Player, boo
     for (TActorIterator<APlayerStart> It(World); It; ++It)
     {
         APlayerStart* PlayerStart = *It;
-        if (!CheckPlayerStartCondition(PlayerStart, Player, bInitial, bCheckTeam))
+        if (!CheckPlayerStartCondition(PlayerStart, Player, bInitial))
         {
             continue;
         }
@@ -164,21 +158,18 @@ AActor* ANLGameMode::ChoosePlayerStartByCondition(APlayerController* Player, boo
     return FoundPlayerStart;
 }
 
-bool ANLGameMode::CheckPlayerStartCondition(APlayerStart* PlayerStart, APlayerController* Player, bool bInitial, bool bCheckTeam)
+bool ANLGameMode::CheckPlayerStartCondition(APlayerStart* PlayerStart, APlayerController* Player, bool bInitial)
 {
     if (!IsValid(PlayerStart))
     {
         return false;
     }
 
-    if (bInitial)
+    if (ANLPlayerStart* NLPlayerStart = Cast<ANLPlayerStart>(PlayerStart))
     {
-        if (ANLPlayerStart* NLPlayerStart = Cast<ANLPlayerStart>(PlayerStart))
+        if (bInitial && !NLPlayerStart->bInitial)
         {
-            if (bInitial && !NLPlayerStart->bInitial)
-            {
-                return false;
-            }
+            return false;
         }
     }
     return true;

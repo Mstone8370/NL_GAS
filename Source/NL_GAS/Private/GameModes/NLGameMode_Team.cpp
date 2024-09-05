@@ -23,63 +23,26 @@ void ANLGameMode_Team::PostLogin(APlayerController* NewPlayer)
     }
 }
 
-void ANLGameMode_Team::RespawnPlayer(APlayerController* PC)
-{
-    AActor* Start = ChoosePlayerStartByCondition(PC, false, true);
-    if (IsValid(Start))
-    {
-        if (APawn* PCPawn = PC->GetPawn())
-        {
-            PCPawn->SetActorLocation(Start->GetActorLocation());
-        }
-        if (ANLPlayerController* NLPC = Cast<ANLPlayerController>(PC))
-        {
-            if (ICombatInterface* IC = PC->GetPawn<ICombatInterface>())
-            {
-                if (IC->IsDead())
-                {
-                    NLPC->OnRespawned(Start->GetActorForwardVector());
-                }
-                else
-                {
-                    NLPC->OnResetted(Start->GetActorForwardVector());
-                }
-            }
-            else
-            {
-                NLPC->OnRespawned(Start->GetActorForwardVector());
-            }
-        }
-    }
-    else
-    {
-        UE_LOG(LogTemp, Error, TEXT("Failed to find PlayerStart"));
-    }
-}
-
-bool ANLGameMode_Team::CheckPlayerStartCondition(APlayerStart* PlayerStart, APlayerController* Player, bool bInitial, bool bCheckTeam)
+bool ANLGameMode_Team::CheckPlayerStartCondition(APlayerStart* PlayerStart, APlayerController* Player, bool bInitial)
 {
     if (!IsValid(PlayerStart))
     {
         return false;
     }
 
-    if (bInitial || bCheckTeam)
+    if (ANLPlayerStart* NLPlayerStart = Cast<ANLPlayerStart>(PlayerStart))
     {
-        if (ANLPlayerStart* NLPlayerStart = Cast<ANLPlayerStart>(PlayerStart))
+        if (bInitial && !NLPlayerStart->bInitial)
         {
-            if (bInitial && !NLPlayerStart->bInitial)
+            return false;
+        }
+        if (NLPlayerStart->Team != 0)
+        {
+            if (ANLGameState_Team* GameStateTeam = GetGameState<ANLGameState_Team>())
             {
-                return false;
-            }
-            if (bCheckTeam && NLPlayerStart->Team != 0)
-            {
-                if (ANLGameState_Team* GameStateTeam = GetGameState<ANLGameState_Team>())
+                if (GameStateTeam->FindTeam(Player) != NLPlayerStart->Team)
                 {
-                    if (GameStateTeam->FindTeam(Player) != NLPlayerStart->Team)
-                    {
-                        return false;
-                    }
+                    return false;
                 }
             }
         }

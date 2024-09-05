@@ -524,7 +524,7 @@ void ANLPlayerController::OnKilled(AActor* TargetActor)
 
 void ANLPlayerController::Server_RespawnRequested_Implementation(APlayerController* PC)
 {
-    OnRequestRespawn.ExecuteIfBound(this);
+    OnRequestRespawn.ExecuteIfBound(this, false);
 }
 
 void ANLPlayerController::Client_OnRespawned_Implementation()

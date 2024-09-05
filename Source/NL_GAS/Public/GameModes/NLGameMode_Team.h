@@ -18,8 +18,6 @@ public:
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 
 protected:
-	virtual void RespawnPlayer(APlayerController* PC);
-
-	virtual bool CheckPlayerStartCondition(APlayerStart* PlayerStart, APlayerController* Player, bool bInitial, bool bCheckTeam) override;
+	virtual bool CheckPlayerStartCondition(APlayerStart* PlayerStart, APlayerController* Player, bool bInitial) override;
 
 };
