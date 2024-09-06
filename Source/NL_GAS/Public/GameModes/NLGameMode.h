@@ -24,6 +24,8 @@ public:
 
 	virtual void Logout(AController* Exiting) override;
 
+	virtual void Tick(float DeltaSeconds) override;
+
 	// 폰 생성, 리스폰, 리셋을 다 처리하는 함수
 	UFUNCTION(BlueprintCallable)
 	virtual void RespawnPlayer(APlayerController* PC, bool bInitial = false);

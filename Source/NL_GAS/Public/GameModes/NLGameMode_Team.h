@@ -22,10 +22,16 @@ public:
 
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 
+	virtual void StartMatch() override;
+
 protected:
 	virtual void BeginPlay() override;
 
 	virtual bool CheckPlayerStartCondition(APlayerStart* PlayerStart, APlayerController* Player, bool bInitial) override;
+
+	virtual bool ReadyToStartMatch_Implementation() override;
+
+	virtual void HandleMatchHasStarted() override;
 
 	UPROPERTY(BlueprintReadOnly)
 	TObjectPtr<ANLGameState_Team> NLGameState_Team;
@@ -48,9 +54,9 @@ protected:
 
 	virtual void HandleRoundHasEnded();
 
-	FTimerHandle RoundStartTimer;
+	FTimerHandle MatchStartTimer;
 
-	float LoginWaitTime = 8.f;
+	float LoginWaitTime = 5.f;
 
 public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)

@@ -247,3 +247,8 @@ void ANLGameState_Team::SetRoundState(FGameplayTag NewState)
         OnRep_RoundState();
     }
 }
+
+void ANLGameState_Team::Client_OnStartMatchTimerSet_Implementation(float Time)
+{
+    UE_LOG(LogTemp, Warning, TEXT("StartMatch Timer Set: %f"), Time);
+}

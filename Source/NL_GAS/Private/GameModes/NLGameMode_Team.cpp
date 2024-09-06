@@ -10,7 +10,9 @@
 #include "Actors/NLPlayerStart.h"
 #include "Interface/CombatInterface.h"
 #include "NLGameplayTags.h"
-#include "EngineUtils.h"
+#include "GameFramework/GameSession.h"
+#include "Kismet/GameplayStatics.h"
+#include "GameFramework/CheatManager.h"
 
 ANLGameMode_Team::ANLGameMode_Team(const FObjectInitializer& ObjectInitializer)
     : Super(ObjectInitializer)
@@ -29,13 +31,39 @@ void ANLGameMode_Team::PostLogin(APlayerController* NewPlayer)
             NLGameStateTeam->AssignTeamToPlayer(PS);
         }
     }
+}
 
-    UE_LOG(LogTemp, Warning, TEXT("PostLogin NumPlayers: %d, NumSpectators: %d"), NumPlayers, NumSpectators);
-
-    if (RoundState == RoundState_WaitingToStart)
+void ANLGameMode_Team::StartMatch()
+{
+    if (HasMatchStarted())
     {
-        FTimerDelegate Dele;
-        //GetWorldTimerManager().SetTimer(RoundStartTimer, Dele, LoginWaitTime, false);
+        // Already started
+        return;
+    }
+
+    //Let the game session override the StartMatch function, in case it wants to wait for arbitration
+    if (GameSession->HandleStartMatchRequest())
+    {
+        return;
+    }
+
+    if (GetWorldTimerManager().IsTimerActive(MatchStartTimer))
+    {
+        return;
+    }
+
+    FTimerDelegate Dele;
+    Dele.BindLambda(
+        [this]()
+        {
+            SetMatchState(MatchState::InProgress);
+        }
+    );
+    GetWorldTimerManager().SetTimer(MatchStartTimer, Dele, LoginWaitTime, false);
+
+    if (GetNLGS_Team())
+    {
+        GetNLGS_Team()->Client_OnStartMatchTimerSet(LoginWaitTime);
     }
 }
 
@@ -69,6 +97,56 @@ bool ANLGameMode_Team::CheckPlayerStartCondition(APlayerStart* PlayerStart, APla
         }
     }
     return true;
+}
+
+bool ANLGameMode_Team::ReadyToStartMatch_Implementation()
+{
+    if (GetMatchState() == MatchState::WaitingToStart)
+    {
+        if (NumPlayers + NumBots > 1)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+void ANLGameMode_Team::HandleMatchHasStarted()
+{
+    // Codes from AGameMode::HandleMatchHasStarted
+
+    GameSession->HandleMatchHasStarted();
+
+    // Make sure level streaming is up to date before triggering NotifyMatchStarted
+    GEngine->BlockTillLevelStreamingCompleted(GetWorld());
+
+    // First fire BeginPlay, if we haven't already in waiting to start match
+    GetWorldSettings()->NotifyBeginPlay();
+
+    // Then fire off match started
+    GetWorldSettings()->NotifyMatchStarted();
+
+    // if passed in bug info, send player to right location
+    const FString BugLocString = UGameplayStatics::ParseOption(OptionsString, TEXT("BugLoc"));
+    const FString BugRotString = UGameplayStatics::ParseOption(OptionsString, TEXT("BugRot"));
+    if (!BugLocString.IsEmpty() || !BugRotString.IsEmpty())
+    {
+        for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
+        {
+            APlayerController* PlayerController = Iterator->Get();
+            if (PlayerController && PlayerController->CheatManager != nullptr)
+            {
+                PlayerController->CheatManager->BugItGoString(BugLocString, BugRotString);
+            }
+        }
+    }
+
+    if (IsHandlingReplays() && GetGameInstance() != nullptr)
+    {
+        GetGameInstance()->StartRecordingReplay(GetWorld()->GetMapName(), GetWorld()->GetMapName());
+    }
+
+    StartRound();
 }
 
 ANLGameState_Team* ANLGameMode_Team::GetNLGS_Team()

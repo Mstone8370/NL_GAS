@@ -37,6 +37,13 @@ void ANLGameMode::Logout(AController* Exiting)
     Super::Logout(Exiting);
 }
 
+void ANLGameMode::Tick(float DeltaSeconds)
+{
+    AActor::Tick(DeltaSeconds);
+
+    // Skip AGameMode::Tick
+}
+
 void ANLGameMode::BeginPlay()
 {
     Super::BeginPlay();

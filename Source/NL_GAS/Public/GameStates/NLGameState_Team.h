@@ -99,4 +99,7 @@ public:
 	void ResetScore();
 
 	virtual void SetRoundState(FGameplayTag NewState);
+
+	UFUNCTION(Client, Reliable)
+	void Client_OnStartMatchTimerSet(float Time);
 };
