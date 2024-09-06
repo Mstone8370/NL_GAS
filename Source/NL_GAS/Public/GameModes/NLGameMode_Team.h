@@ -4,7 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameModes/NLGameMode.h"
+#include "GameplayTagContainer.h"
 #include "NLGameMode_Team.generated.h"
+
+class ANLGameState_Team;
 
 /**
  * 
@@ -15,9 +18,44 @@ class NL_GAS_API ANLGameMode_Team : public ANLGameMode
 	GENERATED_BODY()
 	
 public:
+	ANLGameMode_Team(const FObjectInitializer& ObjectInitializer);
+
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 
 protected:
+	virtual void BeginPlay() override;
+
 	virtual bool CheckPlayerStartCondition(APlayerStart* PlayerStart, APlayerController* Player, bool bInitial) override;
 
+	UPROPERTY(BlueprintReadOnly)
+	TObjectPtr<ANLGameState_Team> NLGameState_Team;
+
+	ANLGameState_Team* GetNLGS_Team();
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	int32 TargetScore = 10;
+
+	UPROPERTY(BlueprintReadOnly)
+	FGameplayTag RoundState;
+
+	virtual void SetRoundState(FGameplayTag NewState);
+
+	virtual void OnRoundStateSet();
+
+	virtual void HandleRoundIsWaitingToStart();
+
+	virtual void HandleRoundHasStarted();
+
+	virtual void HandleRoundHasEnded();
+
+	FTimerHandle RoundStartTimer;
+
+	float LoginWaitTime = 8.f;
+
+public:
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	FORCEINLINE int32 GetTargetScore() const { return TargetScore; }
+
+	UFUNCTION(BlueprintCallable)
+	void StartRound();
 };

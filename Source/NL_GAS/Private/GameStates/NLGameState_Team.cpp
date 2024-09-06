@@ -6,12 +6,15 @@
 #include "Net/UnrealNetwork.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Player/NLPlayerState.h"
+#include "NLGameplayTags.h"
 
 void ANLGameState_Team::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
     DOREPLIFETIME_CONDITION_NOTIFY(ANLGameState_Team, TeamInfo, COND_None, REPNOTIFY_OnChanged);
+    DOREPLIFETIME_CONDITION_NOTIFY(ANLGameState_Team, TeamScoreInfo, COND_None, REPNOTIFY_OnChanged);
+    DOREPLIFETIME_CONDITION_NOTIFY(ANLGameState_Team, RoundState, COND_None, REPNOTIFY_OnChanged);
 }
 
 void ANLGameState_Team::AssignTeamToPlayer(APlayerState* PlayerState)
@@ -43,6 +46,16 @@ void ANLGameState_Team::AssignTeamToPlayer(APlayerState* PlayerState)
     {
         NLPS->TeamAssigned(NewTeam);
     }
+}
+
+void ANLGameState_Team::OnPlayerDied(APlayerState* SourcePlayer, APlayerState* TargetPlayer)
+{
+    if (!TargetPlayer)
+    {
+        return;
+    }
+
+    PlayerSurvivalStatus.Add(TargetPlayer, false);
 }
 
 bool ANLGameState_Team::IsSameTeam(const APlayerState* A, const APlayerState* B) const
@@ -156,5 +169,81 @@ void ANLGameState_Team::OnRep_TeamInfo(FTeamInfo& OldTeamInfo)
                 NLPS->TeamAssigned(0);
             }
         }
+    }
+}
+
+void ANLGameState_Team::OnRep_TeamScoreInfo()
+{
+    TeamScoreUpdated.ExecuteIfBound(TeamScoreInfo);
+}
+
+void ANLGameState_Team::OnRep_RoundState()
+{
+    if (RoundState == RoundState_WaitingToStart)
+    {
+        HandleRoundIsWaitingToStart();
+    }
+    else if (RoundState == RoundState_InProgress)
+    {
+        HandleRoundHasStarted();
+    }
+    else if (RoundState == RoundState_End)
+    {
+        HandleRoundHasEnded();
+    }
+}
+
+void ANLGameState_Team::HandleRoundIsWaitingToStart()
+{
+    UE_LOG(LogTemp, Warning, TEXT("[NLGameState] Round is waiting to start"));
+}
+
+void ANLGameState_Team::HandleRoundHasStarted()
+{
+    UE_LOG(LogTemp, Warning, TEXT("[NLGameState] Round has started"));
+}
+
+void ANLGameState_Team::HandleRoundHasEnded()
+{
+    UE_LOG(LogTemp, Warning, TEXT("[NLGameState] Round has ended"));
+}
+
+void ANLGameState_Team::SetScore(int32 Team, int32 Value)
+{
+    if (Team == 1)
+    {
+        TeamScoreInfo.Team_1 = FMath::Max(0, Value);
+    }
+    else if (Team == 2)
+    {
+        TeamScoreInfo.Team_2 = FMath::Max(0, Value);
+    }
+}
+
+void ANLGameState_Team::AddScore(int32 Team, int32 Value)
+{
+    if (Team == 1)
+    {
+        SetScore(1, GetScore().Team_1 + Value);
+    }
+    else if (Team == 2)
+    {
+        SetScore(2, GetScore().Team_2 + Value);
+    }
+}
+
+void ANLGameState_Team::ResetScore()
+{
+    SetScore(1, 0);
+    SetScore(2, 0);
+}
+
+void ANLGameState_Team::SetRoundState(FGameplayTag NewState)
+{
+    if (GetLocalRole() == ROLE_Authority)
+    {
+        RoundState = NewState;
+
+        OnRep_RoundState();
     }
 }

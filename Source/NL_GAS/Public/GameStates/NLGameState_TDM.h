@@ -14,4 +14,6 @@ class NL_GAS_API ANLGameState_TDM : public ANLGameState_Team
 {
 	GENERATED_BODY()
 	
+public:
+	virtual void OnPlayerDied(APlayerState* SourcePlayer, APlayerState* TargetPlayer) override;
 };

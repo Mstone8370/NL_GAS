@@ -14,4 +14,6 @@ class NL_GAS_API ANLGameState : public AGameState
 {
 	GENERATED_BODY()
 	
+public:
+	virtual void OnPlayerDied(APlayerState* SourcePlayer, APlayerState* TargetPlayer);
 };

@@ -3,3 +3,4 @@
 
 #include "GameStates/NLGameState.h"
 
+void ANLGameState::OnPlayerDied(APlayerState* SourcePlayer, APlayerState* TargetPlayer) {}

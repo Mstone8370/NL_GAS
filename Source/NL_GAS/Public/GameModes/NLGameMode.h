@@ -9,6 +9,7 @@
 class AParticleReplicationManager;
 class AProjectileReplicationManager;
 class APlayerStart;
+class ANLGameState;
 
 /**
  * 
@@ -23,6 +24,7 @@ public:
 
 	virtual void Logout(AController* Exiting) override;
 
+	// 폰 생성, 리스폰, 리셋을 다 처리하는 함수
 	UFUNCTION(BlueprintCallable)
 	virtual void RespawnPlayer(APlayerController* PC, bool bInitial = false);
 
@@ -30,7 +32,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	UFUNCTION()
-	virtual void OnPlayerDead(AActor* SourceActor, AActor* TargetActor, FGameplayTag DamageType);
+	virtual void OnPlayerDied(AActor* SourceActor, AActor* TargetActor, FGameplayTag DamageType);
 
 	virtual void SetRespawnTime(AActor* TargetActor);
 
@@ -39,6 +41,11 @@ protected:
 	virtual AActor* ChoosePlayerStartByCondition(APlayerController* Player, bool bInitial);
 
 	virtual bool CheckPlayerStartCondition(APlayerStart* PlayerStart, APlayerController* Player, bool bInitial);
+
+	UPROPERTY(BlueprintReadOnly)
+	TObjectPtr<ANLGameState> NLGameState;
+
+	ANLGameState* GetNLGS();
 
 private:
 	UPROPERTY()

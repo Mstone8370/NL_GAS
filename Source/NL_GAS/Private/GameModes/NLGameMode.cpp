@@ -9,11 +9,11 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerStart.h"
 #include "EngineUtils.h"
-
 #include "Actors/Singletons/ParticleReplicationManager.h"
 #include "Actors/Singletons/ProjectileReplicationManager.h"
 #include "Actors/NLPlayerStart.h"
 #include "Interface/CombatInterface.h"
+#include "GameStates/NLGameState.h"
 
 void ANLGameMode::PostLogin(APlayerController* NewPlayer)
 {
@@ -21,7 +21,7 @@ void ANLGameMode::PostLogin(APlayerController* NewPlayer)
 
     if (ANLPlayerController* NLPC = Cast<ANLPlayerController>(NewPlayer))
     {
-        NLPC->OnPlayerDeathDelegate.AddUObject(this, &ANLGameMode::OnPlayerDead);
+        NLPC->OnPlayerDeathDelegate.AddUObject(this, &ANLGameMode::OnPlayerDied);
         NLPC->OnRequestRespawn.BindUObject(this, &ANLGameMode::RespawnPlayer);
     }
 }
@@ -50,11 +50,18 @@ void ANLGameMode::BeginPlay()
     ProjectileReplicationManager = Cast<AProjectileReplicationManager>(ProjRepManager);
 }
 
-void ANLGameMode::OnPlayerDead(AActor* SourceActor, AActor* TargetActor, FGameplayTag DamageType)
+void ANLGameMode::OnPlayerDied(AActor* SourceActor, AActor* TargetActor, FGameplayTag DamageType)
 {
     MulticastKillLog(SourceActor, TargetActor, DamageType);
 
-    SetRespawnTime(TargetActor);
+    SetRespawnTime(TargetActor); // TODO: 게임 모드에 맞게
+
+    APawn* SourcePawn = Cast<APawn>(SourceActor);
+    APawn* TargetPawn = Cast<APawn>(TargetActor);
+    if (GetNLGS() && SourcePawn && TargetPawn)
+    {
+        GetNLGS()->OnPlayerDied(SourcePawn->GetPlayerState(), TargetPawn->GetPlayerState());
+    }
 }
 
 void ANLGameMode::SetRespawnTime(AActor* TargetActor)
@@ -85,28 +92,44 @@ void ANLGameMode::MulticastKillLog(AActor* SourceActor, AActor* TargetActor, FGa
 void ANLGameMode::RespawnPlayer(APlayerController* PC, bool bInitial)
 {
     AActor* Start = ChoosePlayerStartByCondition(PC, bInitial);
-    if (IsValid(Start))
+    if (!IsValid(Start))
     {
-        if (APawn* PCPawn = PC->GetPawn())
+        UE_LOG(LogTemp, Error, TEXT("[NLGameMode] Failed to find PlayerStart"));
+    }
+        
+    if (PC && (PC->GetPawn() == nullptr) && PlayerCanRestart(PC))
+    {
+        // 관전자로 시작해서 폰이 할당되지 않은 경우
+        APawn* NewPawn = SpawnDefaultPawnFor(PC, Start);
+        if (IsValid(NewPawn))
         {
-            PCPawn->SetActorLocation(Start->GetActorLocation());
+            PC->SetPawn(NewPawn);
+            FinishRestartPlayer(PC, Start->GetActorRotation());
         }
+        else
+        {
+            FailedToRestartPlayer(PC);
+        }
+    }
+    else
+    {
+        // 할당받은 폰이 존재하는 경우
+        APawn* Pawn = PC->GetPawn();
+        Pawn->SetActorLocation(Start->GetActorLocation());
         if (ANLPlayerController* NLPC = Cast<ANLPlayerController>(PC))
         {
             ICombatInterface* IC = PC->GetPawn<ICombatInterface>();
             if (IC && !IC->IsDead())
             {
+                // 사망 처리가 되지 않았으면 리셋
                 NLPC->OnResetted(Start->GetActorForwardVector());
             }
             else
             {
+                // 사망 처리가 된 경우 리스폰
                 NLPC->OnRespawned(Start->GetActorForwardVector());
             }
         }
-    }
-    else
-    {
-        UE_LOG(LogTemp, Error, TEXT("[NLGameMode] Failed to find PlayerStart"));
     }
 }
 
@@ -173,6 +196,15 @@ bool ANLGameMode::CheckPlayerStartCondition(APlayerStart* PlayerStart, APlayerCo
         }
     }
     return true;
+}
+
+ANLGameState* ANLGameMode::GetNLGS()
+{
+    if (!NLGameState)
+    {
+        NLGameState = GetGameState<ANLGameState>();
+    }
+    return NLGameState;
 }
 
 void ANLGameMode::SpawnOrGetSingleton(AActor*& OutActor, TSubclassOf<AActor> ActorClass)

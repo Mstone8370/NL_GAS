@@ -103,3 +103,8 @@ UE_DEFINE_GAMEPLAY_TAG(Stat_Hit, "Stat.Hit");
 UE_DEFINE_GAMEPLAY_TAG(Stat_Hit_Critical, "Stat.Hit.Critical");
 UE_DEFINE_GAMEPLAY_TAG(Stat_Kill, "Stat.Kill");
 UE_DEFINE_GAMEPLAY_TAG(Stat_Death, "Stat.Death");
+
+// Player Stat Tag
+UE_DEFINE_GAMEPLAY_TAG(RoundState_WaitingToStart, "RoundState.WaitingToStart");
+UE_DEFINE_GAMEPLAY_TAG(RoundState_InProgress, "RoundState.InProgress");
+UE_DEFINE_GAMEPLAY_TAG(RoundState_End, "RoundState.End");
