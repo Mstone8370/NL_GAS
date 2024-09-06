@@ -214,3 +214,29 @@ void ANLGameMode_Team::StartRound()
 {
     SetRoundState(RoundState_InProgress);
 }
+
+void ANLGameMode_Team::EndRound(int32 WinTeam, int32 WinTeamScore)
+{
+    SetRoundState(RoundState_End);
+
+    if (WinTeamScore == TargetScore)
+    {
+        GetNLGS_Team()->Client_OnMatchWinTeamDecided(WinTeam);
+    }
+    else
+    {
+        GetNLGS_Team()->Client_OnRoundWinTeamDecided(WinTeam);
+
+        // TODO: 일정시간 후에 라운드 재시작
+    }
+}
+
+bool ANLGameMode_Team::HasRoundStarted() const
+{
+    return RoundState.MatchesTagExact(RoundState_InProgress);
+}
+
+bool ANLGameMode_Team::HasRoundEnded() const
+{
+    return !HasRoundStarted();
+}

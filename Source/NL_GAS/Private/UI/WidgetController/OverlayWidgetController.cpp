@@ -9,6 +9,8 @@
 #include "Player/NLPlayerController.h"
 #include "Player/NLPlayerState.h"
 
+#include "GameStates/NLGameState_Team.h"
+
 void UOverlayWidgetController::BindEvents()
 {
     NLCharacterComponent->WeaponSlotChanged.AddDynamic(this, &UOverlayWidgetController::OnWeaponSlotChanged);
@@ -95,6 +97,23 @@ void UOverlayWidgetController::BindEvents()
             PlayerStatUpdated.Broadcast(PS, Tag, Value);
         }
     );
+
+    ANLGameState_Team* NLGS_Team = Cast<ANLGameState_Team>(GetWorld()->GetGameState());
+    if (NLGS_Team)
+    {
+        NLGS_Team->RoundWinTeamDecided.BindLambda(
+            [this](int32 WinTeam)
+            {
+                OnRoundWinTeamDecided.Broadcast(WinTeam);
+            }
+        );
+        NLGS_Team->MatchWinTeamDecided.BindLambda(
+            [this](int32 WinTeam)
+            {
+                OnMatchWinTeamDecided.Broadcast(WinTeam);
+            }
+        );
+    }
 }
 
 void UOverlayWidgetController::BroadcastInitialValues()

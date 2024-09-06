@@ -62,6 +62,15 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE int32 GetTargetScore() const { return TargetScore; }
 
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	virtual bool HasRoundStarted() const;
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	virtual bool HasRoundEnded() const;
+
 	UFUNCTION(BlueprintCallable)
 	void StartRound();
+
+	UFUNCTION(BlueprintCallable)
+	void EndRound(int32 WinTeam, int32 WinTeamScore);
 };

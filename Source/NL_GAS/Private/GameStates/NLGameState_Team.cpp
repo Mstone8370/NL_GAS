@@ -7,6 +7,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Player/NLPlayerState.h"
 #include "NLGameplayTags.h"
+#include "Kismet/GameplayStatics.h"
 
 void ANLGameState_Team::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -15,6 +16,7 @@ void ANLGameState_Team::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
     DOREPLIFETIME_CONDITION_NOTIFY(ANLGameState_Team, TeamInfo, COND_None, REPNOTIFY_OnChanged);
     DOREPLIFETIME_CONDITION_NOTIFY(ANLGameState_Team, TeamScoreInfo, COND_None, REPNOTIFY_OnChanged);
     DOREPLIFETIME_CONDITION_NOTIFY(ANLGameState_Team, RoundState, COND_None, REPNOTIFY_OnChanged);
+    DOREPLIFETIME_CONDITION_NOTIFY(ANLGameState_Team, TargetScore, COND_None, REPNOTIFY_OnChanged);
 }
 
 void ANLGameState_Team::AssignTeamToPlayer(APlayerState* PlayerState)
@@ -201,11 +203,26 @@ void ANLGameState_Team::HandleRoundIsWaitingToStart()
 void ANLGameState_Team::HandleRoundHasStarted()
 {
     UE_LOG(LogTemp, Warning, TEXT("[NLGameState] Round has started"));
+
+    // TODO: 짧은 시간동안 시야 회전 외에 다른 행동 멈추게 함.
 }
 
 void ANLGameState_Team::HandleRoundHasEnded()
 {
     UE_LOG(LogTemp, Warning, TEXT("[NLGameState] Round has ended"));
+}
+
+int32 ANLGameState_Team::GetScoreTeam(int32 Team) const
+{
+    if (Team == 1)
+    {
+        return TeamScoreInfo.Team_1;
+    }
+    else if (Team == 2)
+    {
+        return TeamScoreInfo.Team_2;
+    }
+    return 0;
 }
 
 void ANLGameState_Team::SetScore(int32 Team, int32 Value)
@@ -251,4 +268,18 @@ void ANLGameState_Team::SetRoundState(FGameplayTag NewState)
 void ANLGameState_Team::Client_OnStartMatchTimerSet_Implementation(float Time)
 {
     UE_LOG(LogTemp, Warning, TEXT("StartMatch Timer Set: %f"), Time);
+}
+
+void ANLGameState_Team::Client_OnRoundWinTeamDecided_Implementation(int32 WinTeam)
+{
+    UE_LOG(LogTemp, Warning, TEXT("Round Win Team Decided: %d"), WinTeam);
+
+    RoundWinTeamDecided.ExecuteIfBound(WinTeam);
+}
+
+void ANLGameState_Team::Client_OnMatchWinTeamDecided_Implementation(int32 WinTeam)
+{
+    UE_LOG(LogTemp, Warning, TEXT("Match Win Team Decided: %d"), WinTeam);
+
+    MatchWinTeamDecided.ExecuteIfBound(WinTeam);
 }

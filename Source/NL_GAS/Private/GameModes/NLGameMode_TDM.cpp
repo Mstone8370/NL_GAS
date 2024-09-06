@@ -10,22 +10,29 @@ void ANLGameMode_TDM::OnPlayerDied(AActor* SourceActor, AActor* TargetActor, FGa
 {
     Super::OnPlayerDied(SourceActor, TargetActor, DamageType);
 
-    // TODO: 라운드 상태 확인해서 점수를 얻을 수 있는 상태인지 확인 먼저
-    if (!GetNLGS_Team())
+    if (HasRoundStarted())
     {
-        return;
-    }
-
-    APawn* SourcePawn = Cast<APawn>(SourceActor);
-    APawn* TargetPawn = Cast<APawn>(TargetActor);
-    if (SourcePawn && TargetPawn)
-    {
-        int32 SourceTeam = GetNLGS_Team()->FindTeam(SourcePawn->GetPlayerState());
-        int32 TargetTeam = GetNLGS_Team()->FindTeam(TargetPawn->GetPlayerState());
-        if (SourceTeam && TargetTeam && SourceTeam != TargetTeam)
+        if (!GetNLGS_Team())
         {
-            GetNLGS_Team()->AddScore(SourceTeam);
-            // TODO: TargetScore가 되면 매치 종료
+            return;
+        }
+
+        APawn* SourcePawn = Cast<APawn>(SourceActor);
+        APawn* TargetPawn = Cast<APawn>(TargetActor);
+        if (SourcePawn && TargetPawn)
+        {
+            int32 SourceTeam = GetNLGS_Team()->FindTeam(SourcePawn->GetPlayerState());
+            int32 TargetTeam = GetNLGS_Team()->FindTeam(TargetPawn->GetPlayerState());
+            if (SourceTeam && TargetTeam && SourceTeam != TargetTeam)
+            {
+                GetNLGS_Team()->AddScore(SourceTeam);
+                
+                // TODO: 종료 조건 확인하는 함수 별도로 만들기
+                if (GetNLGS_Team()->GetScoreTeam(SourceTeam) == TargetScore)
+                {
+                    EndRound(SourceTeam, TargetScore);
+                }
+            }
         }
     }
 }

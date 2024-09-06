@@ -23,6 +23,9 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInteractionBeginSignature);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInteractionEndSignature);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FPlayerStatUpdatedSignature, const APlayerState*, PlayerState, const FGameplayTag&, StatTag, int32, Value);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRoundWinTeamDecidedSignature, int32, WinTeam);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMatchWinTeamDecidedSignature, int32, WinTeam);
+
 /**
  * 
  */
@@ -80,6 +83,12 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FPlayerStatUpdatedSignature PlayerStatUpdated;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnRoundWinTeamDecidedSignature OnRoundWinTeamDecided;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnMatchWinTeamDecidedSignature OnMatchWinTeamDecided;
 
 protected:
 	UFUNCTION()

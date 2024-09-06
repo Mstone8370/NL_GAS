@@ -33,6 +33,9 @@ struct FTeamScoreInfo
 
 DECLARE_DELEGATE_OneParam(FTeamScoreUpdatedSignature, FTeamScoreInfo);
 
+DECLARE_DELEGATE_OneParam(FRoundWinTeamDecidedSignature, int32 /*WinTeam*/);
+DECLARE_DELEGATE_OneParam(FMatchWinTeamDecidedSignature, int32 /*WinTeam*/);
+
 /**
  * 
  */
@@ -55,6 +58,9 @@ public:
 
 	FTeamScoreUpdatedSignature TeamScoreUpdated;
 
+	FRoundWinTeamDecidedSignature RoundWinTeamDecided;
+	FMatchWinTeamDecidedSignature MatchWinTeamDecided;
+
 protected:
 	int32 ChooseTeam(APlayerState* Player);
 
@@ -76,6 +82,9 @@ protected:
 	UFUNCTION()
 	virtual void OnRep_RoundState();
 
+	UPROPERTY(BlueprintReadOnly, Replicated)
+	int32 TargetScore;
+
 	UPROPERTY()
 	TMap<APlayerState*, bool> PlayerSurvivalStatus;
 
@@ -89,6 +98,9 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE FTeamScoreInfo GetScore() const { return TeamScoreInfo; }
 
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	int32 GetScoreTeam(int32 Team) const;
+
 	UFUNCTION(BlueprintCallable)
 	void SetScore(int32 Team, int32 Value);
 
@@ -100,6 +112,12 @@ public:
 
 	virtual void SetRoundState(FGameplayTag NewState);
 
-	UFUNCTION(Client, Reliable)
+	UFUNCTION(NetMulticast, Reliable)
 	void Client_OnStartMatchTimerSet(float Time);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Client_OnRoundWinTeamDecided(int32 WinTeam);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Client_OnMatchWinTeamDecided(int32 WinTeam);
 };
