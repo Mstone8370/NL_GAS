@@ -43,6 +43,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	int32 TargetScore = 10;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	int32 RoundTimeLimit = 900;
+
 	UPROPERTY(BlueprintReadOnly)
 	FGameplayTag RoundState;
 
@@ -55,6 +58,12 @@ protected:
 	virtual void HandleRoundHasStarted();
 
 	virtual void HandleRoundHasEnded();
+
+	void SetRoundTimer();
+
+	virtual void OnRoundTimeLimitExpired();
+
+	FTimerHandle RoundTimeLimitTimer;
 
 	FTimerHandle MatchStartTimer;
 

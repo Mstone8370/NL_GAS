@@ -33,11 +33,10 @@ struct FTeamScoreInfo
 
 DECLARE_DELEGATE_OneParam(FTeamScoreUpdatedSignature, FTeamScoreInfo);
 DECLARE_DELEGATE_OneParam(FTargetScoreUpdatedSignature, int32 /*TargetScore*/);
-
 DECLARE_DELEGATE_OneParam(FRoundWinTeamDecidedSignature, int32 /*WinTeam*/);
 DECLARE_DELEGATE_OneParam(FMatchWinTeamDecidedSignature, int32 /*WinTeam*/);
-
 DECLARE_DELEGATE_OneParam(FRoundStartedSignature, int32 /*RoundStartWaitTime*/);
+DECLARE_DELEGATE_OneParam(FRoundTimeLimitUpdatedSignature, int32 /*RoundTimeLimit*/);
 
 /**
  * 
@@ -61,17 +60,19 @@ public:
 
 	FTeamScoreUpdatedSignature TeamScoreUpdated;
 	FTargetScoreUpdatedSignature TargetScoreUpdated;
-
 	FRoundWinTeamDecidedSignature RoundWinTeamDecided;
 	FMatchWinTeamDecidedSignature MatchWinTeamDecided;
-
 	FRoundStartedSignature RoundStarted;
+	FRoundTimeLimitUpdatedSignature RoundTimeLimitUpdated;
 
 	UPROPERTY(BlueprintReadOnly, Replicated)
 	float RoundStartWaitTime;
 
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_TargetScore)
 	int32 TargetScore;
+
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_RoundTimeLimit)
+	int32 RoundTimeLimit;
 
 protected:
 	int32 ChooseTeam(APlayerState* Player);
@@ -96,6 +97,9 @@ protected:
 
 	UFUNCTION()
 	void OnRep_TargetScore();
+
+	UFUNCTION()
+	void OnRep_RoundTimeLimit();
 
 	UPROPERTY()
 	TMap<APlayerState*, bool> PlayerSurvivalStatus;

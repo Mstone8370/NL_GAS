@@ -144,6 +144,12 @@ void UOverlayWidgetController::BindEvents()
                 OnTargetScoreUpdated.Broadcast(TargetScore);
             }
         );
+        NLGS_Team->RoundTimeLimitUpdated.BindLambda(
+            [this](int32 RoundTimeLimit)
+            {
+                OnRoundTimeLimitUpdated.Broadcast(RoundTimeLimit);
+            }
+        );
     }
 }
 
@@ -182,6 +188,8 @@ void UOverlayWidgetController::BroadcastInitialValues()
         OnTeamScoreUpdated.Broadcast(TeamScoreInfo.Team_1, TeamScoreInfo.Team_2);
 
         OnTargetScoreUpdated.Broadcast(NLGS_Team->GetTargetScore());
+
+        OnRoundTimeLimitUpdated.Broadcast(NLGS_Team->RoundTimeLimit);
     }
 }
 

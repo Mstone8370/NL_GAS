@@ -17,4 +17,6 @@ class NL_GAS_API ANLGameMode_TDM : public ANLGameMode_Team
 	
 protected:
 	virtual void OnPlayerDied(AActor* SourceActor, AActor* TargetActor, FGameplayTag DamageType) override;
+
+	virtual void OnRoundTimeLimitExpired() override;
 };

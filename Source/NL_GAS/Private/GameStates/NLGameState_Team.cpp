@@ -17,6 +17,7 @@ void ANLGameState_Team::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
     DOREPLIFETIME_CONDITION_NOTIFY(ANLGameState_Team, TeamScoreInfo, COND_None, REPNOTIFY_OnChanged);
     DOREPLIFETIME_CONDITION_NOTIFY(ANLGameState_Team, RoundState, COND_None, REPNOTIFY_OnChanged);
     DOREPLIFETIME_CONDITION_NOTIFY(ANLGameState_Team, TargetScore, COND_None, REPNOTIFY_OnChanged);
+    DOREPLIFETIME_CONDITION_NOTIFY(ANLGameState_Team, RoundTimeLimit, COND_None, REPNOTIFY_OnChanged);
     DOREPLIFETIME_CONDITION_NOTIFY(ANLGameState_Team, RoundStartWaitTime, COND_None, REPNOTIFY_OnChanged);
 }
 
@@ -199,6 +200,11 @@ void ANLGameState_Team::OnRep_RoundState()
 void ANLGameState_Team::OnRep_TargetScore()
 {
     TargetScoreUpdated.ExecuteIfBound(TargetScore);
+}
+
+void ANLGameState_Team::OnRep_RoundTimeLimit()
+{
+    RoundTimeLimitUpdated.ExecuteIfBound(RoundTimeLimit);
 }
 
 void ANLGameState_Team::HandleRoundIsWaitingToStart()

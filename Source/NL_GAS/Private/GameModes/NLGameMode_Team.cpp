@@ -40,6 +40,7 @@ void ANLGameMode_Team::StartPlay()
     if (GetNLGS_Team())
     {
         GetNLGS_Team()->RoundStartWaitTime = RoundStartWaitTime;
+        GetNLGS_Team()->RoundTimeLimit = RoundTimeLimit;
         GetNLGS_Team()->TargetScore = TargetScore;
     }
 }
@@ -226,6 +227,7 @@ void ANLGameMode_Team::HandleRoundHasStarted()
         [this]()
         {
             EnableActionAllPlayer();
+            SetRoundTimer();
         }
     );
     GetWorldTimerManager().SetTimer(RoundStartTimer, Dele, RoundStartWaitTime, false);
@@ -255,6 +257,23 @@ void ANLGameMode_Team::EndRound(int32 WinTeam, int32 WinTeamScore)
 
         // TODO: 일정시간 후에 라운드 재시작
     }
+}
+
+void ANLGameMode_Team::SetRoundTimer()
+{
+    FTimerDelegate Dele;
+    Dele.BindLambda(
+        [this]()
+        {
+            OnRoundTimeLimitExpired();
+        }
+    );
+    GetWorldTimerManager().SetTimer(RoundTimeLimitTimer, Dele, RoundTimeLimit, false);
+}
+
+void ANLGameMode_Team::OnRoundTimeLimitExpired()
+{
+    // By default, do nothing.
 }
 
 bool ANLGameMode_Team::HasRoundStarted() const

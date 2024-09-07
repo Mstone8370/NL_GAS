@@ -36,3 +36,21 @@ void ANLGameMode_TDM::OnPlayerDied(AActor* SourceActor, AActor* TargetActor, FGa
         }
     }
 }
+
+void ANLGameMode_TDM::OnRoundTimeLimitExpired()
+{
+    if (GetNLGS_Team())
+    {
+        FTeamScoreInfo Info = GetNLGS_Team()->GetScore();
+        int32 WinTeam = 0;
+        if (Info.Team_1 > Info.Team_2)
+        {
+            WinTeam = 1;
+        }
+        else if (Info.Team_2 > Info.Team_1)
+        {
+            WinTeam = 2;
+        }
+        EndRound(WinTeam, TargetScore);
+    }
+}
