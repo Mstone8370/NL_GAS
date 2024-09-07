@@ -196,6 +196,11 @@ void ANLGameState_Team::OnRep_RoundState()
     }
 }
 
+void ANLGameState_Team::OnRep_TargetScore()
+{
+    TargetScoreUpdated.ExecuteIfBound(TargetScore);
+}
+
 void ANLGameState_Team::HandleRoundIsWaitingToStart()
 {
     UE_LOG(LogTemp, Warning, TEXT("[NLGameState] Round is waiting to start"));

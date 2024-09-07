@@ -32,6 +32,7 @@ struct FTeamScoreInfo
 };
 
 DECLARE_DELEGATE_OneParam(FTeamScoreUpdatedSignature, FTeamScoreInfo);
+DECLARE_DELEGATE_OneParam(FTargetScoreUpdatedSignature, int32 /*TargetScore*/);
 
 DECLARE_DELEGATE_OneParam(FRoundWinTeamDecidedSignature, int32 /*WinTeam*/);
 DECLARE_DELEGATE_OneParam(FMatchWinTeamDecidedSignature, int32 /*WinTeam*/);
@@ -59,6 +60,7 @@ public:
 	int32 FindTeam(const APlayerController* PlayerController);
 
 	FTeamScoreUpdatedSignature TeamScoreUpdated;
+	FTargetScoreUpdatedSignature TargetScoreUpdated;
 
 	FRoundWinTeamDecidedSignature RoundWinTeamDecided;
 	FMatchWinTeamDecidedSignature MatchWinTeamDecided;
@@ -67,6 +69,9 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Replicated)
 	float RoundStartWaitTime;
+
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_TargetScore)
+	int32 TargetScore;
 
 protected:
 	int32 ChooseTeam(APlayerState* Player);
@@ -89,8 +94,8 @@ protected:
 	UFUNCTION()
 	virtual void OnRep_RoundState();
 
-	UPROPERTY(BlueprintReadOnly, Replicated)
-	int32 TargetScore;
+	UFUNCTION()
+	void OnRep_TargetScore();
 
 	UPROPERTY()
 	TMap<APlayerState*, bool> PlayerSurvivalStatus;
@@ -104,6 +109,9 @@ protected:
 public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE FTeamScoreInfo GetScore() const { return TeamScoreInfo; }
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	FORCEINLINE int32 GetTargetScore() const { return TargetScore; }
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	int32 GetScoreTeam(int32 Team) const;

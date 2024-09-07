@@ -8,7 +8,7 @@
 #include "AbilitySystem/AttributeSet/NLAttributeSet.h"
 #include "Player/NLPlayerController.h"
 #include "Player/NLPlayerState.h"
-
+#include "NLFunctionLibrary.h"
 #include "GameStates/NLGameState_Team.h"
 
 void UOverlayWidgetController::BindEvents()
@@ -119,6 +119,31 @@ void UOverlayWidgetController::BindEvents()
                 OnRoundStarted.Broadcast(WaitTime);
             }
         );
+        NLGS_Team->TeamScoreUpdated.BindLambda(
+            [this](FTeamScoreInfo TeamScoreInfo)
+            {
+                int32 LocalPlayerTeam = UNLFunctionLibrary::GetLocalPlayerTeam(this);
+                int32 FriendlyTeamScore = 0;
+                int32 EnemyTeamScore = 0;
+                if (LocalPlayerTeam == 1)
+                {
+                    FriendlyTeamScore = TeamScoreInfo.Team_1;
+                    EnemyTeamScore = TeamScoreInfo.Team_2;
+                }
+                else if (LocalPlayerTeam == 2)
+                {
+                    FriendlyTeamScore = TeamScoreInfo.Team_2;
+                    EnemyTeamScore = TeamScoreInfo.Team_1;
+                }
+                OnTeamScoreUpdated.Broadcast(FriendlyTeamScore, EnemyTeamScore);
+            }
+        );
+        NLGS_Team->TargetScoreUpdated.BindLambda(
+            [this](int32 TargetScore)
+            {
+                OnTargetScoreUpdated.Broadcast(TargetScore);
+            }
+        );
     }
 }
 
@@ -135,6 +160,28 @@ void UOverlayWidgetController::BroadcastInitialValues()
     if (GetNLPS())
     {
         GetNLPS()->BroadcastAllPlayerStats();
+    }
+
+    ANLGameState_Team* NLGS_Team = Cast<ANLGameState_Team>(GetWorld()->GetGameState());
+    if (NLGS_Team)
+    {
+        FTeamScoreInfo TeamScoreInfo = NLGS_Team->GetScore();
+        int32 LocalPlayerTeam = UNLFunctionLibrary::GetLocalPlayerTeam(this);
+        int32 FriendlyTeamScore = 0;
+        int32 EnemyTeamScore = 0;
+        if (LocalPlayerTeam == 1)
+        {
+            FriendlyTeamScore = TeamScoreInfo.Team_1;
+            EnemyTeamScore = TeamScoreInfo.Team_2;
+        }
+        else if (LocalPlayerTeam == 2)
+        {
+            FriendlyTeamScore = TeamScoreInfo.Team_2;
+            EnemyTeamScore = TeamScoreInfo.Team_1;
+        }
+        OnTeamScoreUpdated.Broadcast(TeamScoreInfo.Team_1, TeamScoreInfo.Team_2);
+
+        OnTargetScoreUpdated.Broadcast(NLGS_Team->GetTargetScore());
     }
 }
 

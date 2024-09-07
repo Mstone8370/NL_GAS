@@ -40,6 +40,7 @@ void ANLGameMode_Team::StartPlay()
     if (GetNLGS_Team())
     {
         GetNLGS_Team()->RoundStartWaitTime = RoundStartWaitTime;
+        GetNLGS_Team()->TargetScore = TargetScore;
     }
 }
 
