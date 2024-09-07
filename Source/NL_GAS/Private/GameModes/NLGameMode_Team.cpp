@@ -33,6 +33,16 @@ void ANLGameMode_Team::PostLogin(APlayerController* NewPlayer)
     }
 }
 
+void ANLGameMode_Team::StartPlay()
+{
+    Super::StartPlay();
+
+    if (GetNLGS_Team())
+    {
+        GetNLGS_Team()->RoundStartWaitTime = RoundStartWaitTime;
+    }
+}
+
 void ANLGameMode_Team::StartMatch()
 {
     if (HasMatchStarted())
@@ -52,6 +62,7 @@ void ANLGameMode_Team::StartMatch()
         return;
     }
 
+    // 매치 시작 조건은 맞지만 일정 시간동안 더 기다렸다가 시작함.
     FTimerDelegate Dele;
     Dele.BindLambda(
         [this]()
@@ -63,7 +74,7 @@ void ANLGameMode_Team::StartMatch()
 
     if (GetNLGS_Team())
     {
-        GetNLGS_Team()->Client_OnStartMatchTimerSet(LoginWaitTime);
+        GetNLGS_Team()->Multicast_OnStartMatchTimerSet(LoginWaitTime);
     }
 }
 
@@ -193,6 +204,7 @@ void ANLGameMode_Team::OnRoundStateSet()
 
 void ANLGameMode_Team::HandleRoundIsWaitingToStart()
 {
+    DisableActionAllPlayer();
 }
 
 void ANLGameMode_Team::HandleRoundHasStarted()
@@ -204,10 +216,23 @@ void ANLGameMode_Team::HandleRoundHasStarted()
             RespawnPlayer(PlayerController, true);
         }
     }
+
+    DisableActionAllPlayer();
+
+    // 라운드 시작되면 일정 시간동안 대기
+    FTimerDelegate Dele;
+    Dele.BindLambda(
+        [this]()
+        {
+            EnableActionAllPlayer();
+        }
+    );
+    GetWorldTimerManager().SetTimer(RoundStartTimer, Dele, RoundStartWaitTime, false);
 }
 
 void ANLGameMode_Team::HandleRoundHasEnded()
 {
+    DisableActionAllPlayer();
 }
 
 void ANLGameMode_Team::StartRound()
@@ -221,11 +246,11 @@ void ANLGameMode_Team::EndRound(int32 WinTeam, int32 WinTeamScore)
 
     if (WinTeamScore == TargetScore)
     {
-        GetNLGS_Team()->Client_OnMatchWinTeamDecided(WinTeam);
+        GetNLGS_Team()->Multicast_OnMatchWinTeamDecided(WinTeam);
     }
     else
     {
-        GetNLGS_Team()->Client_OnRoundWinTeamDecided(WinTeam);
+        GetNLGS_Team()->Multicast_OnRoundWinTeamDecided(WinTeam);
 
         // TODO: 일정시간 후에 라운드 재시작
     }
@@ -239,4 +264,32 @@ bool ANLGameMode_Team::HasRoundStarted() const
 bool ANLGameMode_Team::HasRoundEnded() const
 {
     return !HasRoundStarted();
+}
+
+void ANLGameMode_Team::EnableActionAllPlayer()
+{
+    for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
+    {
+        if (APlayerController* PlayerController = Iterator->Get())
+        {
+            if (ANLPlayerController* NLPC = Cast<ANLPlayerController>(PlayerController))
+            {
+                NLPC->EnableAction();
+            }
+        }
+    }
+}
+
+void ANLGameMode_Team::DisableActionAllPlayer()
+{
+    for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
+    {
+        if (APlayerController* PlayerController = Iterator->Get())
+        {
+            if (ANLPlayerController* NLPC = Cast<ANLPlayerController>(PlayerController))
+            {
+                NLPC->DisableAction();
+            }
+        }
+    }
 }

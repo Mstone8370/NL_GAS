@@ -20,6 +20,7 @@
 #include "Actors/DeathCam.h"
 #include "NLFunctionLibrary.h"
 #include "Actors/Abstract/Interactable.h"
+#include "Net/UnrealNetwork.h"
 
 void ANLPlayerController::SetupInputComponent()
 {
@@ -66,13 +67,16 @@ void ANLPlayerController::PostProcessInput(const float DeltaTime, const bool bGa
 {
     Super::PostProcessInput(DeltaTime, bGamePaused);
 
-    if (!InputEnabled())
+    if (!InputEnabled() || IsActionDisabled())
     {
         if (GetNLASC())
         {
             GetNLASC()->ClearAbilityInput();
         }
-        RotationInput = FRotator::ZeroRotator;
+        if (!InputEnabled())
+        {
+            RotationInput = FRotator::ZeroRotator;
+        }
         return;
     }
 
@@ -179,7 +183,7 @@ void ANLPlayerController::RemoveIMC(TSoftObjectPtr<UInputMappingContext> IMC, UE
 
 void ANLPlayerController::Move(const FInputActionValue& Value)
 {
-    if (!InputEnabled() || !IsValid(GetPawn()))
+    if (!InputEnabled() || IsActionDisabled() || !IsValid(GetPawn()))
     {
         return;
     }
@@ -202,7 +206,7 @@ void ANLPlayerController::Look(const FInputActionValue& Value)
 
 void ANLPlayerController::Jump()
 {
-    if (!InputEnabled() || !IsValid(GetCharacter()))
+    if (!InputEnabled() || IsActionDisabled() || !IsValid(GetCharacter()))
     {
         return;
     }
@@ -212,7 +216,7 @@ void ANLPlayerController::Jump()
 
 void ANLPlayerController::Crouch()
 {
-    if (!InputEnabled() || !IsValid(GetCharacter()))
+    if (!InputEnabled() || IsActionDisabled() || !IsValid(GetCharacter()))
     {
         return;
     }
@@ -222,7 +226,7 @@ void ANLPlayerController::Crouch()
 
 void ANLPlayerController::UnCrouch()
 {
-    if (!InputEnabled() || !IsValid(GetCharacter()))
+    if (!InputEnabled() || IsActionDisabled() || !IsValid(GetCharacter()))
     {
         return;
     }
@@ -232,7 +236,7 @@ void ANLPlayerController::UnCrouch()
 
 void ANLPlayerController::CrouchToggle()
 {
-    if (!InputEnabled() || !IsValid(GetCharacter()))
+    if (!InputEnabled() || IsActionDisabled() || !IsValid(GetCharacter()))
     {
         return;
     }
@@ -249,7 +253,7 @@ void ANLPlayerController::CrouchToggle()
 
 void ANLPlayerController::Interaction()
 {
-    if (!bIsInteracting || !IsValid(InteractableActor) || !InputEnabled() || !IsValid(GetCharacter()))
+    if (!bIsInteracting || !IsValid(InteractableActor) || !InputEnabled() || IsActionDisabled() || !IsValid(GetCharacter()))
     {
         return;
     }
@@ -266,7 +270,7 @@ void ANLPlayerController::OnInteractionHoldTriggered()
 
 void ANLPlayerController::BeginInteraction()
 {
-    if (!IsValid(InteractableActor) || !InputEnabled() || !IsValid(GetCharacter()))
+    if (!IsValid(InteractableActor) || !InputEnabled() || IsActionDisabled() || !IsValid(GetCharacter()))
     {
         bIsInteracting = false;
         return;
@@ -295,7 +299,7 @@ void ANLPlayerController::BeginInteraction()
 
 void ANLPlayerController::EndInteraction()
 {
-    if (!IsValid(InteractableActor) || !InputEnabled() || !IsValid(GetCharacter()))
+    if (!IsValid(InteractableActor) || !InputEnabled() || IsActionDisabled() || !IsValid(GetCharacter()))
     {
         return;
     }
@@ -358,6 +362,13 @@ ANLHUD* ANLPlayerController::GetNLHUD()
         NLHUD = Cast<ANLHUD>(GetHUD());
     }
     return NLHUD;
+}
+
+void ANLPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    DOREPLIFETIME_CONDITION_NOTIFY(ANLPlayerController, bIsActionDisabled, COND_None, REPNOTIFY_OnChanged);
 }
 
 void ANLPlayerController::InitHUD(APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS, UNLCharacterComponent* NLC)
@@ -473,6 +484,18 @@ void ANLPlayerController::Client_SpawnProjectiles_Implementation(const FGameplay
     // 이 플레이어 컨트롤러 입장에선 시뮬레이티드 프록시가 발사한 발사체임.
     TArray<ANLProjectile*> DummyArray;
     UNLFunctionLibrary::SpawnMultipleProjectileByTag(this, ProjectileTag, SpawnInfos, nullptr, DummyArray);
+}
+
+void ANLPlayerController::OnRep_IsActionDisabled()
+{
+    if (bIsActionDisabled)
+    {
+        DisableAction();
+    }
+    else
+    {
+        EnableAction();
+    }
 }
 
 void ANLPlayerController::SetLookSensitivity(float InLookSensitivity)
@@ -630,4 +653,19 @@ void ANLPlayerController::ReplicateParticlesToClient(const FGameplayTag& Particl
 void ANLPlayerController::ReplicateProjectilesToClient(const FGameplayTag& ProjectileTag, const TArray<FProjectileSpawnInfo>& SpawnInfos)
 {
     Client_SpawnProjectiles(ProjectileTag, SpawnInfos);
+}
+
+void ANLPlayerController::DisableAction()
+{
+    bIsActionDisabled = true;
+
+    if (GetCharacter())
+    {
+        GetCharacter()->UnCrouch();
+    }
+}
+
+void ANLPlayerController::EnableAction()
+{
+    bIsActionDisabled = false;
 }

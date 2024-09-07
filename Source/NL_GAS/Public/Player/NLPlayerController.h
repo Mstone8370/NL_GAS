@@ -76,6 +76,8 @@ public:
 	ANLPlayerCharacter* GetNLPlayerCharacter();
 	ANLHUD* GetNLHUD();
 
+	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const override;
+
 	void InitHUD(APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS, UNLCharacterComponent* NLC);
 
 	FORCEINLINE bool IsListenServerController() const { return bIsListenServerController; }
@@ -176,6 +178,12 @@ protected:
 	UFUNCTION(Client, Unreliable)
 	void Client_SpawnProjectiles(const FGameplayTag& ProjectileTag, const TArray<FProjectileSpawnInfo>& SpawnInfos);
 
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_IsActionDisabled);
+	bool bIsActionDisabled;
+
+	UFUNCTION()
+	void OnRep_IsActionDisabled();
+
 public:
 	float GetBaseLookSensitivity() const { return LookSensitivity; }
 
@@ -209,4 +217,13 @@ public:
 	void ReplicateParticlesToClient(const FGameplayTag& ParticleTag, const TArray<FParticleSpawnInfo>& SpawnInfos);
 
 	void ReplicateProjectilesToClient(const FGameplayTag& ProjectileTag, const TArray<FProjectileSpawnInfo>& SpawnInfos);
+
+	UFUNCTION(BlueprintCallable)
+	void DisableAction();
+
+	UFUNCTION(BlueprintCallable)
+	void EnableAction();
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	FORCEINLINE bool IsActionDisabled() const { return bIsActionDisabled; }
 };

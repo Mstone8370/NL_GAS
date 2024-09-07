@@ -113,6 +113,12 @@ void UOverlayWidgetController::BindEvents()
                 OnMatchWinTeamDecided.Broadcast(WinTeam);
             }
         );
+        NLGS_Team->RoundStarted.BindLambda(
+            [this](int32 WaitTime)
+            {
+                OnRoundStarted.Broadcast(WaitTime);
+            }
+        );
     }
 }
 

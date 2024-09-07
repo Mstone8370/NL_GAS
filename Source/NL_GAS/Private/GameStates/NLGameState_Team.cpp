@@ -17,6 +17,7 @@ void ANLGameState_Team::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
     DOREPLIFETIME_CONDITION_NOTIFY(ANLGameState_Team, TeamScoreInfo, COND_None, REPNOTIFY_OnChanged);
     DOREPLIFETIME_CONDITION_NOTIFY(ANLGameState_Team, RoundState, COND_None, REPNOTIFY_OnChanged);
     DOREPLIFETIME_CONDITION_NOTIFY(ANLGameState_Team, TargetScore, COND_None, REPNOTIFY_OnChanged);
+    DOREPLIFETIME_CONDITION_NOTIFY(ANLGameState_Team, RoundStartWaitTime, COND_None, REPNOTIFY_OnChanged);
 }
 
 void ANLGameState_Team::AssignTeamToPlayer(APlayerState* PlayerState)
@@ -204,7 +205,7 @@ void ANLGameState_Team::HandleRoundHasStarted()
 {
     UE_LOG(LogTemp, Warning, TEXT("[NLGameState] Round has started"));
 
-    // TODO: 짧은 시간동안 시야 회전 외에 다른 행동 멈추게 함.
+    RoundStarted.ExecuteIfBound(RoundStartWaitTime);
 }
 
 void ANLGameState_Team::HandleRoundHasEnded()
@@ -265,19 +266,19 @@ void ANLGameState_Team::SetRoundState(FGameplayTag NewState)
     }
 }
 
-void ANLGameState_Team::Client_OnStartMatchTimerSet_Implementation(float Time)
+void ANLGameState_Team::Multicast_OnStartMatchTimerSet_Implementation(float Time)
 {
     UE_LOG(LogTemp, Warning, TEXT("StartMatch Timer Set: %f"), Time);
 }
 
-void ANLGameState_Team::Client_OnRoundWinTeamDecided_Implementation(int32 WinTeam)
+void ANLGameState_Team::Multicast_OnRoundWinTeamDecided_Implementation(int32 WinTeam)
 {
     UE_LOG(LogTemp, Warning, TEXT("Round Win Team Decided: %d"), WinTeam);
 
     RoundWinTeamDecided.ExecuteIfBound(WinTeam);
 }
 
-void ANLGameState_Team::Client_OnMatchWinTeamDecided_Implementation(int32 WinTeam)
+void ANLGameState_Team::Multicast_OnMatchWinTeamDecided_Implementation(int32 WinTeam)
 {
     UE_LOG(LogTemp, Warning, TEXT("Match Win Team Decided: %d"), WinTeam);
 

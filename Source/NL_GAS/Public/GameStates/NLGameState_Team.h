@@ -36,6 +36,8 @@ DECLARE_DELEGATE_OneParam(FTeamScoreUpdatedSignature, FTeamScoreInfo);
 DECLARE_DELEGATE_OneParam(FRoundWinTeamDecidedSignature, int32 /*WinTeam*/);
 DECLARE_DELEGATE_OneParam(FMatchWinTeamDecidedSignature, int32 /*WinTeam*/);
 
+DECLARE_DELEGATE_OneParam(FRoundStartedSignature, int32 /*RoundStartWaitTime*/);
+
 /**
  * 
  */
@@ -60,6 +62,11 @@ public:
 
 	FRoundWinTeamDecidedSignature RoundWinTeamDecided;
 	FMatchWinTeamDecidedSignature MatchWinTeamDecided;
+
+	FRoundStartedSignature RoundStarted;
+
+	UPROPERTY(BlueprintReadOnly, Replicated)
+	float RoundStartWaitTime;
 
 protected:
 	int32 ChooseTeam(APlayerState* Player);
@@ -113,11 +120,11 @@ public:
 	virtual void SetRoundState(FGameplayTag NewState);
 
 	UFUNCTION(NetMulticast, Reliable)
-	void Client_OnStartMatchTimerSet(float Time);
+	void Multicast_OnStartMatchTimerSet(float Time);
 
 	UFUNCTION(NetMulticast, Reliable)
-	void Client_OnRoundWinTeamDecided(int32 WinTeam);
+	void Multicast_OnRoundWinTeamDecided(int32 WinTeam);
 
 	UFUNCTION(NetMulticast, Reliable)
-	void Client_OnMatchWinTeamDecided(int32 WinTeam);
+	void Multicast_OnMatchWinTeamDecided(int32 WinTeam);
 };

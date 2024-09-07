@@ -22,6 +22,8 @@ public:
 
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 
+	virtual void StartPlay() override;
+
 	virtual void StartMatch() override;
 
 protected:
@@ -56,7 +58,13 @@ protected:
 
 	FTimerHandle MatchStartTimer;
 
-	float LoginWaitTime = 5.f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float LoginWaitTime = 3.f;
+
+	FTimerHandle RoundStartTimer;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float RoundStartWaitTime = 3.f;
 
 public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
@@ -73,4 +81,8 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void EndRound(int32 WinTeam, int32 WinTeamScore);
+
+	void EnableActionAllPlayer();
+
+	void DisableActionAllPlayer();
 };

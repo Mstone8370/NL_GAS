@@ -1033,6 +1033,12 @@ void ANLPlayerCharacter::HandleReset(bool bSimulated)
 {
     Super::HandleReset(bSimulated);
 
+    if (NLCharacterMovementComponent)
+    {
+        NLCharacterMovementComponent->bWantsToCrouch = false;
+        NLCharacterMovementComponent->bWantsToSprint = false;
+    }
+
     bRequestedStartupWeapons = false;
 
     Client_CharacterResetted();
@@ -1040,6 +1046,12 @@ void ANLPlayerCharacter::HandleReset(bool bSimulated)
 
 void ANLPlayerCharacter::Client_CharacterResetted_Implementation()
 {
+    if (NLCharacterMovementComponent)
+    {
+        NLCharacterMovementComponent->bWantsToCrouch = false;
+        NLCharacterMovementComponent->bWantsToSprint = false;
+    }
+
     bRequestedStartupWeapons = false;
 
     NLCharacterComponent->ClearWeapons();
