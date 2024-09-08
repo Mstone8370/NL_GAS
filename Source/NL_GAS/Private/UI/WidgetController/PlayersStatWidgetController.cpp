@@ -26,6 +26,7 @@ void UPlayersStatWidgetController::BroadcastInitialValues()
         APlayerState* PS = *It;
         ANLPlayerState* NLPS = Cast<ANLPlayerState>(PS);
 
+        // 위젯 초기상태엔 기존에 존재하던 플레이어도 추가하기 위함
         OnPlayerJoinedToTeam.Broadcast(NLPS, NLPS->GetTeam());
 
         if (NLPS)
