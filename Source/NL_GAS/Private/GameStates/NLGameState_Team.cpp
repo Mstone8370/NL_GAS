@@ -8,6 +8,7 @@
 #include "Player/NLPlayerState.h"
 #include "NLGameplayTags.h"
 #include "Kismet/GameplayStatics.h"
+#include "Interface/PlayerInterface.h"
 
 void ANLGameState_Team::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -223,6 +224,22 @@ void ANLGameState_Team::HandleRoundHasStarted()
     UE_LOG(LogTemp, Warning, TEXT("[NLGameState] Round has started"));
 
     RoundInProgress.ExecuteIfBound(RoundTimeLimit);
+
+    // 처음 폰 생성시 무기를 모두 받아도 들지 않는 경우를 위해서 여기에서 한번 더 확인
+    if (UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this))
+    {
+        const TArray<ULocalPlayer*>& LocalPlayers = GameInstance->GetLocalPlayers();
+        for (ULocalPlayer* LocalPlayer : LocalPlayers)
+        {
+            if (APawn* Pawn = LocalPlayer->PlayerController->GetPawn())
+            {
+                if (Pawn->Implements<UPlayerInterface>())
+                {
+                    IPlayerInterface::Execute_TrySwapWeaponSlot(Pawn, 0);
+                }
+            }
+        }
+    }
 }
 
 void ANLGameState_Team::HandleRoundHasEnded()
