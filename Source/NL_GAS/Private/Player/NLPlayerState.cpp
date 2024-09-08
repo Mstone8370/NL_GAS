@@ -13,6 +13,8 @@
 #include "NLGameplayTags.h"
 #include "Actors/WeaponActor.h"
 #include "GameFramework/GameState.h"
+#include "GameStates/NLGameState_Team.h"
+#include "Engine/World.h"
 
 ANLPlayerState::ANLPlayerState()
     : PlayerName(TEXT("Player"))
@@ -45,6 +47,12 @@ void ANLPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 void ANLPlayerState::OnRep_Team()
 {
     TeamAssigned(Team);
+
+    UWorld* World = GetWorld();
+    if (ANLGameState_Team* NLGS_Team = World->GetGameState<ANLGameState_Team>())
+    {
+        NLGS_Team->AddPlayerStateToTeam(this, Team);
+    }
 }
 
 void ANLPlayerState::OnRep_IsDead()

@@ -4,23 +4,39 @@
 
 #include "CoreMinimal.h"
 #include "Player/NLPlayerState.h"
-#include "NLPlayerState_FiringRange.generated.h"
+#include "GameplayTagContainer.h"
+#include "NLPlayerState_Team.generated.h"
 
 /**
- * 간단한 휘발성 플레이어 스탯을 저장하는 플레이어 스테이트
+ * 
  */
 UCLASS()
-class NL_GAS_API ANLPlayerState_FiringRange : public ANLPlayerState
+class NL_GAS_API ANLPlayerState_Team : public ANLPlayerState
 {
 	GENERATED_BODY()
 
+public:
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
 protected:
 	int32 FireCount = 0;
+
 	int32 HitCount = 0;
+
 	int32 CriticalHitCount = 0;
+
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_KillCount)
 	int32 KillCount = 0;
+
+	UFUNCTION()
+	void OnRep_KillCount();
+
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_DeathCount)
 	int32 DeathCount = 0;
-	
+
+	UFUNCTION()
+	void OnRep_DeathCount();
+
 public:
 	// Player Stats
 	virtual void SetPlayerStat(FGameplayTag StatTag, int32 Value) override;

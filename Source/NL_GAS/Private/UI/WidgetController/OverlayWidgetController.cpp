@@ -165,7 +165,7 @@ void UOverlayWidgetController::BroadcastInitialValues()
 
     if (GetNLPS())
     {
-        GetNLPS()->BroadcastAllPlayerStats();
+        GetNLPS()->BroadcastPlayerAllStats();
     }
 
     ANLGameState_Team* NLGS_Team = Cast<ANLGameState_Team>(GetWorld()->GetGameState());

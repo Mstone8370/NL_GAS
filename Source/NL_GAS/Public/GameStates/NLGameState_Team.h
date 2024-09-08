@@ -39,6 +39,9 @@ DECLARE_DELEGATE_OneParam(FRoundIntroBeginSignature, int32 /*RoundIntroTime*/);
 DECLARE_DELEGATE_OneParam(FRoundInProgressSignature, int32 /*RoundTimeLimit*/);
 DECLARE_DELEGATE_OneParam(FRoundTimeLimitUpdatedSignature, int32 /*RoundTimeLimit*/);
 
+DECLARE_MULTICAST_DELEGATE_TwoParams(FPlayerJoinedToTeamSignature, const APlayerState* /*Player*/, int32 /*Team*/);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FPlayerLeavedFromTeamSignature, const APlayerState* /*Player*/, int32 /*Team*/);
+
 /**
  * 
  */
@@ -67,6 +70,9 @@ public:
 	FRoundInProgressSignature RoundInProgress;
 	FRoundTimeLimitUpdatedSignature RoundTimeLimitUpdated;
 
+	FPlayerJoinedToTeamSignature PlayerJoinedToTeam;
+	FPlayerLeavedFromTeamSignature PlayerLeavedFromTeam;
+
 	UPROPERTY(BlueprintReadOnly, Replicated)
 	float RoundIntroTime;
 
@@ -79,11 +85,8 @@ public:
 protected:
 	int32 ChooseTeam(APlayerState* Player);
 
-	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_TeamInfo)
+	UPROPERTY(BlueprintReadOnly)
 	FTeamInfo TeamInfo;
-
-	UFUNCTION()
-	virtual void OnRep_TeamInfo(FTeamInfo& OldTeamInfo);
 
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_TeamScoreInfo)
 	FTeamScoreInfo TeamScoreInfo;
@@ -140,4 +143,12 @@ public:
 
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_OnMatchWinTeamDecided(int32 WinTeam);
+
+	virtual void AddPlayerState(APlayerState* PlayerState) override;
+
+	virtual void RemovePlayerState(APlayerState* PlayerState) override;
+
+	virtual void AddPlayerStateToTeam(APlayerState* PlayerState, int32 Team);
+
+	virtual void RemovePlayerStateToTeam(APlayerState* PlayerState, int32 Team);
 };

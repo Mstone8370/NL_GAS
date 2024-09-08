@@ -1,11 +1,30 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Player/NLPlayerState_FiringRange.h"
+#include "Player/NLPlayerState_Team.h"
 
+#include "Net/UnrealNetwork.h"
 #include "NLGameplayTags.h"
 
-void ANLPlayerState_FiringRange::SetPlayerStat(FGameplayTag StatTag, int32 Value)
+void ANLPlayerState_Team::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    DOREPLIFETIME_CONDITION_NOTIFY(ANLPlayerState_Team, KillCount, COND_None, REPNOTIFY_OnChanged);
+    DOREPLIFETIME_CONDITION_NOTIFY(ANLPlayerState_Team, DeathCount, COND_None, REPNOTIFY_OnChanged);
+}
+
+void ANLPlayerState_Team::OnRep_KillCount()
+{
+    OnPlayerStatUpdated.Broadcast(this, Stat_Kill, KillCount);
+}
+
+void ANLPlayerState_Team::OnRep_DeathCount()
+{
+    OnPlayerStatUpdated.Broadcast(this, Stat_Death, DeathCount);
+}
+
+void ANLPlayerState_Team::SetPlayerStat(FGameplayTag StatTag, int32 Value)
 {
     if (StatTag.IsValid())
     {
@@ -33,12 +52,12 @@ void ANLPlayerState_FiringRange::SetPlayerStat(FGameplayTag StatTag, int32 Value
     }
 }
 
-void ANLPlayerState_FiringRange::AddPlayerStat(FGameplayTag StatTag, int32 ValueAdded)
+void ANLPlayerState_Team::AddPlayerStat(FGameplayTag StatTag, int32 ValueAdded)
 {
     SetPlayerStat(StatTag, GetPlayerStat(StatTag) + ValueAdded);
 }
 
-int32 ANLPlayerState_FiringRange::GetPlayerStat(FGameplayTag StatTag) const
+int32 ANLPlayerState_Team::GetPlayerStat(FGameplayTag StatTag) const
 {
     if (StatTag.IsValid())
     {
@@ -66,7 +85,7 @@ int32 ANLPlayerState_FiringRange::GetPlayerStat(FGameplayTag StatTag) const
     return 0;
 }
 
-void ANLPlayerState_FiringRange::BroadcastPlayerAllStats() const
+void ANLPlayerState_Team::BroadcastPlayerAllStats() const
 {
     OnPlayerStatUpdated.Broadcast(this, Stat_Fire, FireCount);
     OnPlayerStatUpdated.Broadcast(this, Stat_Hit, HitCount);
@@ -75,7 +94,7 @@ void ANLPlayerState_FiringRange::BroadcastPlayerAllStats() const
     OnPlayerStatUpdated.Broadcast(this, Stat_Death, DeathCount);
 }
 
-void ANLPlayerState_FiringRange::ResetPlayerStats()
+void ANLPlayerState_Team::ResetPlayerStats()
 {
     SetPlayerStat(Stat_Fire, 0);
     SetPlayerStat(Stat_Hit, 0);

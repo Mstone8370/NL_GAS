@@ -72,7 +72,7 @@ public:
 	virtual int32 GetPlayerStat(FGameplayTag StatTag) const { return 0; }
 
 	UFUNCTION(BlueprintCallable, Category = "PlayerStats")
-	virtual void BroadcastAllPlayerStats() const {};
+	virtual void BroadcastPlayerAllStats() const {};
 
 	FOnPlayerStatUpdatedSignature& GetPlayerStatUpdatedDelegate() { return OnPlayerStatUpdated; }
 	// Player Stats
@@ -86,4 +86,7 @@ public:
 	bool IsDead() const { return bIsDead; }
 
 	void HandleDeath(AActor* SourceActor);
+
+	UFUNCTION(BlueprintCallable, Category = "PlayerStats")
+	virtual void ResetPlayerStats() {}
 };

@@ -14,7 +14,6 @@ void ANLGameState_Team::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-    DOREPLIFETIME_CONDITION_NOTIFY(ANLGameState_Team, TeamInfo, COND_None, REPNOTIFY_OnChanged);
     DOREPLIFETIME_CONDITION_NOTIFY(ANLGameState_Team, TeamScoreInfo, COND_None, REPNOTIFY_OnChanged);
     DOREPLIFETIME_CONDITION_NOTIFY(ANLGameState_Team, RoundState, COND_None, REPNOTIFY_OnChanged);
     DOREPLIFETIME_CONDITION_NOTIFY(ANLGameState_Team, TargetScore, COND_None, REPNOTIFY_OnChanged);
@@ -25,27 +24,7 @@ void ANLGameState_Team::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 void ANLGameState_Team::AssignTeamToPlayer(APlayerState* PlayerState)
 {
     int32 NewTeam = ChooseTeam(PlayerState);
-
-    if (NewTeam)
-    {
-        if (TeamInfo.Team_1.Contains(PlayerState))
-        {
-            TeamInfo.Team_1.Remove(PlayerState);
-        }
-        if (TeamInfo.Team_2.Contains(PlayerState))
-        {
-            TeamInfo.Team_2.Remove(PlayerState);
-        }
-
-        if (NewTeam == 1)
-        {
-            TeamInfo.Team_1.Add(PlayerState);
-        }
-        else if (NewTeam == 2)
-        {
-            TeamInfo.Team_2.Add(PlayerState);
-        }
-    }
+    AddPlayerStateToTeam(PlayerState, NewTeam);
 
     if (ANLPlayerState* NLPS = Cast<ANLPlayerState>(PlayerState))
     {
@@ -141,40 +120,6 @@ int32 ANLGameState_Team::ChooseTeam(APlayerState* Player)
     }
 
     return Ret;
-}
-
-void ANLGameState_Team::OnRep_TeamInfo(FTeamInfo& OldTeamInfo)
-{
-    TSet<APlayerState*> Checked;
-
-    for (APlayerState* PS : TeamInfo.Team_1)
-    {
-        if (ANLPlayerState* NLPS = Cast<ANLPlayerState>(PS))
-        {
-            NLPS->TeamAssigned(1);
-        }
-        Checked.Add(PS);
-    }
-
-    for (APlayerState* PS : TeamInfo.Team_2)
-    {
-        if (ANLPlayerState* NLPS = Cast<ANLPlayerState>(PS))
-        {
-            NLPS->TeamAssigned(2);
-        }
-        Checked.Add(PS);
-    }
-
-    for (APlayerState* PS : PlayerArray)
-    {
-        if (!Checked.Contains(PS))
-        {
-            if (ANLPlayerState* NLPS = Cast<ANLPlayerState>(PS))
-            {
-                NLPS->TeamAssigned(0);
-            }
-        }
-    }
 }
 
 void ANLGameState_Team::OnRep_TeamScoreInfo()
@@ -317,4 +262,67 @@ void ANLGameState_Team::Multicast_OnMatchWinTeamDecided_Implementation(int32 Win
     UE_LOG(LogTemp, Warning, TEXT("Match Win Team Decided: %d"), WinTeam);
 
     MatchWinTeamDecided.ExecuteIfBound(WinTeam);
+}
+
+/**
+* 로컬에서 플레이어 스테이트가 생성되었을때, 제거될때 월드의 게임 스테이트를 찾아서 
+* 아래의 함수를 (AddPlayerState, RemovePlayerState)
+* 호출하는 방식으로 로컬의 PlayerArray를 동기화함. PlayerArray는 레플리케이트되지 않음.
+* 이런 방식으로 플레이어 팀원 목록을 동기화 하는 방식을 생각해볼수 있음.
+* 플레이어 스테이트에 팀을 레플리케이트되게 해서 업데이트 되면 해당 사실을 알리는 함수를 호출하는 방식으로
+* 로컬에서도 팀원 리스트를 동기화할수 있음.
+* 그리고 로컬에 있는 플레이어 스테이트의 팀이 할당되었다면 그때부터 UI에도 표시할 수 있는 상태.
+*/
+
+void ANLGameState_Team::AddPlayerState(APlayerState* PlayerState)
+{
+    Super::AddPlayerState(PlayerState);
+}
+
+void ANLGameState_Team::RemovePlayerState(APlayerState* PlayerState)
+{
+    Super::RemovePlayerState(PlayerState);
+
+    int32 LeavedTeam = 0;
+    if (TeamInfo.Team_1.Contains(PlayerState))
+    {
+        TeamInfo.Team_1.Remove(PlayerState);
+        LeavedTeam = 1;
+    }
+    if (TeamInfo.Team_2.Contains(PlayerState))
+    {
+        TeamInfo.Team_2.Remove(PlayerState);
+        LeavedTeam = 2;
+    }
+    PlayerLeavedFromTeam.Broadcast(PlayerState, LeavedTeam);
+}
+
+void ANLGameState_Team::AddPlayerStateToTeam(APlayerState* PlayerState, int32 Team)
+{
+    int32 LeavedTeam = 0;
+    if (TeamInfo.Team_1.Contains(PlayerState))
+    {
+        TeamInfo.Team_1.Remove(PlayerState);
+        LeavedTeam = 1;
+    }
+    if (TeamInfo.Team_2.Contains(PlayerState))
+    {
+        TeamInfo.Team_2.Remove(PlayerState);
+        LeavedTeam = 2;
+    }
+    PlayerLeavedFromTeam.Broadcast(PlayerState, LeavedTeam);
+
+    if (Team == 1)
+    {
+        TeamInfo.Team_1.AddUnique(PlayerState);
+    }
+    else if (Team == 2)
+    {
+        TeamInfo.Team_2.AddUnique(PlayerState);
+    }
+    PlayerJoinedToTeam.Broadcast(PlayerState, Team);
+}
+
+void ANLGameState_Team::RemovePlayerStateToTeam(APlayerState* PlayerState, int32 Team)
+{
 }
