@@ -94,7 +94,7 @@ void UOverlayWidgetController::BindEvents()
     GetNLPS()->GetPlayerStatUpdatedDelegate().AddLambda(
         [this](const APlayerState* PS, const FGameplayTag& Tag, int32 Value)
         {
-            PlayerStatUpdated.Broadcast(PS, Tag, Value);
+            OnPlayerStatUpdated.Broadcast(PS, Tag, Value);
         }
     );
 

@@ -50,6 +50,8 @@ struct FWidgetControllerParams
 	TObjectPtr<UNLCharacterComponent> NLCharacterComponent = nullptr;
 };
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnPlayerStatUpdatedSignature, const APlayerState*, Player, const FGameplayTag&, StatTag, int32, Value);
+
 /**
  * 
  */
@@ -67,6 +69,7 @@ public:
 	virtual void BroadcastInitialValues();
 
 	ANLPlayerController* GetNLPC();
+	UFUNCTION(BlueprintCallable, BlueprintPure)
 	ANLPlayerState* GetNLPS();
 	UNLAbilitySystemComponent* GetNLASC();
 	UNLAttributeSet* GetNLAS();

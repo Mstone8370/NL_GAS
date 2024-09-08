@@ -8,6 +8,7 @@
 #include "UI/UserWidget/NLUserWidget.h"
 #include "UI/WidgetController/NLWidgetController.h"
 #include "UI/WidgetController/OverlayWidgetController.h"
+#include "UI/WidgetController/PlayersStatWidgetController.h"
 
 void ANLHUD::Initialize(APlayerController* PC, APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS, UNLCharacterComponent* NLC)
 {
@@ -26,6 +27,8 @@ void ANLHUD::Initialize(APlayerController* PC, APlayerState* PS, UAbilitySystemC
     WidgetController->BroadcastInitialValues();
 
     OverlayWidget->AddToViewport();
+
+    InitPlayersStatWidgetController(PC, PS, ASC, AS, NLC);
 
     OnNativeInitialized();
 
@@ -72,4 +75,16 @@ UOverlayWidgetController* ANLHUD::GetOverlayWidgetController(APlayerController* 
         OverlayWidgetController->BindEvents();
     }
     return OverlayWidgetController;
+}
+
+UPlayersStatWidgetController* ANLHUD::InitPlayersStatWidgetController(APlayerController* PC, APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS, UNLCharacterComponent* NLC)
+{
+    if (!PlayersStatWidgetController)
+    {
+        PlayersStatWidgetController = NewObject<UPlayersStatWidgetController>(this, PlayersStatWidgetControllerClass);
+        FWidgetControllerParams Params(PC, PS, ASC, AS, NLC);
+        PlayersStatWidgetController->Initialize(Params);
+        PlayersStatWidgetController->BindEvents();
+    }
+    return PlayersStatWidgetController;
 }

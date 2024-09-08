@@ -16,6 +16,7 @@ struct FParticleSpawnInfo;
 struct FProjectileInfo;
 struct FProjectileSpawnInfo;
 class ANLProjectile;
+class UPlayersStatWidgetController;
 
 /**
  * 
@@ -89,4 +90,7 @@ public:
 
 	// Only for Local player
 	static void ApplyTeamAppearanceToOtherPlayers(const APlayerState* LocalPlayerState, const int32 LocalPlayerTeam);
+
+	UFUNCTION(BlueprintCallable, Category = "NLFunctionLibrary")
+	static UPlayersStatWidgetController* GetPlayersStatWidgetController(const UObject* WorldContextObject);
 };

@@ -471,3 +471,15 @@ void UNLFunctionLibrary::ApplyTeamAppearanceToOtherPlayers(const APlayerState* L
         }
     }
 }
+
+UPlayersStatWidgetController* UNLFunctionLibrary::GetPlayersStatWidgetController(const UObject* WorldContextObject)
+{
+    if (APlayerController* PC = UGameplayStatics::GetPlayerController(WorldContextObject, 0))
+    {
+        if (ANLHUD* NLHUD = PC->GetHUD<ANLHUD>())
+        {
+            return NLHUD->GetPlayersStatWidgetController();
+        }
+    }
+    return nullptr;
+}

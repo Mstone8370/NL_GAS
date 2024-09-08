@@ -11,7 +11,7 @@
 class UAbilitySystemComponent;
 class UAttributeSet;
 
-DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnPlayerStatUpdatedSignature, const APlayerState* /*PlayerState*/, const FGameplayTag& /*StatTag*/, int32 /*Value*/);
+DECLARE_MULTICAST_DELEGATE_ThreeParams(FPlayerStatUpdatedSignature, const APlayerState* /*PlayerState*/, const FGameplayTag& /*StatTag*/, int32 /*Value*/);
 
 /**
  * 
@@ -38,7 +38,7 @@ protected:
 
 	FString PlayerName;
 
-	FOnPlayerStatUpdatedSignature OnPlayerStatUpdated;
+	FPlayerStatUpdatedSignature PlayerStatUpdated;
 
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_Team)
 	int32 Team;
@@ -74,7 +74,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "PlayerStats")
 	virtual void BroadcastPlayerAllStats() const {};
 
-	FOnPlayerStatUpdatedSignature& GetPlayerStatUpdatedDelegate() { return OnPlayerStatUpdated; }
+	FPlayerStatUpdatedSignature& GetPlayerStatUpdatedDelegate() { return PlayerStatUpdated; }
 	// Player Stats
 
 	virtual void TeamAssigned(int32 NewTeam);

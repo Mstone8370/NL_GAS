@@ -29,7 +29,7 @@ void ANLPlayerState_FiringRange::SetPlayerStat(FGameplayTag StatTag, int32 Value
         {
             DeathCount = FMath::Max(0, Value);
         }
-        OnPlayerStatUpdated.Broadcast(this, StatTag, Value);
+        PlayerStatUpdated.Broadcast(this, StatTag, Value);
     }
 }
 
@@ -68,11 +68,11 @@ int32 ANLPlayerState_FiringRange::GetPlayerStat(FGameplayTag StatTag) const
 
 void ANLPlayerState_FiringRange::BroadcastPlayerAllStats() const
 {
-    OnPlayerStatUpdated.Broadcast(this, Stat_Fire, FireCount);
-    OnPlayerStatUpdated.Broadcast(this, Stat_Hit, HitCount);
-    OnPlayerStatUpdated.Broadcast(this, Stat_Hit_Critical, CriticalHitCount);
-    OnPlayerStatUpdated.Broadcast(this, Stat_Kill, KillCount);
-    OnPlayerStatUpdated.Broadcast(this, Stat_Death, DeathCount);
+    PlayerStatUpdated.Broadcast(this, Stat_Fire, FireCount);
+    PlayerStatUpdated.Broadcast(this, Stat_Hit, HitCount);
+    PlayerStatUpdated.Broadcast(this, Stat_Hit_Critical, CriticalHitCount);
+    PlayerStatUpdated.Broadcast(this, Stat_Kill, KillCount);
+    PlayerStatUpdated.Broadcast(this, Stat_Death, DeathCount);
 }
 
 void ANLPlayerState_FiringRange::ResetPlayerStats()

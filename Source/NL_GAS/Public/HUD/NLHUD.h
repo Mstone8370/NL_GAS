@@ -9,8 +9,9 @@
 class UAbilitySystemComponent;
 class UAttributeSet;
 class UNLUserWidget;
-class UOverlayWidgetController;
 class UNLCharacterComponent;
+class UOverlayWidgetController;
+class UPlayersStatWidgetController;
 
 /**
  * 
@@ -45,6 +46,14 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	bool bNativeInitialized = false;
 
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UPlayersStatWidgetController> PlayersStatWidgetControllerClass;
+
+	UPROPERTY(BlueprintReadOnly)
+	TObjectPtr<UPlayersStatWidgetController> PlayersStatWidgetController;
+	
+	UPlayersStatWidgetController* InitPlayersStatWidgetController(APlayerController* PC, APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS, UNLCharacterComponent* NLC);
+
 public:
 	UOverlayWidgetController* GetOverlayWidgetController(APlayerController* PC, APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS, UNLCharacterComponent* NLC);
 
@@ -56,4 +65,6 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnCharacterRespawn();
+
+	UPlayersStatWidgetController* GetPlayersStatWidgetController() const { return PlayersStatWidgetController; }
 };
