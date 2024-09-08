@@ -113,10 +113,16 @@ void UOverlayWidgetController::BindEvents()
                 OnMatchWinTeamDecided.Broadcast(WinTeam);
             }
         );
-        NLGS_Team->RoundStarted.BindLambda(
-            [this](int32 WaitTime)
+        NLGS_Team->RoundIntroBegin.BindLambda(
+            [this](int32 RoundIntroTime)
             {
-                OnRoundStarted.Broadcast(WaitTime);
+                OnRoundIntroBegin.Broadcast(RoundIntroTime);
+            }
+        );
+        NLGS_Team->RoundInProgress.BindLambda(
+            [this](int32 RoundTimeLimit)
+            {
+                OnRoundInProgress.Broadcast(RoundTimeLimit);
             }
         );
         NLGS_Team->TeamScoreUpdated.BindLambda(
@@ -142,12 +148,6 @@ void UOverlayWidgetController::BindEvents()
             [this](int32 TargetScore)
             {
                 OnTargetScoreUpdated.Broadcast(TargetScore);
-            }
-        );
-        NLGS_Team->RoundTimeLimitUpdated.BindLambda(
-            [this](int32 RoundTimeLimit)
-            {
-                OnRoundTimeLimitUpdated.Broadcast(RoundTimeLimit);
             }
         );
     }
@@ -188,8 +188,6 @@ void UOverlayWidgetController::BroadcastInitialValues()
         OnTeamScoreUpdated.Broadcast(TeamScoreInfo.Team_1, TeamScoreInfo.Team_2);
 
         OnTargetScoreUpdated.Broadcast(NLGS_Team->GetTargetScore());
-
-        OnRoundTimeLimitUpdated.Broadcast(NLGS_Team->RoundTimeLimit);
     }
 }
 

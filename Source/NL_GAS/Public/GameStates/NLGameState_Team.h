@@ -35,7 +35,8 @@ DECLARE_DELEGATE_OneParam(FTeamScoreUpdatedSignature, FTeamScoreInfo);
 DECLARE_DELEGATE_OneParam(FTargetScoreUpdatedSignature, int32 /*TargetScore*/);
 DECLARE_DELEGATE_OneParam(FRoundWinTeamDecidedSignature, int32 /*WinTeam*/);
 DECLARE_DELEGATE_OneParam(FMatchWinTeamDecidedSignature, int32 /*WinTeam*/);
-DECLARE_DELEGATE_OneParam(FRoundStartedSignature, int32 /*RoundStartWaitTime*/);
+DECLARE_DELEGATE_OneParam(FRoundIntroBeginSignature, int32 /*RoundIntroTime*/);
+DECLARE_DELEGATE_OneParam(FRoundInProgressSignature, int32 /*RoundTimeLimit*/);
 DECLARE_DELEGATE_OneParam(FRoundTimeLimitUpdatedSignature, int32 /*RoundTimeLimit*/);
 
 /**
@@ -62,16 +63,17 @@ public:
 	FTargetScoreUpdatedSignature TargetScoreUpdated;
 	FRoundWinTeamDecidedSignature RoundWinTeamDecided;
 	FMatchWinTeamDecidedSignature MatchWinTeamDecided;
-	FRoundStartedSignature RoundStarted;
+	FRoundIntroBeginSignature RoundIntroBegin;
+	FRoundInProgressSignature RoundInProgress;
 	FRoundTimeLimitUpdatedSignature RoundTimeLimitUpdated;
 
 	UPROPERTY(BlueprintReadOnly, Replicated)
-	float RoundStartWaitTime;
+	float RoundIntroTime;
 
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_TargetScore)
 	int32 TargetScore;
 
-	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_RoundTimeLimit)
+	UPROPERTY(BlueprintReadOnly, Replicated)
 	int32 RoundTimeLimit;
 
 protected:
@@ -98,13 +100,12 @@ protected:
 	UFUNCTION()
 	void OnRep_TargetScore();
 
-	UFUNCTION()
-	void OnRep_RoundTimeLimit();
-
 	UPROPERTY()
 	TMap<APlayerState*, bool> PlayerSurvivalStatus;
 
 	virtual void HandleRoundIsWaitingToStart();
+
+	virtual void HandleRoundIntro();
 
 	virtual void HandleRoundHasStarted();
 

@@ -39,7 +39,7 @@ void ANLGameMode_Team::StartPlay()
 
     if (GetNLGS_Team())
     {
-        GetNLGS_Team()->RoundStartWaitTime = RoundStartWaitTime;
+        GetNLGS_Team()->RoundIntroTime = RoundIntroTime;
         GetNLGS_Team()->RoundTimeLimit = RoundTimeLimit;
         GetNLGS_Team()->TargetScore = TargetScore;
     }
@@ -194,6 +194,10 @@ void ANLGameMode_Team::OnRoundStateSet()
     {
         HandleRoundIsWaitingToStart();
     }
+    else if (RoundState == RoundState_RoundIntro)
+    {
+        HandleRoundIntro();
+    }
     else if (RoundState == RoundState_InProgress)
     {
         HandleRoundHasStarted();
@@ -209,7 +213,7 @@ void ANLGameMode_Team::HandleRoundIsWaitingToStart()
     DisableActionAllPlayer();
 }
 
-void ANLGameMode_Team::HandleRoundHasStarted()
+void ANLGameMode_Team::HandleRoundIntro()
 {
     for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
     {
@@ -221,16 +225,21 @@ void ANLGameMode_Team::HandleRoundHasStarted()
 
     DisableActionAllPlayer();
 
-    // 라운드 시작되면 일정 시간동안 대기
+    // 일정 시간 후에 라운드 시작
     FTimerDelegate Dele;
     Dele.BindLambda(
         [this]()
         {
-            EnableActionAllPlayer();
-            SetRoundTimer();
+            SetRoundState(RoundState_InProgress);
         }
     );
-    GetWorldTimerManager().SetTimer(RoundStartTimer, Dele, RoundStartWaitTime, false);
+    GetWorldTimerManager().SetTimer(RoundIntroTimer, Dele, RoundIntroTime, false);
+}
+
+void ANLGameMode_Team::HandleRoundHasStarted()
+{
+    EnableActionAllPlayer();
+    SetRoundTimer();
 }
 
 void ANLGameMode_Team::HandleRoundHasEnded()
@@ -240,22 +249,44 @@ void ANLGameMode_Team::HandleRoundHasEnded()
 
 void ANLGameMode_Team::StartRound()
 {
-    SetRoundState(RoundState_InProgress);
+    SetRoundState(RoundState_RoundIntro);
 }
 
 void ANLGameMode_Team::EndRound(int32 WinTeam, int32 WinTeamScore)
 {
-    SetRoundState(RoundState_End);
+    GetWorldTimerManager().ClearTimer(RoundTimeLimitTimer);
 
     if (WinTeamScore == TargetScore)
     {
         GetNLGS_Team()->Multicast_OnMatchWinTeamDecided(WinTeam);
+
+        SetRoundState(RoundState_End);
+
+        // TODO: 일정시간 후에 매치 종료
+        FTimerDelegate Dele;
+        Dele.BindLambda(
+            [this]()
+            {
+                EndMatch();
+            }
+        );
+        GetWorldTimerManager().SetTimer(RoundRestartTimer, Dele, RoundRestartTime, false);
     }
     else
     {
         GetNLGS_Team()->Multicast_OnRoundWinTeamDecided(WinTeam);
 
-        // TODO: 일정시간 후에 라운드 재시작
+        SetRoundState(RoundState_WaitingToStart);
+
+        // 일정시간 후에 라운드 재시작
+        FTimerDelegate Dele;
+        Dele.BindLambda(
+            [this]()
+            {
+                StartRound();
+            }
+        );
+        GetWorldTimerManager().SetTimer(RoundRestartTimer, Dele, RoundRestartTime, false);
     }
 }
 

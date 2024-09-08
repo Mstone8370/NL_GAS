@@ -27,8 +27,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnTeamScoreUpdatedSignature, int32
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTargetScoreUpdatedSignature, int32, TargetScore);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRoundWinTeamDecidedSignature, int32, WinTeam);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMatchWinTeamDecidedSignature, int32, WinTeam);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRoundStartedSignature, int32, WaitTime);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRoundTimeLimitUpdatedSignature, int32, RoundTimeLimit);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRoundIntroBeginSignature, int32, RoundIntroTime);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRoundInProgressSignature, int32, RoundTimeLimit);
 
 /**
  * 
@@ -95,16 +95,16 @@ public:
 	FOnMatchWinTeamDecidedSignature OnMatchWinTeamDecided;
 
 	UPROPERTY(BlueprintAssignable)
-	FOnRoundStartedSignature OnRoundStarted;
+	FOnRoundIntroBeginSignature OnRoundIntroBegin;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnRoundInProgressSignature OnRoundInProgress;
 
 	UPROPERTY(BlueprintAssignable)
 	FOnTeamScoreUpdatedSignature OnTeamScoreUpdated;
 
 	UPROPERTY(BlueprintAssignable)
 	FOnTargetScoreUpdatedSignature OnTargetScoreUpdated;
-
-	UPROPERTY(BlueprintAssignable)
-	FOnRoundTimeLimitUpdatedSignature OnRoundTimeLimitUpdated;
 
 protected:
 	UFUNCTION()

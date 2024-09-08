@@ -55,6 +55,8 @@ protected:
 
 	virtual void HandleRoundIsWaitingToStart();
 
+	virtual void HandleRoundIntro();
+
 	virtual void HandleRoundHasStarted();
 
 	virtual void HandleRoundHasEnded();
@@ -70,10 +72,15 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float LoginWaitTime = 3.f;
 
-	FTimerHandle RoundStartTimer;
+	FTimerHandle RoundIntroTimer;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	float RoundStartWaitTime = 3.f;
+	float RoundIntroTime = 3.f;
+
+	FTimerHandle RoundRestartTimer;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float RoundRestartTime = 3.f;
 
 public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)

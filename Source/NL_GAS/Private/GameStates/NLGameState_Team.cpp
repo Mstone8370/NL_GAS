@@ -18,7 +18,7 @@ void ANLGameState_Team::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
     DOREPLIFETIME_CONDITION_NOTIFY(ANLGameState_Team, RoundState, COND_None, REPNOTIFY_OnChanged);
     DOREPLIFETIME_CONDITION_NOTIFY(ANLGameState_Team, TargetScore, COND_None, REPNOTIFY_OnChanged);
     DOREPLIFETIME_CONDITION_NOTIFY(ANLGameState_Team, RoundTimeLimit, COND_None, REPNOTIFY_OnChanged);
-    DOREPLIFETIME_CONDITION_NOTIFY(ANLGameState_Team, RoundStartWaitTime, COND_None, REPNOTIFY_OnChanged);
+    DOREPLIFETIME_CONDITION_NOTIFY(ANLGameState_Team, RoundIntroTime, COND_None, REPNOTIFY_OnChanged);
 }
 
 void ANLGameState_Team::AssignTeamToPlayer(APlayerState* PlayerState)
@@ -187,6 +187,10 @@ void ANLGameState_Team::OnRep_RoundState()
     {
         HandleRoundIsWaitingToStart();
     }
+    else if (RoundState == RoundState_RoundIntro)
+    {
+        HandleRoundIntro();
+    }
     else if (RoundState == RoundState_InProgress)
     {
         HandleRoundHasStarted();
@@ -202,21 +206,23 @@ void ANLGameState_Team::OnRep_TargetScore()
     TargetScoreUpdated.ExecuteIfBound(TargetScore);
 }
 
-void ANLGameState_Team::OnRep_RoundTimeLimit()
-{
-    RoundTimeLimitUpdated.ExecuteIfBound(RoundTimeLimit);
-}
-
 void ANLGameState_Team::HandleRoundIsWaitingToStart()
 {
     UE_LOG(LogTemp, Warning, TEXT("[NLGameState] Round is waiting to start"));
+}
+
+void ANLGameState_Team::HandleRoundIntro()
+{
+    UE_LOG(LogTemp, Warning, TEXT("[NLGameState] Round Intro"));
+
+    RoundIntroBegin.ExecuteIfBound(RoundIntroTime);
 }
 
 void ANLGameState_Team::HandleRoundHasStarted()
 {
     UE_LOG(LogTemp, Warning, TEXT("[NLGameState] Round has started"));
 
-    RoundStarted.ExecuteIfBound(RoundStartWaitTime);
+    RoundInProgress.ExecuteIfBound(RoundTimeLimit);
 }
 
 void ANLGameState_Team::HandleRoundHasEnded()

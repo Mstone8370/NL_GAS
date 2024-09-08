@@ -106,5 +106,6 @@ UE_DEFINE_GAMEPLAY_TAG(Stat_Death, "Stat.Death");
 
 // Player Stat Tag
 UE_DEFINE_GAMEPLAY_TAG(RoundState_WaitingToStart, "RoundState.WaitingToStart");
+UE_DEFINE_GAMEPLAY_TAG(RoundState_RoundIntro, "RoundState.RoundIntro");
 UE_DEFINE_GAMEPLAY_TAG(RoundState_InProgress, "RoundState.InProgress");
 UE_DEFINE_GAMEPLAY_TAG(RoundState_End, "RoundState.End");
