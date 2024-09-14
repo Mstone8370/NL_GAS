@@ -25,10 +25,10 @@ struct FTeamScoreInfo
 	GENERATED_BODY()
 
 	UPROPERTY(BlueprintReadOnly)
-	int32 Team_1;
+	int32 Team_1 = 0;
 
 	UPROPERTY(BlueprintReadOnly)
-	int32 Team_2;
+	int32 Team_2 = 0;
 };
 
 DECLARE_DELEGATE_OneParam(FTeamScoreUpdatedSignature, FTeamScoreInfo);

@@ -584,9 +584,9 @@ void ANLPlayerController::OnPlayerDeath(AActor* SourceActor, FGameplayTag Damage
     }
 }
 
-void ANLPlayerController::AddKillLog_Implementation(AActor* SourceActor, AActor* TargetActor, FGameplayTag DamageType)
+void ANLPlayerController::AddKillLog_Implementation(APlayerState* SourcePS, APlayerState* TargetPS, FGameplayTag DamageType)
 {
-    OnReceivedKillLog.Broadcast(SourceActor, TargetActor, DamageType);
+    OnReceivedKillLog.Broadcast(SourcePS, TargetPS, DamageType);
 }
 
 void ANLPlayerController::SetRespawnTime(float RespawnTime)

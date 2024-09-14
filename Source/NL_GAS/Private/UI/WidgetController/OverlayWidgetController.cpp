@@ -43,9 +43,9 @@ void UOverlayWidgetController::BindEvents()
         }
     );
     GetNLPC()->OnReceivedKillLog.AddLambda(
-        [this](AActor* SourceActor, AActor* TargetActor, FGameplayTag DamageType)
+        [this](APlayerState* SourcePS, APlayerState* TargetPS, FGameplayTag DamageType)
         {
-            ReceivedKillLog.Broadcast(SourceActor, TargetActor, DamageType);
+            ReceivedKillLog.Broadcast(SourcePS, TargetPS, DamageType);
         }
     );
     GetNLPC()->OnRespawnable.AddLambda(
@@ -104,13 +104,15 @@ void UOverlayWidgetController::BindEvents()
         NLGS_Team->RoundWinTeamDecided.BindLambda(
             [this](int32 WinTeam)
             {
-                OnRoundWinTeamDecided.Broadcast(WinTeam);
+                int32 LocalPlayerTeam = UNLFunctionLibrary::GetLocalPlayerTeam(this);
+                OnRoundWinTeamDecided.Broadcast(WinTeam == LocalPlayerTeam);
             }
         );
         NLGS_Team->MatchWinTeamDecided.BindLambda(
             [this](int32 WinTeam)
             {
-                OnMatchWinTeamDecided.Broadcast(WinTeam);
+                int32 LocalPlayerTeam = UNLFunctionLibrary::GetLocalPlayerTeam(this);
+                OnMatchWinTeamDecided.Broadcast(WinTeam == LocalPlayerTeam);
             }
         );
         NLGS_Team->RoundIntroBegin.BindLambda(

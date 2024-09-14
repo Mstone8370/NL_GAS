@@ -59,16 +59,31 @@ void ANLGameMode::BeginPlay()
 
 void ANLGameMode::OnPlayerDied(AActor* SourceActor, AActor* TargetActor, FGameplayTag DamageType)
 {
-    MulticastKillLog(SourceActor, TargetActor, DamageType);
-
-    SetRespawnTime(TargetActor); // TODO: 게임 모드에 맞게
-
     APawn* SourcePawn = Cast<APawn>(SourceActor);
     APawn* TargetPawn = Cast<APawn>(TargetActor);
-    if (GetNLGS() && SourcePawn && TargetPawn)
+    
+    if (SourcePawn && TargetPawn)
     {
-        GetNLGS()->OnPlayerDied(SourcePawn->GetPlayerState(), TargetPawn->GetPlayerState());
+        APlayerState* SourcePS = SourcePawn->GetPlayerState();
+        APlayerState* TargetPS = TargetPawn->GetPlayerState();
+
+        MulticastKillLog(SourcePS, TargetPS, DamageType);
+
+        if (ShouldSetRespawnTimer())
+        {
+            SetRespawnTime(TargetActor);
+        }
+
+        if (GetNLGS())
+        {
+            GetNLGS()->OnPlayerDied(SourcePS, TargetPS);
+        }
     }
+}
+
+bool ANLGameMode::ShouldSetRespawnTimer() const
+{
+    return true;
 }
 
 void ANLGameMode::SetRespawnTime(AActor* TargetActor)
@@ -82,7 +97,7 @@ void ANLGameMode::SetRespawnTime(AActor* TargetActor)
     }
 }
 
-void ANLGameMode::MulticastKillLog(AActor* SourceActor, AActor* TargetActor, FGameplayTag DamageType)
+void ANLGameMode::MulticastKillLog(APlayerState* SourcePS, APlayerState* TargetPS, FGameplayTag DamageType)
 {
     int32 PCNum = GetWorld()->GetNumPlayerControllers();
     for (int32 i = 0; i < PCNum; i++)
@@ -91,7 +106,7 @@ void ANLGameMode::MulticastKillLog(AActor* SourceActor, AActor* TargetActor, FGa
         APlayerController* PC = It->Get();
         if (ANLPlayerController* NLPC = Cast<ANLPlayerController>(PC))
         {
-            NLPC->AddKillLog(SourceActor, TargetActor, DamageType);
+            NLPC->AddKillLog(SourcePS, TargetPS, DamageType);
         }
     }
 }

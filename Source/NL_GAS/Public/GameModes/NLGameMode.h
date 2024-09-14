@@ -36,9 +36,11 @@ protected:
 	UFUNCTION()
 	virtual void OnPlayerDied(AActor* SourceActor, AActor* TargetActor, FGameplayTag DamageType);
 
+	virtual bool ShouldSetRespawnTimer() const;
+
 	virtual void SetRespawnTime(AActor* TargetActor);
 
-	virtual void MulticastKillLog(AActor* SourceActor, AActor* TargetActor, FGameplayTag DamageType);
+	virtual void MulticastKillLog(APlayerState* SourcePS, APlayerState* TargetPS, FGameplayTag DamageType);
 
 	virtual AActor* ChoosePlayerStartByCondition(APlayerController* Player, bool bInitial);
 

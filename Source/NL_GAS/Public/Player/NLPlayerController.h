@@ -24,7 +24,7 @@ struct FParticleSpawnInfo;
 struct FProjectileSpawnInfo;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnTakenDamageSignature, FVector);
-DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnReceivedKillLogSignature, AActor* /*SourceActor*/, AActor* /*TargetActor*/, FGameplayTag /*DamageType*/);
+DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnReceivedKillLogSignature, APlayerState* /*SourcePS*/, APlayerState* /*TargetPS*/, FGameplayTag /*DamageType*/);
 DECLARE_MULTICAST_DELEGATE(FOnRespawnableSignature);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnKillSignature, AActor* /*TargetActor*/);
 DECLARE_DELEGATE_TwoParams(FOnRequestRespawn, APlayerController* /*PC*/, bool /*bInitial*/);
@@ -202,7 +202,7 @@ public:
 	void OnPlayerDeath(AActor* SourceActor, FGameplayTag DamageType);
 
 	UFUNCTION(Client, Unreliable)
-	void AddKillLog(AActor* SourceActor, AActor* TargetActor, FGameplayTag DamageType);
+	void AddKillLog(APlayerState* SourcePS, APlayerState* TargetPS, FGameplayTag DamageType);
 
 	void SetRespawnTime(float RespawnTime);
 

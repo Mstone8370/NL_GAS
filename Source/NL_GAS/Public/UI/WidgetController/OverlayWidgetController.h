@@ -13,7 +13,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FBulletNumUpdatedSignature, const in
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAttributeUpdatedSignature, float, Value);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDirectionalDamageTakenSignature, FVector, DamageOrigin);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPlayerDeathSignature);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FReceivedKillLogSignature, const AActor*, SourceActor, const AActor*, TargetActor, const FGameplayTag, DamageType);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FReceivedKillLogSignature, const APlayerState*, SourcePS, const APlayerState*, TargetPS, const FGameplayTag, DamageType);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FRespawnableSingature);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FKilled, AActor*, TargetActor);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPlayerRespawnSignature);
@@ -24,8 +24,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInteractionEndSignature);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnTeamScoreUpdatedSignature, int32, FriendlyTeam, int32, EnemyTeam);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTargetScoreUpdatedSignature, int32, TargetScore);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRoundWinTeamDecidedSignature, int32, WinTeam);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMatchWinTeamDecidedSignature, int32, WinTeam);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRoundWinTeamDecidedSignature, bool, bLocalPlayerWin);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMatchWinTeamDecidedSignature, bool, bLocalPlayerWin);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRoundIntroBeginSignature, int32, RoundIntroTime);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRoundInProgressSignature, int32, RoundTimeLimit);
 

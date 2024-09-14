@@ -82,15 +82,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "NLFunctionLibrary|Projectiles")
 	static void SpawnMultipleProjectileByTag(const UObject* WorldContextObject, const FGameplayTag& ProjectileTag, const TArray<FProjectileSpawnInfo>& SpawnInfos, APawn* Instigator, TArray<ANLProjectile*>& OutProjectiles);
 
-	UFUNCTION(BlueprintCallable, Category = "NLFunctionLibrary")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "NLFunctionLibrary")
 	static int32 GetLocalPlayerTeam(const UObject* WorldContextObject);
 
-	UFUNCTION(BlueprintCallable, Category = "NLFunctionLibrary")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "NLFunctionLibrary")
 	static bool IsSameTeam(const APlayerController* SourcePC, const APlayerController* TargetPC);
 
 	// Only for Local player
 	static void ApplyTeamAppearanceToOtherPlayers(const APlayerState* LocalPlayerState, const int32 LocalPlayerTeam);
 
-	UFUNCTION(BlueprintCallable, Category = "NLFunctionLibrary")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "NLFunctionLibrary")
 	static UPlayersStatWidgetController* GetPlayersStatWidgetController(const UObject* WorldContextObject);
 };
