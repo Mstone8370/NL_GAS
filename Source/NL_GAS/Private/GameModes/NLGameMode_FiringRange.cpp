@@ -9,7 +9,7 @@ AActor* ANLGameMode_FiringRange::ReclaimTargetActor()
     {
         AActor* Ret = TargetActorPool.Pop();
         Ret->SetActorHiddenInGame(false);
-        PrintPoolStatus();
+        //PrintPoolStatus();
         return Ret;
     }
     return nullptr;
@@ -21,7 +21,7 @@ void ANLGameMode_FiringRange::ReturnTargetActor(AActor* TargetActor)
     {
         TargetActorPool.Add(TargetActor);
         TargetActor->SetActorHiddenInGame(true);
-        PrintPoolStatus();
+        //PrintPoolStatus();
     }
     else
     {

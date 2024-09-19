@@ -94,12 +94,17 @@ void UAbilityTask_Weapon_Base::SendWeaponTargetData()
         DataHandle.Add(Data);
     }
 
+    FPredictionKey PK = AbilitySystemComponent->ScopedPredictionKey;
+    FPredictionKey NewPK = AbilitySystemComponent->ScopedPredictionKey.CreateNewPredictionKey(AbilitySystemComponent.Get());
+
+    FScopedPredictionWindow ScpedPrediction(AbilitySystemComponent.Get(), NewPK);
+
     AbilitySystemComponent->ServerSetReplicatedTargetData(
         GetAbilitySpecHandle(),
         GetActivationPredictionKey(),
         DataHandle,
         FGameplayTag(),
-        AbilitySystemComponent->ScopedPredictionKey
+        NewPK
     );
 
     if (ShouldBroadcastAbilityTaskDelegates())
@@ -109,8 +114,7 @@ void UAbilityTask_Weapon_Base::SendWeaponTargetData()
     }
 }
 
-void UAbilityTask_Weapon_Base::OnTargetDataReplicatedCallback(const FGameplayAbilityTargetDataHandle& DataHandle,
-    FGameplayTag ActivationTag)
+void UAbilityTask_Weapon_Base::OnTargetDataReplicatedCallback(const FGameplayAbilityTargetDataHandle& DataHandle, FGameplayTag ActivationTag)
 {
     // TargetData를 받기 위해 기다린 경우에는 AbilitySystemComponent의 AbilityTargetDataMap에 넣어두므로, 그 데이터를 지움.
     AbilitySystemComponent->ConsumeClientReplicatedTargetData(GetAbilitySpecHandle(), GetActivationPredictionKey());
