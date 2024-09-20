@@ -58,16 +58,13 @@ void UAbilityTask_Weapon_Base::Activate()
 
 void UAbilityTask_Weapon_Base::SendWeaponTargetData()
 {
-    // 이 scope에 있는 것들은 prediction되어야한다는 의미
-    FScopedPredictionWindow ScopedPrediction(AbilitySystemComponent.Get());
-
     FGameplayAbilityTargetDataHandle DataHandle;
 
     APlayerController* PC = Ability->GetCurrentActorInfo()->PlayerController.Get();
     AActor* AvatarActor = Ability->GetCurrentActorInfo()->AvatarActor.Get();
     check(PC);
     check(AvatarActor);
-    
+
     FVector ViewStart;
     FRotator ViewRot;
     PC->GetPlayerViewPoint(ViewStart, ViewRot);
@@ -81,9 +78,9 @@ void UAbilityTask_Weapon_Base::SendWeaponTargetData()
     for (uint8 i = 0; i < TraceCount; i++)
     {
         FGameplayAbilityTargetData_SingleTargetHit* Data = new FGameplayAbilityTargetData_SingleTargetHit();
-        
+
         FVector ViewDir = UKismetMathLibrary::RandomUnitVectorInConeInDegrees(ViewRot.Vector(), SpreadVal);
-        
+
         FVector TraceStart = ViewStart;
         FVector TraceEnd = TraceStart + (ViewDir * TraceLength);
 
@@ -94,23 +91,28 @@ void UAbilityTask_Weapon_Base::SendWeaponTargetData()
         DataHandle.Add(Data);
     }
 
-    FPredictionKey PK = AbilitySystemComponent->ScopedPredictionKey;
-    FPredictionKey NewPK = AbilitySystemComponent->ScopedPredictionKey.CreateNewPredictionKey(AbilitySystemComponent.Get());
-
-    FScopedPredictionWindow ScpedPrediction(AbilitySystemComponent.Get(), NewPK);
-
-    AbilitySystemComponent->ServerSetReplicatedTargetData(
-        GetAbilitySpecHandle(),
-        GetActivationPredictionKey(),
-        DataHandle,
-        FGameplayTag(),
-        NewPK
-    );
-
-    if (ShouldBroadcastAbilityTaskDelegates())
+    FPredictionKey NewKey = AbilitySystemComponent->ScopedPredictionKey.CreateNewPredictionKey(AbilitySystemComponent.Get());
     {
-        // Prediction
-        ValidData.Broadcast(DataHandle);
+        // 이 scope에 있는 것들은 prediction되어야한다는 의미
+        FScopedPredictionWindow ScopedPrediction(AbilitySystemComponent.Get(), NewKey);
+
+        const FGameplayAbilityActivationInfo ActivationInfo = Ability->GetCurrentActivationInfo();
+        if (!Ability->HasAuthority(&ActivationInfo))
+        {
+            AbilitySystemComponent->ServerSetReplicatedTargetData(
+                GetAbilitySpecHandle(),
+                GetActivationPredictionKey(),
+                DataHandle,
+                FGameplayTag(),
+                NewKey
+            );
+        }
+
+        if (ShouldBroadcastAbilityTaskDelegates())
+        {
+            // Prediction
+            ValidData.Broadcast(DataHandle);
+        }
     }
 }
 
@@ -119,6 +121,8 @@ void UAbilityTask_Weapon_Base::OnTargetDataReplicatedCallback(const FGameplayAbi
     // TargetData를 받기 위해 기다린 경우에는 AbilitySystemComponent의 AbilityTargetDataMap에 넣어두므로, 그 데이터를 지움.
     AbilitySystemComponent->ConsumeClientReplicatedTargetData(GetAbilitySpecHandle(), GetActivationPredictionKey());
     
+    ReceivedDataHandle = DataHandle;
+
     if (ShouldBroadcastAbilityTaskDelegates())
     {
         ValidData.Broadcast(DataHandle);

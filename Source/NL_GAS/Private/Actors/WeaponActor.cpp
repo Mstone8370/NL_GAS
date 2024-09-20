@@ -41,7 +41,7 @@ void AWeaponActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME_CONDITION(AWeaponActor, WeaponTag, COND_InitialOnly);
-	DOREPLIFETIME_CONDITION_NOTIFY(AWeaponActor, CurrentBulletNum, COND_AutonomousOnly, REPNOTIFY_OnChanged);
+	DOREPLIFETIME_CONDITION_NOTIFY(AWeaponActor, CurrentBulletNum, COND_None, REPNOTIFY_OnChanged);
 }
 
 void AWeaponActor::OnRep_AttachmentReplication()
@@ -59,7 +59,6 @@ void AWeaponActor::BeginPlay()
 
 void AWeaponActor::OnRep_CurrentBulletNum(int32 OldNum)
 {
-	UE_LOG(LogTemp, Warning, TEXT("[%s] CurrentBulletNum Replicated. From %d to %d"), *WeaponTag.ToString(), CurrentBulletNum, OldNum);
 	BulletNumChanged.Broadcast(this, CurrentBulletNum);
 }
 

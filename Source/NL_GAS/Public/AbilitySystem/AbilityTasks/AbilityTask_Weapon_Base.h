@@ -30,6 +30,9 @@ public:
 
     uint8 TraceCount;
 
+    UPROPERTY(BlueprintReadOnly)
+    FGameplayAbilityTargetDataHandle ReceivedDataHandle;
+
 private:
     // Async task
     virtual void Activate() override;
