@@ -135,7 +135,7 @@ protected:
 
 	bool FindBlockingLedge(FHitResult& OutHitResult, bool bDebug = false);
 
-	bool CanStandUpOnLegde(FHitResult& OutHitResult, bool bDebug = false);
+	bool CanStandUpOnLegde(const FHitResult& BlockingHitResult, FHitResult& OutHitResult, bool bDebug = false);
 
 	bool GetLedgeClimbTargetLocation(const FHitResult& BlockingHitResult, const FHitResult& StandUpHitResult);
 

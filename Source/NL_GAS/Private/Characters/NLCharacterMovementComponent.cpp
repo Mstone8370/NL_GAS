@@ -212,7 +212,7 @@ void UNLCharacterMovementComponent::UpdateCharacterStateBeforeMovement(float Del
                 FHitResult BlockingLedgeHitResult;
                 FHitResult StandUpHitResult;
                 LedgeClimbTargetLocation = FVector::ZeroVector;
-                if (FindBlockingLedge(BlockingLedgeHitResult) && CanStandUpOnLegde(StandUpHitResult))
+                if (FindBlockingLedge(BlockingLedgeHitResult) && CanStandUpOnLegde(BlockingLedgeHitResult, StandUpHitResult))
                 {
                     if (GetLedgeClimbTargetLocation(BlockingLedgeHitResult, StandUpHitResult))
                     {
@@ -614,7 +614,7 @@ bool UNLCharacterMovementComponent::FindBlockingLedge(FHitResult& OutHitResult, 
 
     const FVector TraceStart = CapsuleLocation + CapsuleForward * ScaledCapsuleRadius - UE_KINDA_SMALL_NUMBER;
     const FVector TraceEnd = TraceStart + CapsuleForward * LedgeTraceLength;
-    const FVector HalfSize(0.1f, ScaledCapsuleRadius * 0.25f, ScaledCapsuleHalfHeight);
+    const FVector HalfSize(0.1f, ScaledCapsuleRadius * 0.05f, ScaledCapsuleHalfHeight);
     const FRotator Orientation = UpdatedComponent->GetComponentRotation();
 
     TArray<AActor*> ActorsToIgnore({ GetOwner() });
@@ -628,9 +628,12 @@ bool UNLCharacterMovementComponent::FindBlockingLedge(FHitResult& OutHitResult, 
         FName("Pawn"),
         false,
         ActorsToIgnore,
-        bDebug ? EDrawDebugTrace::ForOneFrame : EDrawDebugTrace::None,
+        bDebug ? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None,
         OutHitResult,
-        true
+        true,
+        FColor::Red,
+        FColor::Green,
+        1.f
     );
 
     if (OutHitResult.bBlockingHit)
@@ -645,7 +648,7 @@ bool UNLCharacterMovementComponent::FindBlockingLedge(FHitResult& OutHitResult, 
     return false;
 }
 
-bool UNLCharacterMovementComponent::CanStandUpOnLegde(FHitResult& OutHitResult, bool bDebug)
+bool UNLCharacterMovementComponent::CanStandUpOnLegde(const FHitResult& BlockingHitResult, FHitResult& OutHitResult, bool bDebug)
 {
     OutHitResult = FHitResult(1.f);
     if (!UpdatedComponent->IsA<UCapsuleComponent>())
@@ -656,15 +659,23 @@ bool UNLCharacterMovementComponent::CanStandUpOnLegde(FHitResult& OutHitResult, 
     float ScaledCapsuleHalfHeight;
     float ScaledCapsuleRadius;
     GetCapsuleScaledSize(ScaledCapsuleHalfHeight, ScaledCapsuleRadius);
-
+    
     const FVector CapsuleLocation = UpdatedComponent->GetComponentLocation();
     const FVector CapsuleForward = UpdatedComponent->GetForwardVector();
     const FVector CapsuleUp = UpdatedComponent->GetUpVector();
 
-    const FVector TraceStart = CapsuleLocation + CapsuleForward * (ScaledCapsuleRadius * 0.5f) + CapsuleUp * (ScaledCapsuleHalfHeight * 3.f) + UE_KINDA_SMALL_NUMBER;
+    const FVector BlockingNormal2D = BlockingHitResult.Normal.GetSafeNormal2D();
+    const FVector TargetLocation2D = BlockingHitResult.ImpactPoint - (BlockingNormal2D * LedgeClimbForwardDist);
+    const FVector MidLocation2D(FVector2D((CapsuleLocation + TargetLocation2D) / 2.f), 0.f);
+    const float DistToMid2D = FVector::Dist2D(CapsuleLocation, MidLocation2D);
+
+    const FVector HalfSize(ScaledCapsuleRadius + DistToMid2D, ScaledCapsuleRadius, 0.f);
+
+    const FVector TraceStart = FVector(MidLocation2D.X, MidLocation2D.Y, CapsuleLocation.Z) + CapsuleUp * (ScaledCapsuleHalfHeight * 3.f) + UE_KINDA_SMALL_NUMBER;
     const FVector TraceEnd = TraceStart - CapsuleUp * (ScaledCapsuleHalfHeight * 4.f);
-    const FVector HalfSize(ScaledCapsuleRadius * 1.5f, ScaledCapsuleRadius, 0.f);
-    const FRotator Orientation = UpdatedComponent->GetComponentRotation();
+    // const FRotator Orientation = UpdatedComponent->GetComponentRotation();
+    FRotator ToTargetLocRotation = (TargetLocation2D - CapsuleLocation).Rotation();
+    const FRotator Orientation(0.f, ToTargetLocRotation.Yaw, 0.f);
 
     TArray<AActor*> ActorsToIgnore({ GetOwner() });
 
@@ -677,9 +688,12 @@ bool UNLCharacterMovementComponent::CanStandUpOnLegde(FHitResult& OutHitResult, 
         FName("Pawn"),
         false,
         ActorsToIgnore,
-        bDebug ? EDrawDebugTrace::ForOneFrame : EDrawDebugTrace::None,
+        bDebug ? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None,
         OutHitResult,
-        true
+        true,
+        FColor::Orange,
+        FColor::Emerald,
+        1.f
     );
 
     if (OutHitResult.bBlockingHit)
@@ -737,7 +751,7 @@ void UNLCharacterMovementComponent::PhysCustom(float deltaTime, int32 Iterations
     case NLMOVE_None:
         break;
     case NLMOVE_LedgeClimbing:
-        PhysLedgeClimbing(deltaTime, Iterations);
+        PhysLedgeClimbing(deltaTime, Iterations, true);
         break;
     default:
         SetMovementMode(MOVE_None);
@@ -759,13 +773,6 @@ void UNLCharacterMovementComponent::PhysLedgeClimbing(float deltaTime, int32 Ite
 
     if (bDebug)
     {
-        DrawDebugPoint(
-            GetWorld(),
-            LedgeClimbTargetLocation,
-            2.f,
-            FColor::Cyan,
-            false
-        );
         float hh;
         float r;
         GetCapsuleScaledSize(hh, r);
@@ -774,7 +781,11 @@ void UNLCharacterMovementComponent::PhysLedgeClimbing(float deltaTime, int32 Ite
             LedgeClimbTargetLocation,
             hh, r,
             FQuat::Identity,
-            FColor::Cyan
+            FColor::Yellow,
+            false,
+            -1.f,
+            0U,
+            2.f
         );
     }
 

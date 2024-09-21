@@ -65,6 +65,11 @@ void UNLViewSkeletalMeshComponent::UpdateFOV()
 
         FVector2D ViewportSize;
         GetViewportClient()->GetViewportSize(ViewportSize);
+        if (ViewportSize.IsNearlyZero())
+        {
+            return;
+        }
+
         FinalHFOV = ConvertFOVByAspectRatio(VFOV, ViewportSize.X / ViewportSize.Y);
     }
 
