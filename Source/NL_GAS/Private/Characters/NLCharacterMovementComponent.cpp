@@ -751,7 +751,7 @@ void UNLCharacterMovementComponent::PhysCustom(float deltaTime, int32 Iterations
     case NLMOVE_None:
         break;
     case NLMOVE_LedgeClimbing:
-        PhysLedgeClimbing(deltaTime, Iterations, true);
+        PhysLedgeClimbing(deltaTime, Iterations);
         break;
     default:
         SetMovementMode(MOVE_None);
@@ -819,6 +819,12 @@ void UNLCharacterMovementComponent::PhysLedgeClimbing(float deltaTime, int32 Ite
         // Move
         FHitResult Hit(1.f);
         SafeMoveUpdatedComponent(Adjusted, PawnRotation, true, Hit);
+
+        // 지형에 걸린 경우 표면을 따라 이동
+        if (Hit.IsValidBlockingHit())
+        {
+            SlideAlongSurface(Adjusted, 1.f - Hit.Time, Hit.Normal, Hit, true);
+        }
 
         const FVector NewLocation = UpdatedComponent->GetComponentLocation();
         const FVector NewDeltaLocation = LedgeClimbTargetLocation - NewLocation;
