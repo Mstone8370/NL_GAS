@@ -11,6 +11,26 @@
 class UWeaponRecoilPattern;
 struct FTaggedAimPunch;
 
+USTRUCT()
+struct FPooledControlShakes
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	TArray<TObjectPtr<UControlShake>> PooledShakes;
+};
+
+/**
+* TODO:
+* Shake 인스턴스에 필요한 정보: Shake 커브, 지속 시간, 각도, 게임플레이 태그, 루프 여부
+* 재사용 되는 정보: Shake 커브, 지속 시간, 게임플레이 태그
+* 재사용 되는 정보는 게임플레이 태그에 따라 결정됨
+* 따라서 각 쉐이크에 필요한 정보는 하나의 데이터 에셋에 태그에 따라 분류
+* 따라서 쉐이크 인스턴스를 처음 설정할때에만 데이터 에셋을 참조하도록
+* 그 후엔 PoolMap에 태그에 따라 분류 & 저장되어 필요할때 재사용해 각도만 설정
+* 반동 패턴은 별도의 데이터 에셋에 저장해서 사용
+*/
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class NL_GAS_API UControlShakeManager : public UActorComponent
 {
@@ -36,11 +56,12 @@ protected:
 
 	FRotator DeltaShake;
 
+	int32 MaxPoolSize;
+
 public:
 	void AddShake(float InDuration, UCurveVector* InCurve, FRotator InShakeMagnitude, bool bInLoop = false);
 
-	UFUNCTION(BlueprintCallable)
-	void AddShake(FControlShakeParams Params, bool bInLoop = false);
+	void AddShake(const FGameplayTag& ShakeTag, FRotator InShakeMagnitude, bool bInLoop = false);
 
 	UFUNCTION(BlueprintCallable)
 	void WeaponFired(const FGameplayTag& WeaponTag);
@@ -62,9 +83,14 @@ protected:
 	TArray<TObjectPtr<UControlShake>> ExpiredPool;
 
 	UPROPERTY()
+	TMap<FGameplayTag, FPooledControlShakes> ExpiredPoolMap;
+
+	UPROPERTY()
 	TObjectPtr<UControlShake> LoopingShake;
 
 	UControlShake* ReclaimShakeFromExpiredPool();
+
+	UControlShake* ReclaimShakeFromExpiredPoolMap(const FGameplayTag& ShakeTag);
 
 	ACharacter* GetOwningCharacter();
 

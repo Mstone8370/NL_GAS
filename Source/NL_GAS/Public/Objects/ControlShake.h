@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
+#include "GameplayTagContainer.h"
 #include "ControlShake.generated.h"
 
 class UCurveVector;
@@ -50,9 +51,11 @@ public:
 
 	void Activate(float InDuration, UCurveVector* InCurve, FRotator InShakeMagnitude);
 
-	void Activate(FControlShakeParams InParams);
+	void Reactivate(FRotator InShakeMagnitude);
 
 	FORCEINLINE bool IsActive() const { return bIsActive; }
+
+	FORCEINLINE FGameplayTag GetShakeTag() const { return ShakeTag; }
 
 	void Clear();
 
@@ -60,4 +63,6 @@ protected:
 	bool bIsActive;
 
 	float TimeElapsed;
+
+	FGameplayTag ShakeTag;
 };

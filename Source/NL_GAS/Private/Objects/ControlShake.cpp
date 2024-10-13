@@ -66,9 +66,8 @@ void UControlShake::Activate(float InDuration, UCurveVector* InCurve, FRotator I
     ControlShakeParams.ShakeMagnitude = InShakeMagnitude;
 }
 
-void UControlShake::Activate(FControlShakeParams InParams)
+void UControlShake::Reactivate(FRotator InShakeMagnitude)
 {
-    Activate(InParams.Duration, InParams.Curve, InParams.ShakeMagnitude);
 }
 
 void UControlShake::Clear()

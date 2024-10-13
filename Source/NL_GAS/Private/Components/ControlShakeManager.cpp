@@ -10,6 +10,7 @@ UControlShakeManager::UControlShakeManager()
     : ShakeSum(FRotator::ZeroRotator)
     , ShakeSumPrev(FRotator::ZeroRotator)
     , DeltaShake(FRotator::ZeroRotator)
+    , MaxPoolSize(5)
 {
     PrimaryComponentTick.bCanEverTick = true;
 }
@@ -22,6 +23,7 @@ void UControlShakeManager::BeginPlay()
 
     ActiveShakes.Empty();
     ExpiredPool.Empty();
+    ExpiredPoolMap.Empty();
 }
 
 void UControlShakeManager::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -71,7 +73,7 @@ void UControlShakeManager::UpdateShakes(float DeltaTime)
     for (int32 i = ExpiredShakeIndices.Num() - 1; i >= 0; i--)
     {
         UControlShake* ExpiredShake = ActiveShakes[ExpiredShakeIndices[i]];
-        if (ExpiredPool.Num() < 6)
+        if (ExpiredPool.Num() < MaxPoolSize)
         {
             ExpiredPool.Add(ExpiredShake);
         }
@@ -117,9 +119,17 @@ void UControlShakeManager::AddShake(float InDuration, UCurveVector* InCurve, FRo
     Shake->Activate(InDuration, InCurve, InShakeMagnitude);
 }
 
-void UControlShakeManager::AddShake(FControlShakeParams Params, bool bInLoop)
+void UControlShakeManager::AddShake(const FGameplayTag& ShakeTag, FRotator InShakeMagnitude, bool bInLoop)
 {
-    AddShake(Params.Duration, Params.Curve, Params.ShakeMagnitude, bInLoop);
+    UControlShake* Shake = ReclaimShakeFromExpiredPoolMap(ShakeTag);
+    if (!Shake)
+    {
+        Shake = NewObject<UControlShake>(this);
+        // TODO: 쉐이크 인스턴스 기본 설정
+    }
+
+    ActiveShakes.Add(Shake);
+    Shake->Reactivate(InShakeMagnitude);
 }
 
 void UControlShakeManager::WeaponFired(const FGameplayTag& WeaponTag)
@@ -136,8 +146,7 @@ void UControlShakeManager::WeaponFired(const FGameplayTag& WeaponTag)
     const FWeaponRecoilInfo& Info = RecoilPatternData->Data[WeaponTag];
 
     AddShake(
-        Info.SingleRecoilDuration,
-        Info.SingleRecoilCurve,
+        WeaponTag,
         FRotator(RecoilPattern.X, RecoilPattern.Y, RecoilPattern.Z)
     );
 
@@ -169,6 +178,15 @@ UControlShake* UControlShakeManager::ReclaimShakeFromExpiredPool()
     if (!ExpiredPool.IsEmpty())
     {
         return ExpiredPool.Pop();
+    }
+    return nullptr;
+}
+
+UControlShake* UControlShakeManager::ReclaimShakeFromExpiredPoolMap(const FGameplayTag& ShakeTag)
+{
+    if (ExpiredPoolMap.Contains(ShakeTag) && !ExpiredPoolMap[ShakeTag].PooledShakes.IsEmpty())
+    {
+        return ExpiredPoolMap[ShakeTag].PooledShakes.Pop();
     }
     return nullptr;
 }
