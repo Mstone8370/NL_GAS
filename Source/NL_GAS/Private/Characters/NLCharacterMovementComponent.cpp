@@ -799,8 +799,6 @@ void UNLCharacterMovementComponent::PhysLedgeClimbing(float deltaTime, int32 Ite
         const FVector OldLocation = UpdatedComponent->GetComponentLocation();
         const FQuat PawnRotation = UpdatedComponent->GetComponentQuat();
         bJustTeleported = false;
-
-        const FVector OldVelocity = Velocity;
         
         const FVector DeltaLocation = LedgeClimbTargetLocation - UpdatedComponent->GetComponentLocation();
         const bool bIsClimbing = DeltaLocation.Z > 0.f;

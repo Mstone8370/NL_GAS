@@ -150,19 +150,6 @@ void ANLCharacterBase::OnResetted()
 
 void ANLCharacterBase::InitAbilityActorInfo() {}
 
-void ANLCharacterBase::AddStartupAbilities()
-{
-    if (!HasAuthority())
-    {
-        return;
-    }
-
-    if (UNLAbilitySystemComponent* NLASC = Cast<UNLAbilitySystemComponent>(GetAbilitySystemComponent()))
-    {
-        NLASC->AddAbilities(StartupAbilities);
-    }
-}
-
 void ANLCharacterBase::InitDefaultAttribute()
 {
     check(AbilitySystemComponent);

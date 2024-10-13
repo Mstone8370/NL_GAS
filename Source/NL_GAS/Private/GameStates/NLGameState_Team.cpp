@@ -8,7 +8,7 @@
 #include "Player/NLPlayerState.h"
 #include "NLGameplayTags.h"
 #include "Kismet/GameplayStatics.h"
-#include "Interface/PlayerInterface.h"
+#include "AbilitySystemComponent.h"
 
 void ANLGameState_Team::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -178,9 +178,13 @@ void ANLGameState_Team::HandleRoundHasStarted()
         {
             if (APawn* Pawn = LocalPlayer->PlayerController->GetPawn())
             {
-                if (Pawn->Implements<UPlayerInterface>())
+                if (ANLPlayerState* NLPS = Cast<ANLPlayerState>(Pawn->GetPlayerState()))
                 {
-                    IPlayerInterface::Execute_TrySwapWeaponSlot(Pawn, 0);
+                    if (UAbilitySystemComponent* ASC = NLPS->GetAbilitySystemComponent())
+                    {
+                        FGameplayTagContainer TagContainer(Ability_WeaponChange_1);
+                        ASC->TryActivateAbilitiesByTag(TagContainer);
+                    }
                 }
             }
         }

@@ -44,6 +44,26 @@ void ANLPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
     DOREPLIFETIME_CONDITION_NOTIFY(ANLPlayerState, bIsDead, COND_None, REPNOTIFY_OnChanged);
 }
 
+void ANLPlayerState::BeginPlay()
+{
+    Super::BeginPlay();
+
+    AddStartupAbilities();
+}
+
+void ANLPlayerState::AddStartupAbilities()
+{
+    if (!HasAuthority())
+    {
+        return;
+    }
+
+    if (GetNLASC())
+    {
+        GetNLASC()->AddAbilities(StartupAbilities);
+    }
+}
+
 void ANLPlayerState::OnRep_Team()
 {
     TeamAssigned(Team);
@@ -63,6 +83,15 @@ void ANLPlayerState::OnRep_IsDead()
 UAbilitySystemComponent* ANLPlayerState::GetAbilitySystemComponent() const
 {
     return AbilitySystemComponent;
+}
+
+UNLAbilitySystemComponent* ANLPlayerState::GetNLASC()
+{
+    if (!NLASC)
+    {
+        NLASC = Cast<UNLAbilitySystemComponent>(GetAbilitySystemComponent());
+    }
+    return NLASC;
 }
 
 FString ANLPlayerState::GetPlayerNameCustom() const

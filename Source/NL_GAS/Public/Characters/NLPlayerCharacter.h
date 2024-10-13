@@ -21,6 +21,11 @@ class UNLAbilitySystemComponent;
 class UNLAttributeSet;
 class AInteractable;
 
+/**
+* 시뮬레이티드 프록시가 LedgeClimb를 할때 필요한 정보는
+* LedgeClimb를 해야하는지에 대한 정보와, 목표 위치 정보
+* 두 정보를 같이 레플리케이트 받기 위해 구조체로 묶음
+*/
 USTRUCT()
 struct FLedgeClimbData
 {

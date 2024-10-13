@@ -10,6 +10,8 @@
 
 class UAbilitySystemComponent;
 class UAttributeSet;
+class UNLAbilitySystemComponent;
+class UGameplayAbility;
 
 DECLARE_MULTICAST_DELEGATE_ThreeParams(FPlayerStatUpdatedSignature, const APlayerState* /*PlayerState*/, const FGameplayTag& /*StatTag*/, int32 /*Value*/);
 
@@ -29,9 +31,19 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TArray<FGameplayTag> StartupWeapons;
 
+private:
+	UPROPERTY(EditDefaultsOnly, Category = "Ability")
+	TMap<FGameplayTag, TSubclassOf<UGameplayAbility>> StartupAbilities;
+
 protected:
+	virtual void BeginPlay() override;
+
+	void AddStartupAbilities();
+
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
+
+	UNLAbilitySystemComponent* NLASC;
 	
 	UPROPERTY()
 	TObjectPtr<UAttributeSet> AttributeSet;
@@ -58,6 +70,8 @@ public:
 	//~ End AbilitySystemInterface
 
 	FORCEINLINE UAttributeSet* GetAttributeSet() const { return AttributeSet; }
+
+	UNLAbilitySystemComponent* GetNLASC();
 
 	virtual FString GetPlayerNameCustom() const override;
 

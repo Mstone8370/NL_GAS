@@ -80,8 +80,6 @@ protected:
 
 	virtual void InitAbilityActorInfo();
 
-	void AddStartupAbilities();
-
 	void InitDefaultAttribute();
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
@@ -106,10 +104,6 @@ protected:
 	virtual void HandleRespawn(bool bSimulated = false);
 
 	virtual void HandleReset(bool bSimulated = false);
-
-private:
-	UPROPERTY(EditDefaultsOnly, Category = "Ability")
-	TMap<FGameplayTag, TSubclassOf<UGameplayAbility>> StartupAbilities;
 
 public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)

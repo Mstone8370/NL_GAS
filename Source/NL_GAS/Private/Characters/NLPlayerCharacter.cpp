@@ -40,7 +40,6 @@ ANLPlayerCharacter::ANLPlayerCharacter(const FObjectInitializer& ObjectInitializ
     PrimaryActorTick.bCanEverTick = false;
     
     GetMesh()->bOwnerNoSee = true;
-    GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::OnlyTickPoseWhenRendered;
 
     SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(FName("SpringArm"));
     SpringArmComponent->TargetArmLength = 0.f;
@@ -179,8 +178,6 @@ void ANLPlayerCharacter::PossessedBy(AController* NewController)
     InitAbilityActorInfo();
     
     TryInitializeHUD();
-    
-    AddStartupAbilities();
 
     if (NewController->IsLocalPlayerController())
     {
