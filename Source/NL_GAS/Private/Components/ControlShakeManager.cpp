@@ -22,7 +22,6 @@ void UControlShakeManager::BeginPlay()
     OwningCharacter = Cast<ACharacter>(GetOwner());
 
     ActiveShakes.Empty();
-    ExpiredPool.Empty();
     ExpiredPoolMap.Empty();
 }
 
@@ -72,11 +71,17 @@ void UControlShakeManager::UpdateShakes(float DeltaTime)
 
     for (int32 i = ExpiredShakeIndices.Num() - 1; i >= 0; i--)
     {
-        UControlShake* ExpiredShake = ActiveShakes[ExpiredShakeIndices[i]];
-        if (ExpiredPool.Num() < MaxPoolSize)
+        if (UControlShake* ExpiredShake = ActiveShakes[ExpiredShakeIndices[i]])
         {
-            ExpiredPool.Add(ExpiredShake);
+            FGameplayTag ShakeTag = ExpiredShake->GetShakeTag();
+            if (ShakeTag.IsValid() && 
+                ExpiredPoolMap.Contains(ShakeTag) && 
+                ExpiredPoolMap[ShakeTag].Num() < MaxPoolSize)
+            {
+                ExpiredPoolMap[ShakeTag].Add(ExpiredShake);
+            }
         }
+        
         ActiveShakes.RemoveAt(ExpiredShakeIndices[i]);
     }
 }
@@ -95,7 +100,7 @@ void UControlShakeManager::ApplyShake(float DeltaTime)
 
 void UControlShakeManager::AddShake(float InDuration, UCurveVector* InCurve, FRotator InShakeMagnitude, bool bInLoop)
 {
-    UControlShake* Shake = ReclaimShakeFromExpiredPool();
+    UControlShake* Shake = ReclaimShakeFromExpiredPoolMap(FGameplayTag::EmptyTag);
     if (!Shake)
     {
         Shake = NewObject<UControlShake>(this);
@@ -173,20 +178,11 @@ void UControlShakeManager::ClearLoopingShake()
     }
 }
 
-UControlShake* UControlShakeManager::ReclaimShakeFromExpiredPool()
-{
-    if (!ExpiredPool.IsEmpty())
-    {
-        return ExpiredPool.Pop();
-    }
-    return nullptr;
-}
-
 UControlShake* UControlShakeManager::ReclaimShakeFromExpiredPoolMap(const FGameplayTag& ShakeTag)
 {
     if (ExpiredPoolMap.Contains(ShakeTag) && !ExpiredPoolMap[ShakeTag].PooledShakes.IsEmpty())
     {
-        return ExpiredPoolMap[ShakeTag].PooledShakes.Pop();
+        return ExpiredPoolMap[ShakeTag].Pop();
     }
     return nullptr;
 }

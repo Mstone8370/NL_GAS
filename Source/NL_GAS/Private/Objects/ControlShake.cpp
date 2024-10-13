@@ -43,9 +43,9 @@ bool UControlShake::UpdateShake(float DeltaTime, FRotator& OutShake)
     const FVector CurveValue = bIsActive ? ControlShakeParams.Curve->GetVectorValue(CurveTime) : FVector::ZeroVector;
     
     OutShake = FRotator(
-        ControlShakeParams.ShakeMagnitude.Pitch * CurveValue.X,
-        ControlShakeParams.ShakeMagnitude.Yaw * CurveValue.Y,
-        ControlShakeParams.ShakeMagnitude.Roll * CurveValue.Z  // Roll only affects weapon mesh.
+        ShakeMagnitude.Pitch * CurveValue.X,
+        ShakeMagnitude.Yaw * CurveValue.Y,
+        ShakeMagnitude.Roll * CurveValue.Z  // Roll only affects weapon mesh.
     );
 
     if (!bIsActive)
@@ -63,11 +63,16 @@ void UControlShake::Activate(float InDuration, UCurveVector* InCurve, FRotator I
 
     ControlShakeParams.Duration = InDuration;
     ControlShakeParams.Curve = InCurve;
-    ControlShakeParams.ShakeMagnitude = InShakeMagnitude;
+    
+    ShakeMagnitude = InShakeMagnitude;
 }
 
 void UControlShake::Reactivate(FRotator InShakeMagnitude)
 {
+    bIsActive = true;
+    TimeElapsed = 0.f;
+
+    ShakeMagnitude = InShakeMagnitude;
 }
 
 void UControlShake::Clear()
@@ -75,4 +80,5 @@ void UControlShake::Clear()
     bIsActive = false;
     TimeElapsed = 0.f;
     ControlShakeParams.Clear();
+    ShakeMagnitude = FRotator::ZeroRotator;
 }

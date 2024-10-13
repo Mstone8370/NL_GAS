@@ -22,14 +22,10 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	TObjectPtr<UCurveVector> Curve;
 
-	UPROPERTY(BlueprintReadWrite)
-	FRotator ShakeMagnitude = FRotator(1.f, 1.f, 1.f);
-
 	void Clear()
 	{
 		Duration = 1.f;
 		Curve = nullptr;
-		ShakeMagnitude = FRotator(1.f, 1.f, 1.f);
 	}
 };
 
@@ -58,6 +54,8 @@ public:
 	FORCEINLINE FGameplayTag GetShakeTag() const { return ShakeTag; }
 
 	void Clear();
+
+	FRotator ShakeMagnitude;
 
 protected:
 	bool bIsActive;

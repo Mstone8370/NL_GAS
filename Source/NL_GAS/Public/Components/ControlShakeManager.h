@@ -18,6 +18,12 @@ struct FPooledControlShakes
 
 	UPROPERTY()
 	TArray<TObjectPtr<UControlShake>> PooledShakes;
+
+	FORCEINLINE int32 Num() const { return PooledShakes.Num(); }
+
+	FORCEINLINE int32 Add(const TObjectPtr<UControlShake>& Item) { return PooledShakes.Add(Item); }
+
+	FORCEINLINE TObjectPtr<UControlShake> Pop(bool bAllowShrinking = true) { return PooledShakes.Pop(bAllowShrinking); }
 };
 
 /**
@@ -59,6 +65,7 @@ protected:
 	int32 MaxPoolSize;
 
 public:
+	// TODO: delete
 	void AddShake(float InDuration, UCurveVector* InCurve, FRotator InShakeMagnitude, bool bInLoop = false);
 
 	void AddShake(const FGameplayTag& ShakeTag, FRotator InShakeMagnitude, bool bInLoop = false);
@@ -80,15 +87,10 @@ protected:
 	TArray<TObjectPtr<UControlShake>> ActiveShakes;
 
 	UPROPERTY()
-	TArray<TObjectPtr<UControlShake>> ExpiredPool;
-
-	UPROPERTY()
 	TMap<FGameplayTag, FPooledControlShakes> ExpiredPoolMap;
 
 	UPROPERTY()
 	TObjectPtr<UControlShake> LoopingShake;
-
-	UControlShake* ReclaimShakeFromExpiredPool();
 
 	UControlShake* ReclaimShakeFromExpiredPoolMap(const FGameplayTag& ShakeTag);
 
