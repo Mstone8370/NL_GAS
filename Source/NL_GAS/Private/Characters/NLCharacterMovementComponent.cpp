@@ -759,7 +759,7 @@ void UNLCharacterMovementComponent::PhysCustom(float deltaTime, int32 Iterations
     }
 }
 
-void UNLCharacterMovementComponent::PhysLedgeClimbing(float deltaTime, int32 Iterations, bool bDebug)
+void UNLCharacterMovementComponent::PhysLedgeClimbing(float deltaTime, int32 Iterations)
 {
     if (!HasValidData())
     {
@@ -769,24 +769,6 @@ void UNLCharacterMovementComponent::PhysLedgeClimbing(float deltaTime, int32 Ite
     if (deltaTime < MIN_TICK_TIME)
     {
         return;
-    }
-
-    if (bDebug)
-    {
-        float hh;
-        float r;
-        GetCapsuleScaledSize(hh, r);
-        DrawDebugCapsule(
-            GetWorld(),
-            LedgeClimbTargetLocation,
-            hh, r,
-            FQuat::Identity,
-            FColor::Yellow,
-            false,
-            -1.f,
-            0U,
-            2.f
-        );
     }
 
     float remainingTime = deltaTime;
@@ -801,7 +783,7 @@ void UNLCharacterMovementComponent::PhysLedgeClimbing(float deltaTime, int32 Ite
         bJustTeleported = false;
         
         const FVector DeltaLocation = LedgeClimbTargetLocation - UpdatedComponent->GetComponentLocation();
-        const bool bIsClimbing = DeltaLocation.Z > 0.f;
+        const bool bIsClimbing = DeltaLocation.Z > 0.f;  // 목표 위치가 더 높은곳에 있으면 올라가고있는 상태라고 판단
         if (bIsClimbing)
         {
             Velocity = UpdatedComponent->GetUpVector() * LedgeClimbUpSpeed;
@@ -831,6 +813,7 @@ void UNLCharacterMovementComponent::PhysLedgeClimbing(float deltaTime, int32 Ite
         {
             UE_LOG(LogTemp, Warning, TEXT("Character is stuck while ledge climbing"));
         }
+        // 목표 위치에 근접했거나 더 이상 움직이지 못하는 경우 중단
         if (NewDeltaLocation.SizeSquared2D() < 25.f || bStuck)
         {
             Velocity = FVector::ZeroVector;

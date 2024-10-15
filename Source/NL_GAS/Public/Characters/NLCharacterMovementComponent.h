@@ -143,7 +143,7 @@ protected:
 
 	virtual void PhysCustom(float deltaTime, int32 Iterations) override;
 
-	virtual void PhysLedgeClimbing(float deltaTime, int32 Iterations, bool bDebug = false);
+	virtual void PhysLedgeClimbing(float deltaTime, int32 Iterations);
 
 	void GetCapsuleScaledSize(float& OutHalfHeight, float& OutRadius) const;
 };
