@@ -101,6 +101,7 @@ void UNLCharacterComponent::OnRep_WeaponSlot(const FWeaponSlot& OldSlot)
     TSet<AWeaponActor*> NewSet(WeaponSlot.WeaponActorSlot);
 
     TSet<AWeaponActor*> RemovedWeapons;
+    // 떨어뜨린 무기를 구분해서 클라이언트에서도 drop 작업 진행
     for (AWeaponActor* Wpn : OldSet)
     {
         if (Wpn && !NewSet.Contains(Wpn))
@@ -109,7 +110,8 @@ void UNLCharacterComponent::OnRep_WeaponSlot(const FWeaponSlot& OldSlot)
             Wpn->Dropped();
         }
     }
-    // 새로운 무기를 추가하기 전에 제거된 무기를 소켓 맵에서도 제거해서 빈 공간을 만들어야 함.
+    // 새로운 무기를 추가하기 전에 제거된 무기를 소켓 맵에서도 제거해서 빈 공간 확보.
+    // 공간을 확보하지 않으면 무기 어태치 시에 문제가 발생함.
     for (TPair<FName, AWeaponActor*>& Item : WeaponSlotSocketMap)
     {
         if (Item.Value && RemovedWeapons.Contains(Item.Value))
@@ -131,6 +133,7 @@ void UNLCharacterComponent::OnRep_WeaponSlot(const FWeaponSlot& OldSlot)
 
     UpdateWeaponTagSlot();
     
+    // 무기 슬롯을 스왑해야하는지를 확인
     bool bShouldSwapSlot = false;
     if (WeaponSlot.CurrentSlot < WeaponSlot.MaxSlotSize)
     {
@@ -139,10 +142,7 @@ void UNLCharacterComponent::OnRep_WeaponSlot(const FWeaponSlot& OldSlot)
         // CurrentSlot은 동일하다는 전제조건
         const bool bCurrentWeaponChanged = OldSlot.WeaponActorSlot[WeaponSlot.CurrentSlot] != WeaponSlot.WeaponActorSlot[WeaponSlot.CurrentSlot];
         
-        if (bCurrentSlotChanged || bCurrentWeaponChanged)
-        {
-            bShouldSwapSlot = true;
-        }
+        bShouldSwapSlot = (bCurrentSlotChanged || bCurrentWeaponChanged);
     }
     
     const bool bIsSimulated = GetOwnerRole() == ROLE_SimulatedProxy;
@@ -178,7 +178,7 @@ void UNLCharacterComponent::OnRep_WeaponSlot(const FWeaponSlot& OldSlot)
         else if (MontageTemp && GetOwningCharacter() && GetOwningCharacter()->GetMesh() && GetOwningCharacter()->GetMesh()->GetAnimInstance())
         {
             AttachWeaponToHand(GetWeaponActorAtSlot(RealCurrentSlot));
-            // TODO: temp
+            // TODO: temp. 3인칭 애니메이션 몽타주 재생.
             GetOwningCharacter()->GetMesh()->GetAnimInstance()->Montage_Play(MontageTemp);
         }
     }
