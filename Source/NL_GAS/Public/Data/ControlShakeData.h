@@ -5,18 +5,17 @@
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
 #include "GameplayTagContainer.h"
-#include "AimPunchData.generated.h"
+#include "ControlShakeData.generated.h"
 
 class UCurveVector;
 
 USTRUCT(BlueprintType)
-struct FTaggedAimPunch
+struct FTaggedControlShake
 {
 	GENERATED_BODY()
 
-public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TObjectPtr<UCurveVector> ControlShakeCurve = nullptr;
+	TObjectPtr<UCurveVector> ShakeCurve = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float Duration = 0.f;
@@ -29,14 +28,14 @@ public:
 };
 
 UCLASS()
-class NL_GAS_API UAimPunchData : public UDataAsset
+class NL_GAS_API UControlShakeData : public UDataAsset
 {
 	GENERATED_BODY()
 	
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TMap<FGameplayTag, FTaggedAimPunch> Data;
+	TMap<FGameplayTag, FTaggedControlShake> Data;
 
 public:
-	const FTaggedAimPunch* GetAimPunchData(const FGameplayTag& DamageType) const;
+	const FTaggedControlShake* GetControlShakeData(const FGameplayTag& ShakeTag) const;
 };

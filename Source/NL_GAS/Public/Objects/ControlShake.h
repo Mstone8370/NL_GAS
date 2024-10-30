@@ -37,7 +37,16 @@ class NL_GAS_API UControlShake : public UObject
 public:
 	UControlShake();
 
-	FControlShakeParams ControlShakeParams;
+	void Initialize(const FGameplayTag& InShakeTag, UCurveVector* InShakeCurve, float InDuration, FRotator InMagnitude = FRotator::ZeroRotator);
+
+	FGameplayTag ShakeTag;
+
+	UPROPERTY(BlueprintReadWrite)
+	TObjectPtr<UCurveVector> ShakeCurve;
+
+	float Duration;
+
+	FRotator ShakeMagnitude;
 
 	/**
 	* Update time with given DeltaTime and return shake value.
@@ -51,16 +60,10 @@ public:
 
 	FORCEINLINE bool IsActive() const { return bIsActive; }
 
-	FORCEINLINE FGameplayTag GetShakeTag() const { return ShakeTag; }
-
-	void Clear();
-
-	FRotator ShakeMagnitude;
+	void Deactivate();
 
 protected:
 	bool bIsActive;
 
 	float TimeElapsed;
-
-	FGameplayTag ShakeTag;
 };

@@ -5,6 +5,7 @@
 
 #include "GameFramework/Character.h"
 #include "Data/WeaponRecoilPattern.h"
+#include "Data/ControlShakeData.h"
 
 UControlShakeManager::UControlShakeManager()
     : ShakeSum(FRotator::ZeroRotator)
@@ -73,7 +74,7 @@ void UControlShakeManager::UpdateShakes(float DeltaTime)
     {
         if (UControlShake* ExpiredShake = ActiveShakes[ExpiredShakeIndices[i]])
         {
-            FGameplayTag ShakeTag = ExpiredShake->GetShakeTag();
+            FGameplayTag ShakeTag = ExpiredShake->ShakeTag;
             if (ShakeTag.IsValid() && 
                 ExpiredPoolMap.Contains(ShakeTag) && 
                 ExpiredPoolMap[ShakeTag].Num() < MaxPoolSize)
@@ -108,7 +109,7 @@ void UControlShakeManager::AddShake(float InDuration, UCurveVector* InCurve, FRo
 
     if (bInLoop || InDuration <= 0)
     {
-        if (LoopingShake && InCurve == LoopingShake->ControlShakeParams.Curve)
+        if (LoopingShake && InCurve == LoopingShake->ShakeCurve)
         {
             return;
         }
@@ -124,17 +125,24 @@ void UControlShakeManager::AddShake(float InDuration, UCurveVector* InCurve, FRo
     Shake->Activate(InDuration, InCurve, InShakeMagnitude);
 }
 
-void UControlShakeManager::AddShake(const FGameplayTag& ShakeTag, FRotator InShakeMagnitude, bool bInLoop)
+void UControlShakeManager::AddShake(const FGameplayTag& InShakeTag, FRotator InShakeMagnitude, bool bInLoop)
 {
-    UControlShake* Shake = ReclaimShakeFromExpiredPoolMap(ShakeTag);
+    UControlShake* Shake = ReclaimShakeFromExpiredPoolMap(InShakeTag);
     if (!Shake)
     {
-        Shake = NewObject<UControlShake>(this);
         // TODO: 쉐이크 인스턴스 기본 설정
+        const FTaggedControlShake* ShakeData = GetControlShakeData(InShakeTag);
+        if (!ShakeData)
+        {
+            return;
+        }
+        Shake = NewObject<UControlShake>(this);
+        // TODO: Magnitude
+        Shake->Initialize(InShakeTag, ShakeData->ShakeCurve, ShakeData->Duration);
     }
 
     ActiveShakes.Add(Shake);
-    Shake->Reactivate(InShakeMagnitude);
+    Shake->Reactivate(InShakeMagnitude); // TODO: Activate
 }
 
 void UControlShakeManager::WeaponFired(const FGameplayTag& WeaponTag)
@@ -173,14 +181,14 @@ void UControlShakeManager::ClearLoopingShake()
 {
     if (LoopingShake)
     {
-        LoopingShake->Clear();
+        LoopingShake->Deactivate();
         LoopingShake = nullptr;
     }
 }
 
 UControlShake* UControlShakeManager::ReclaimShakeFromExpiredPoolMap(const FGameplayTag& ShakeTag)
 {
-    if (ExpiredPoolMap.Contains(ShakeTag) && !ExpiredPoolMap[ShakeTag].PooledShakes.IsEmpty())
+    if (ShakeTag.IsValid() && ExpiredPoolMap.Contains(ShakeTag) && !ExpiredPoolMap[ShakeTag].PooledShakes.IsEmpty())
     {
         return ExpiredPoolMap[ShakeTag].Pop();
     }
@@ -202,6 +210,12 @@ void UControlShakeManager::ResetRecoilOffset(const FGameplayTag& WeaponTag)
     {
         RecoilOffsetsMap[WeaponTag] = 0;
     }
+}
+
+const FTaggedControlShake* UControlShakeManager::GetControlShakeData(const FGameplayTag& InShakeTag) const
+{
+    check(ControlShakeData);
+    return ControlShakeData->GetControlShakeData(InShakeTag);
 }
 
 int UControlShakeManager::GetRecoilOffset(const FGameplayTag& WeaponTag) const

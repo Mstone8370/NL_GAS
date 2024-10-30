@@ -10,6 +10,8 @@
 
 class UWeaponRecoilPattern;
 struct FTaggedAimPunch;
+class UControlShakeData;
+struct FTaggedControlShake;
 
 USTRUCT()
 struct FPooledControlShakes
@@ -65,7 +67,7 @@ protected:
 	int32 MaxPoolSize;
 
 public:
-	// TODO: delete
+	UFUNCTION(meta = (DeprecatedFunction, DeprecationMessage = "[Deprecated function] UControlShakeManager::AddShake(float, UCurveVector*, FRotator, bool)"))
 	void AddShake(float InDuration, UCurveVector* InCurve, FRotator InShakeMagnitude, bool bInLoop = false);
 
 	void AddShake(const FGameplayTag& ShakeTag, FRotator InShakeMagnitude, bool bInLoop = false);
@@ -80,6 +82,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TObjectPtr<UWeaponRecoilPattern> RecoilPatternData;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TObjectPtr<UControlShakeData> ControlShakeData;
+
 	UPROPERTY(BlueprintReadOnly)
 	TObjectPtr<ACharacter> OwningCharacter;
 
@@ -92,7 +97,7 @@ protected:
 	UPROPERTY()
 	TObjectPtr<UControlShake> LoopingShake;
 
-	UControlShake* ReclaimShakeFromExpiredPoolMap(const FGameplayTag& ShakeTag);
+	UControlShake* ReclaimShakeFromExpiredPoolMap(const FGameplayTag& InShakeTag);
 
 	ACharacter* GetOwningCharacter();
 
@@ -103,6 +108,8 @@ protected:
 	TMap<FGameplayTag, FTimerHandle> RecoilOffsetResetTimersMap;
 
 	void ResetRecoilOffset(const FGameplayTag& WeaponTag);
+
+	const FTaggedControlShake* GetControlShakeData(const FGameplayTag& InShakeTag) const;
 
 public:
 	int GetRecoilOffset(const FGameplayTag& WeaponTag) const;
