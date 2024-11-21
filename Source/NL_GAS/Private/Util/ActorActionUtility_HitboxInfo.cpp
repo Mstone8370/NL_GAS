@@ -48,6 +48,8 @@ void UActorActionUtility_HitboxInfo::SaveHitbox()
                 continue;
             }
         }
+        DataTable->PreEditChange(nullptr);
+        DataTable->Modify();
         DataTable->RowStruct = FHitboxInfoRow::StaticStruct();
 
         // Get Hitbox Info
@@ -104,6 +106,7 @@ void UActorActionUtility_HitboxInfo::SaveHitbox()
         UDataTableFunctionLibrary::FillDataTableFromJSONString(DataTable, JsonString);
 
         // Save DataTable Asset
+        DataTable->PostEditChange();
         UEditorAssetLibrary::SaveAsset(DataTablePath);
     }
 }
